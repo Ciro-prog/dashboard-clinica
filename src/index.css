@@ -1,0 +1,273 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Sistema de diseño para clínica - Paleta profesional médica */
+@layer base {
+  :root {
+    /* Colores base neutros - solo blancos y grises */
+    --background: #F8FAFC;
+    --foreground: #0F172A;
+    
+    --card: #FFFFFF;
+    --card-foreground: #0F172A;
+    
+    --popover: #FFFFFF;
+    --popover-foreground: #0F172A;
+    
+    /* Azul médico oscuro principal */
+    --primary: #1E3A8A;
+    --primary-foreground: #FFFFFF;
+    
+    /* Grises neutros puros */
+    --secondary: #F1F5F9;
+    --secondary-foreground: #334155;
+    
+    --muted: #F1F5F9;
+    --muted-foreground: #64748B;
+    
+    --accent: #EFF6FF;
+    --accent-foreground: #1E3A8A;
+    
+    /* Rojo médico para emergencias */
+    --destructive: #B91C1C;
+    --destructive-foreground: #FFFFFF;
+    
+    --border: #E2E8F0;
+    --input: #1E3A8A;
+    --ring: #1E3A8A;
+    
+    --radius: 0.5rem;
+    
+    /* Sidebar con tonos médicos puros */
+    --sidebar-background: #FFFFFF;
+    --sidebar-foreground: #0F172A;
+    --sidebar-primary: #1E3A8A;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #EFF6FF;
+    --sidebar-accent-foreground: #1E3A8A;
+    --sidebar-border: #E2E8F0;
+    --sidebar-ring: #1E3A8A;
+    
+    /* Paleta médica purificada - solo azules, celestes y neutros */
+    
+    /* Azul médico oscuro - Profesionalismo y confianza */
+    --medical-50: #EFF6FF;
+    --medical-100: #DBEAFE;
+    --medical-200: #BFDBFE;
+    --medical-300: #93C5FD;
+    --medical-400: #60A5FA;
+    --medical-500: #3B82F6;   /* Azul médico estándar */
+    --medical-600: #2563EB;    
+    --medical-700: #1D4ED8;
+    --medical-800: #1E40AF;
+    --medical-900: #1E3A8A;    /* Azul médico oscuro */
+    
+    /* Celeste pastel - Calma y serenidad */
+    --sky-50: #F0F9FF;
+    --sky-100: #E0F2FE;
+    --sky-200: #BAE6FD;
+    --sky-300: #7DD3FC;
+    --sky-400: #38BDF8;
+    --sky-500: #0EA5E9;       /* Celeste principal */
+    --sky-600: #0284C7;
+    --sky-700: #0369A1;
+    --sky-800: #075985;
+    --sky-900: #0C4A6E;
+    
+    /* Gris médico puro - Neutralidad absoluta */
+    --neutral-50: #F8FAFC;
+    --neutral-100: #F1F5F9;
+    --neutral-200: #E2E8F0;
+    --neutral-300: #CBD5E1;
+    --neutral-400: #94A3B8;
+    --neutral-500: #64748B;   /* Gris médico */
+    --neutral-600: #475569;
+    --neutral-700: #334155;
+    --neutral-800: #1E293B;
+    --neutral-900: #0F172A;   /* Negro suave */
+    
+    /* Estados médicos sin amarillos */
+    --success: #15803D;       /* Verde médico discreto */
+    --success-foreground: #FFFFFF;
+    
+    --info: #1E3A8A;          /* Azul información */
+    --info-foreground: #FFFFFF;
+    
+    --emergency: #B91C1C;     /* Rojo emergencia */
+    --emergency-foreground: #FFFFFF;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-gradient-to-br from-slate-50 via-sky-50/40 to-blue-50/30 text-foreground font-sans;
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  /* Gradientes médicos puros */
+  .medical-gradient {
+    background: linear-gradient(to right, #1D4ED8, #1E40AF);
+  }
+  
+  .sky-gradient {
+    background: linear-gradient(to right, #0EA5E9, #0284C7);
+  }
+  
+  .neutral-gradient {
+    background: linear-gradient(to right, #475569, #334155);
+  }
+  
+  /* Sombras médicas limpias */
+  .card-shadow {
+    box-shadow: 0 10px 15px -3px rgba(148, 163, 184, 0.1), 0 4px 6px -2px rgba(148, 163, 184, 0.05);
+  }
+  
+  .medical-shadow {
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.15), 0 4px 6px -2px rgba(59, 130, 246, 0.05);
+  }
+  
+  .sky-shadow {
+    box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.15), 0 4px 6px -2px rgba(14, 165, 233, 0.05);
+  }
+  
+  /* Componentes médicos refinados */
+  .btn-medical {
+    background-color: #1D4ED8;
+    color: #FFFFFF;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.15), 0 4px 6px -2px rgba(59, 130, 246, 0.05);
+  }
+  
+  .btn-medical:hover {
+    background-color: #1E40AF;
+  }
+  
+  .btn-sky {
+    background-color: #0284C7;
+    color: #FFFFFF;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.15), 0 4px 6px -2px rgba(14, 165, 233, 0.05);
+  }
+  
+  .btn-sky:hover {
+    background-color: #0369A1;
+  }
+  
+  .btn-neutral {
+    background-color: #475569;
+    color: #FFFFFF;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 10px 15px -3px rgba(148, 163, 184, 0.1), 0 4px 6px -2px rgba(148, 163, 184, 0.05);
+  }
+  
+  .btn-neutral:hover {
+    background-color: #334155;
+  }
+  
+  .btn-emergency {
+    background-color: #DC2626;
+    color: #FFFFFF;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.15), 0 4px 6px -2px rgba(239, 68, 68, 0.05);
+  }
+  
+  .btn-emergency:hover {
+    background-color: #B91C1C;
+  }
+  
+  /* Cards médicos minimalistas */
+  .medical-card {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.15), 0 4px 6px -2px rgba(59, 130, 246, 0.05);
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .medical-card:hover {
+    box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.1), 0 10px 10px -5px rgba(59, 130, 246, 0.04);
+  }
+  
+  .sky-card {
+    background-color: #FFFFFF;
+    border: 1px solid #E0F2FE;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.15), 0 4px 6px -2px rgba(14, 165, 233, 0.05);
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .sky-card:hover {
+    box-shadow: 0 20px 25px -5px rgba(14, 165, 233, 0.1), 0 10px 10px -5px rgba(14, 165, 233, 0.04);
+  }
+  
+  .neutral-card {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 10px 15px -3px rgba(148, 163, 184, 0.1), 0 4px 6px -2px rgba(148, 163, 184, 0.05);
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .neutral-card:hover {
+    box-shadow: 0 20px 25px -5px rgba(148, 163, 184, 0.1), 0 10px 10px -5px rgba(148, 163, 184, 0.04);
+  }
+  
+  /* Estados médicos sin amarillos */
+  .status-stable {
+    background-color: #EFF6FF;
+    color: #1D4ED8;
+    border: 1px solid #BFDBFE;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+  }
+  
+  .status-info {
+    background-color: #F0F9FF;
+    color: #0369A1;
+    border: 1px solid #BAE6FD;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+  }
+  
+  .status-critical {
+    background-color: #FEF2F2;
+    color: #DC2626;
+    border: 1px solid #FECACA;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+  }
+  
+  .status-neutral {
+    background-color: #F8FAFC;
+    color: #475569;
+    border: 1px solid #E2E8F0;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+  }
+}
