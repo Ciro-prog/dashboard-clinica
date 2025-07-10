@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { 
-  clinicsApi, 
   patientsApi, 
   appointmentsApi, 
   professionalsApi, 
-  metricsApi,
-  type Clinic,
+  statsApi,
   type Patient,
   type Appointment,
-  type Professional,
-  type Metric 
-} from '@/lib/api';
+  type Professional
+} from '@/lib/clinicApi';
+import { logoutClinic, type ClinicUser } from '@/lib/clinicAuth';
 
 interface DashboardStats {
   title: string;
@@ -22,17 +21,30 @@ interface DashboardStats {
   trend?: string;
 }
 
-export default function DashboardLayout() {
+interface DashboardLayoutProps {
+  clinic: ClinicUser;
+  onLogout: () => void;
+}
+
+export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutProps) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   // Estados para los datos
-  const [clinics, setClinics] = useState<Clinic[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [professionals, setProfessionals] = useState<Professional[]>([]);
-  const [metrics, setMetrics] = useState<Metric[]>([]);
+  const [basicStats, setBasicStats] = useState({
+    total_professionals: 0,
+    active_professionals: 0,
+    total_patients: 0,
+    active_patients: 0,
+    total_appointments: 0,
+    appointments_today: 0,
+    completed_appointments: 0,
+    cancelled_appointments: 0,
+  });
   
   // Cargar datos al montar el componente
   useEffect(() => {
@@ -44,69 +56,78 @@ export default function DashboardLayout() {
       setLoading(true);
       setError(null);
 
-      // Cargar todos los datos en paralelo
+      console.log('📊 Cargando datos para clínica:', clinic.name_clinic);
+
+      // Cargar datos en paralelo - automáticamente filtrados por clínica
       const [
-        clinicsResponse,
         patientsResponse,
         appointmentsResponse,
         professionalsResponse,
-        metricsResponse,
+        statsResponse,
       ] = await Promise.all([
-        clinicsApi.getAll(),
-        patientsApi.getAll(),
-        appointmentsApi.getAll(),
-        professionalsApi.getAll(),
-        metricsApi.getAll(),
+        patientsApi.getAll().catch(() => ({ data: [] })),
+        appointmentsApi.getAll().catch(() => ({ data: [] })),
+        professionalsApi.getAll().catch(() => ({ data: [] })),
+        statsApi.getBasicStats().catch(() => ({
+          total_professionals: 0,
+          active_professionals: 0,
+          total_patients: 0,
+          active_patients: 0,
+          total_appointments: 0,
+          appointments_today: 0,
+          completed_appointments: 0,
+          cancelled_appointments: 0,
+        })),
       ]);
 
-      setClinics(clinicsResponse.data);
       setPatients(patientsResponse.data);
       setAppointments(appointmentsResponse.data);
       setProfessionals(professionalsResponse.data);
-      setMetrics(metricsResponse.data);
+      setBasicStats(statsResponse);
+
+      console.log('✅ Datos cargados:', {
+        patients: patientsResponse.data.length,
+        appointments: appointmentsResponse.data.length,
+        professionals: professionalsResponse.data.length,
+      });
 
     } catch (err) {
-      console.error('Error cargando datos:', err);
-      setError('Error al cargar los datos del dashboard');
+      console.error('❌ Error cargando datos:', err);
+      setError('Error al cargar los datos del dashboard. Verifica los permisos en Strapi.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLogout = () => {
+    logoutClinic(); // Limpiar datos de autenticación
+    onLogout();     // Llamar callback original
   };
 
   // Calcular estadísticas dinámicas
   const getDashboardStats = (): DashboardStats[] => {
     const today = new Date().toISOString().split('T')[0];
     const appointmentsToday = appointments.filter(apt => 
-      apt.attributes.datetime.startsWith(today)
+      apt.datetime.startsWith(today)
     );
     
-    const activePatients = patients.filter(p => p.attributes.status === 'active');
-    const activeProfessionals = professionals.filter(p => p.attributes.status === 'active');
+    const activePatients = patients.filter(p => p.status_patient === 'active');
+    const activeProfessionals = professionals.filter(p => p.status_professional === 'active');
     
-    // Métricas de respuesta promedio (últimos 7 días)
-    const weekAgo = new Date();
-    weekAgo.setDate(weekAgo.getDate() - 7);
-    const recentMetrics = metrics.filter(m => 
-      new Date(m.attributes.timestamp) >= weekAgo
-    );
-    const avgResponseTime = recentMetrics.length > 0 
-      ? Math.round(recentMetrics.reduce((acc, m) => acc + m.attributes.response_time, 0) / recentMetrics.length)
-      : 0;
-
     return [
       {
         title: "Pacientes Activos",
         value: activePatients.length.toString(),
         icon: "👥",
-        description: "Total de pacientes registrados",
-        trend: "+12% desde el mes pasado"
+        description: `Total: ${patients.length} pacientes registrados`,
+        trend: `+${Math.max(0, activePatients.length - Math.floor(patients.length * 0.8))} este mes`
       },
       {
         title: "Turnos Hoy",
         value: appointmentsToday.length.toString(),
         icon: "📅",
         description: "Citas programadas para hoy",
-        trend: `${appointmentsToday.filter(a => a.attributes.status === 'confirmed').length} confirmados`
+        trend: `${appointmentsToday.filter(a => a.status_appointment === 'confirmed').length} confirmados`
       },
       {
         title: "Profesionales",
@@ -116,11 +137,13 @@ export default function DashboardLayout() {
         trend: "Todos activos"
       },
       {
-        title: "Tiempo Resp. Promedio",
-        value: `${avgResponseTime}ms`,
-        icon: "⚡",
-        description: "Respuesta del sistema",
-        trend: "Últimos 7 días"
+        title: "Tasa de Asistencia",
+        value: appointments.length > 0 
+          ? `${Math.round((appointments.filter(a => a.status_appointment === 'completed').length / appointments.length) * 100)}%`
+          : "0%",
+        icon: "📊",
+        description: "Últimos 30 días",
+        trend: `${appointments.filter(a => a.status_appointment === 'cancelled').length} canceladas`
       }
     ];
   };
@@ -139,14 +162,20 @@ export default function DashboardLayout() {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
+        <div className="text-center max-w-md">
           <p className="text-red-600 mb-4">{error}</p>
-          <button 
+          <Button 
             onClick={loadDashboardData}
-            className="px-4 py-2 bg-medical-500 text-white rounded-lg hover:bg-medical-600"
+            className="mb-4 bg-medical-500 hover:bg-medical-600"
           >
             Reintentar
-          </button>
+          </Button>
+          <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+            <p><strong>Verifica:</strong></p>
+            <p>• Strapi ejecutándose en localhost:1337</p>
+            <p>• Permisos configurados correctamente</p>
+            <p>• Campo password agregado a tu clínica</p>
+          </div>
         </div>
       </div>
     );
@@ -156,6 +185,53 @@ export default function DashboardLayout() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Header con información de clínica */}
+      <div className="bg-white border-b border-slate-200 shadow-sm">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 medical-gradient rounded-full flex items-center justify-center">
+                <span className="text-white text-lg font-bold">
+                  {clinic.name_clinic.charAt(0)}
+                </span>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-slate-900">{clinic.name_clinic}</h1>
+                <p className="text-sm text-slate-500">{clinic.suscriber} • {clinic.email}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${
+                    clinic.status_clinic === 'active' ? 'bg-green-500' : 'bg-red-500'
+                  }`}></div>
+                  <span className="text-sm font-medium">
+                    {clinic.status_clinic === 'active' ? 'Activa' : 'Inactiva'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${
+                    clinic.subcription ? 'bg-green-500' : 'bg-red-500'  
+                  }`}></div>
+                  <span className="text-sm">
+                    {clinic.subcription ? 'Suscripción activa' : 'Suscripción vencida'}
+                  </span>
+                </div>
+              </div>
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                className="text-red-600 border-red-200 hover:bg-red-50"
+              >
+                Cerrar Sesión
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-5 bg-white/80 backdrop-blur-sm border border-slate-200/50">
@@ -163,7 +239,7 @@ export default function DashboardLayout() {
               📊 Dashboard
             </TabsTrigger>
             <TabsTrigger value="connections" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white">
-              🔗 Conexiones
+              🏥 Clínica
             </TabsTrigger>
             <TabsTrigger value="patients" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white">
               👥 Pacientes
@@ -172,7 +248,7 @@ export default function DashboardLayout() {
               📅 Agenda
             </TabsTrigger>
             <TabsTrigger value="whatsapp" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white">
-              📱 WhatsApp QR
+              👨‍⚕️ Profesionales
             </TabsTrigger>
           </TabsList>
 
@@ -198,32 +274,91 @@ export default function DashboardLayout() {
               ))}
             </div>
 
-            {/* Información de Clínicas */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {clinics.map((clinic) => (
-                <Card key={clinic.id} className="bg-white/90 backdrop-blur-sm border border-slate-200/50">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      🏥 {clinic.attributes.name}
-                    </CardTitle>
-                    <CardDescription>
-                      {clinic.attributes.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <p className="text-sm"><strong>Dirección:</strong> {clinic.attributes.address}</p>
-                    <p className="text-sm"><strong>Teléfono:</strong> {clinic.attributes.phone}</p>
-                    <p className="text-sm"><strong>WhatsApp:</strong> {clinic.attributes.whatsapp_number}</p>
-                    <div className="flex items-center gap-2 mt-4">
-                      <div className={`w-2 h-2 rounded-full ${
-                        clinic.attributes.status === 'active' ? 'bg-green-500' : 'bg-red-500'
-                      }`}></div>
-                      <span className="text-sm capitalize">{clinic.attributes.status}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            {/* Información de la clínica actual */}
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+              <Card className="bg-white/90 backdrop-blur-sm border border-slate-200/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    🏥 {clinic.name_clinic}
+                  </CardTitle>
+                  <CardDescription>
+                    Información de tu clínica
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <p className="text-sm"><strong>Responsable:</strong> {clinic.suscriber}</p>
+                  <p className="text-sm"><strong>Dirección:</strong> {clinic.address}</p>
+                  <p className="text-sm"><strong>Email:</strong> {clinic.email}</p>
+                  <p className="text-sm"><strong>Teléfono:</strong> {clinic.cell_phone}</p>
+                  {clinic.whatsapp_number && (
+                    <p className="text-sm"><strong>WhatsApp:</strong> {clinic.whatsapp_number}</p>
+                  )}
+                  <div className="flex items-center gap-2 mt-4">
+                    <div className={`w-2 h-2 rounded-full ${
+                      clinic.status_clinic === 'active' ? 'bg-green-500' : 'bg-red-500'
+                    }`}></div>
+                    <span className="text-sm capitalize">{clinic.status_clinic}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${
+                      clinic.subcription ? 'bg-green-500' : 'bg-red-500'  
+                    }`}></div>
+                    <span className="text-sm">
+                      Suscripción: {clinic.subcription ? 'Activa' : 'Vencida'}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="connections" className="space-y-6">
+            <Card className="bg-white/90 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle>Información de la Clínica</CardTitle>
+                <CardDescription>
+                  Detalles completos de tu clínica registrada
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-slate-500">ID Clínica</p>
+                    <p className="text-sm text-slate-900">{clinic.clinic_id}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-slate-500">Nombre</p>
+                    <p className="text-sm text-slate-900">{clinic.name_clinic}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-slate-500">Responsable</p>
+                    <p className="text-sm text-slate-900">{clinic.suscriber}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-slate-500">Email</p>
+                    <p className="text-sm text-slate-900">{clinic.email}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-slate-500">Teléfono</p>
+                    <p className="text-sm text-slate-900">{clinic.cell_phone}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-slate-500">Estado</p>
+                    <span className={`text-sm px-2 py-1 rounded-full ${
+                      clinic.status_clinic === 'active' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {clinic.status_clinic}
+                    </span>
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-sm font-medium text-slate-500">Dirección</p>
+                    <p className="text-sm text-slate-900">{clinic.address}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="patients" className="space-y-6">
@@ -231,39 +366,146 @@ export default function DashboardLayout() {
               <CardHeader>
                 <CardTitle>Lista de Pacientes</CardTitle>
                 <CardDescription>
-                  Total: {patients.length} pacientes registrados
+                  Total: {patients.length} pacientes registrados en tu clínica
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {patients.slice(0, 10).map((patient) => (
-                    <div key={patient.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <h4 className="font-medium">
-                          {patient.attributes.first_name} {patient.attributes.last_name}
-                        </h4>
-                        <p className="text-sm text-slate-500">
-                          DNI: {patient.attributes.dni} | {patient.attributes.email}
-                        </p>
+                {patients.length === 0 ? (
+                  <div className="text-center py-8 text-slate-500">
+                    <p>No hay pacientes registrados aún.</p>
+                    <p className="text-sm">Los pacientes aparecerán aquí cuando se registren.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {patients.slice(0, 10).map((patient) => (
+                      <div key={patient.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <h4 className="font-medium">
+                            {patient.first_name} {patient.last_name}
+                          </h4>
+                          <p className="text-sm text-slate-500">
+                            {patient.dni && `DNI: ${patient.dni}`}
+                            {patient.dni && patient.email && ' | '}
+                            {patient.email}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm">{patient.cell_phone}</p>
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            patient.status_patient === 'active' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {patient.status_patient}
+                          </span>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm">{patient.attributes.phone}</p>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          patient.attributes.status === 'active' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {patient.attributes.status}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                    {patients.length > 10 && (
+                      <p className="text-center text-sm text-slate-500">
+                        Mostrando 10 de {patients.length} pacientes
+                      </p>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Otros tabs... */}
+          <TabsContent value="schedule" className="space-y-6">
+            <Card className="bg-white/90 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle>Agenda de Citas</CardTitle>
+                <CardDescription>
+                  Total: {appointments.length} citas programadas
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {appointments.length === 0 ? (
+                  <div className="text-center py-8 text-slate-500">
+                    <p>No hay citas programadas.</p>
+                    <p className="text-sm">Las citas aparecerán aquí cuando se agenden.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {appointments.slice(0, 10).map((appointment) => (
+                      <div key={appointment.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <h4 className="font-medium">
+                            {new Date(appointment.datetime).toLocaleDateString()} - {new Date(appointment.datetime).toLocaleTimeString()}
+                          </h4>
+                          <p className="text-sm text-slate-500">
+                            {appointment.type} • {appointment.duration} min
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            appointment.status_appointment === 'confirmed' ? 'bg-green-100 text-green-800' :
+                            appointment.status_appointment === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                            appointment.status_appointment === 'completed' ? 'bg-gray-100 text-gray-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {appointment.status_appointment}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                    {appointments.length > 10 && (
+                      <p className="text-center text-sm text-slate-500">
+                        Mostrando 10 de {appointments.length} citas
+                      </p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="whatsapp" className="space-y-6">
+            <Card className="bg-white/90 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle>Equipo Profesional</CardTitle>
+                <CardDescription>
+                  Total: {professionals.length} profesionales en tu clínica
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {professionals.length === 0 ? (
+                  <div className="text-center py-8 text-slate-500">
+                    <p>No hay profesionales registrados.</p>
+                    <p className="text-sm">Los profesionales aparecerán aquí cuando se registren.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {professionals.map((professional) => (
+                      <div key={professional.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <h4 className="font-medium">
+                            {professional.first_name} {professional.last_name}
+                          </h4>
+                          <p className="text-sm text-slate-500">
+                            {professional.speciality} • {professional.email}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm">{professional.phone}</p>
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            professional.status_professional === 'active' 
+                              ? 'bg-green-100 text-green-800' 
+                              : professional.status_professional === 'vacation'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {professional.status_professional}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
     </div>

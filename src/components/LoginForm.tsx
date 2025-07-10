@@ -4,45 +4,77 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { loginClinic, saveClinicAuthData, type ClinicUser } from '@/lib/clinicAuth';
 
 interface LoginFormProps {
-  onLogin: (email: string) => void;
+  onLogin: (clinic: ClinicUser) => void;
 }
 
 const LoginForm = ({ onLogin }: LoginFormProps) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin@admin.com');
+  const [password, setPassword] = useState('Admin123!');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    
     if (!email || !password) {
-        toast({
-          title: "Error",
-          description: "Por favor completa todos los campos.",
-          variant: "destructive"
-        });
-      setIsLoading(false);
-      return;
-    }
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
       toast({
-        title: "Error de autenticación",
-        description: error.message,
+        title: "Error",
+        description: "Por favor completa todos los campos.",
         variant: "destructive"
       });
       setIsLoading(false);
       return;
     }
-    toast({
-      title: "¡Bienvenido!",
-      description: "Has iniciado sesión correctamente.",
-    });
-    setIsLoading(false);
-    onLogin(email); // Redirige al dashboard
+
+    try {
+      console.log('🔐 Iniciando login para clínica:', email);
+      
+      // Autenticar clínica
+      const authResponse = await loginClinic(email, password);
+      
+      console.log('✅ Login exitoso:', authResponse.clinic);
+
+      // Guardar datos de autenticación
+      saveClinicAuthData(authResponse);
+      
+      toast({
+        title: "¡Bienvenido!",
+        description: `Acceso autorizado a ${authResponse.clinic.name_clinic}`,
+      });
+      
+      // Redirigir al dashboard con datos de clínica
+      onLogin(authResponse.clinic);
+      
+    } catch (error) {
+      console.error('❌ Error en login:', error);
+      
+      let errorMessage = "Error de autenticación";
+      
+      if (error.message?.includes('Clínica no encontrada')) {
+        errorMessage = "No existe una clínica registrada con este email";
+      } else if (error.message?.includes('Contraseña incorrecta')) {
+        errorMessage = "La contraseña es incorrecta";
+      } else if (error.message?.includes('inactiva')) {
+        errorMessage = "La clínica está inactiva. Contacta al administrador.";
+      } else if (error.message?.includes('suscripción')) {
+        errorMessage = "La suscripción ha expirado. Contacta al administrador.";
+      } else if (error.message?.includes('fetch')) {
+        errorMessage = "Error de conexión. Verifica que Strapi esté ejecutándose.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast({
+        title: "Error de autenticación",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -64,10 +96,11 @@ const LoginForm = ({ onLogin }: LoginFormProps) => {
               <Input
                 id="email"
                 type="email"
-                placeholder="doctor@clinica.com"
+                placeholder="admin@admin.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="transition-all focus:ring-2 focus:ring-medical-500"
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -79,6 +112,7 @@ const LoginForm = ({ onLogin }: LoginFormProps) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="transition-all focus:ring-2 focus:ring-medical-500"
+                disabled={isLoading}
               />
             </div>
             <Button 
@@ -96,6 +130,13 @@ const LoginForm = ({ onLogin }: LoginFormProps) => {
               )}
             </Button>
           </form>
+          
+          {/* Información de prueba */}
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
+            <p className="font-medium text-gray-700 mb-2">💡 Credenciales de prueba:</p>
+            <p><strong>Email:</strong> admin@admin.com</p>
+            <p><strong>Contraseña:</strong> Admin123!</p>
+          </div>
         </CardContent>
       </Card>
     </div>
