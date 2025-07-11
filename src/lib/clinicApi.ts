@@ -1,11 +1,8 @@
-// src/lib/clinicApi.ts - API actualizada para sistema de autenticación con Clínica
-
-import { createAuthenticatedRequest, getStoredClinicData } from './clinicAuth';
-
+// src/lib/clinicApi.tsx
 // Configuración de la API de Strapi
 const API_URL = typeof window !== 'undefined' 
-  ? 'http://localhost:1337'  
-  : process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
+  ? 'http://localhost:1337'  // En el navegador
+  : process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'; // En el servidor
 
 export interface ApiResponse<T> {
   data: T[];
@@ -24,342 +21,219 @@ export interface SingleApiResponse<T> {
   meta: unknown;
 }
 
-// Tipos basados en tu estructura real creada
+// ✅ INTERFAZ CLINIC - Corregida según tu uso actual
 export interface Clinic {
   id: number;
-  documentId: string;
-  clinic_id: string;
-  name_clinic: string;
-  suscriber: string;
-  address: string;
-  email: string;
-  cell_phone: string;
-  subcription: boolean;
-  status_clinic: 'active' | 'inactive' | 'maintenance';
-  whatsapp_number?: string;
-  logo?: string;
-  password?: string;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
+  attributes: {
+    clinic_id: string;           // UID único
+    name_clinic: string;         // Nombre de la clínica
+    suscriber: string;          // Subscriber para WAHA
+    address: string;            // Dirección
+    subcription: boolean;       // Estado de suscripción
+    email: string;              // Email
+    password?: string;          // Password (opcional/privado)
+    cell_phone: number;         // Teléfono celular
+    status_clinic: 'active' | 'inactive' | 'maintenance'; // Estado de la clínica
+    whatsapp_number?: string;   // Número de WhatsApp (opcional)
+    createdAt: string;
+    updatedAt: string;
+    publishedAt: string;
+    // Relación con paciente
+    patient?: {
+      data: any;
+    };
+  };
 }
 
+// ✅ INTERFAZ PROFESSIONAL - Según tu uso
 export interface Professional {
   id: number;
-  documentId: string;
-  professional_id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
-  speciality: string;
-  status_professional: 'active' | 'inactive' | 'vacation';
-  bio?: string;
-  bio_professional?: string;
-  clinic?: {
-    data: Clinic;
+  attributes: {
+    first_name: string;
+    last_name: string;
+    speciality: string;
+    license_number?: string;
+    phone: string;
+    email: string;
+    status_professional: 'active' | 'inactive' | 'vacation';
+    createdAt: string;
+    updatedAt: string;
   };
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
 }
 
+// ✅ INTERFAZ PATIENT - Según tu uso  
 export interface Patient {
   id: number;
-  documentId: string;
-  patient_id: string;
-  dni?: string;
-  first_name: string;
-  last_name?: string;
-  email?: string;
-  cell_phone: string;
-  address?: string;
-  obra_social?: string;
-  insurance?: string;
-  status_patient: 'active' | 'inactive';
-  whatsapp_id?: string;
-  clinic?: {
-    data: Clinic;
+  attributes: {
+    patient_id?: string;         // UID opcional
+    first_name: string;          // Nombre
+    last_name: string;           // Apellido
+    dni?: string;                // DNI opcional
+    cell_phone: number;          // Teléfono celular
+    email?: string;              // Email opcional
+    address?: string;            // Dirección opcional
+    status_patient: 'active' | 'inactive'; // Estado del paciente
+    obra_social?: string;        // Obra social opcional
+    turno?: string;              // Fecha de turno opcional
+    createdAt: string;
+    updatedAt: string;
+    publishedAt: string;
+    // Relación con clínica
+    clinic?: {
+      data: any;
+    };
   };
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
 }
 
+// ✅ INTERFAZ APPOINTMENT - Según tu uso
 export interface Appointment {
   id: number;
-  documentId: string;
-  appointment_id: string;
-  datetime: string;
-  duration: number;
-  type: string;
-  status_appointment: 'scheduled' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
-  notes?: string;
-  reminder_sent: boolean;
-  whatsapp_conversation_id?: string;
-  patient?: {
-    data: Patient;
+  attributes: {
+    datetime: string;            // Fecha y hora
+    duration: number;            // Duración en minutos
+    type: string;                // Tipo de consulta
+    status_appointment: 'scheduled' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
+    notes?: string;              // Notas opcionales
+    reminder_sent?: boolean;     // Recordatorio enviado
+    whatsapp_conversation_id?: string; // ID de conversación WhatsApp
+    createdAt: string;
+    updatedAt: string;
   };
-  professional?: {
-    data: Professional;
-  };
-  clinic?: {
-    data: Clinic;
-  };
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
 }
 
-// Función base para hacer requests autenticados
-const authenticatedRequest = createAuthenticatedRequest();
-
-// Función para obtener la clínica actual del localStorage
-function getCurrentClinicId(): number {
-  const { clinic } = getStoredClinicData();
-  if (!clinic) {
-    throw new Error('No hay clínica autenticada');
-  }
-  return clinic.id;
+export interface Metric {
+  id: number;
+  attributes: {
+    conversation_id: string;
+    user_from: string;
+    query_type: 'info' | 'turno' | 'modification' | 'greeting' | 'general';
+    was_blocked: boolean;
+    response_time: number;
+    user_helped: boolean;
+    timestamp: string;
+    createdAt: string;
+    updatedAt: string;
+  };
 }
 
-// Función para hacer requests sin autenticación (para login)
-async function publicRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const config: RequestInit = {
-    ...options,
+// ✅ INTERFAZ PARA ESTADÍSTICAS BÁSICAS
+export interface BasicStats {
+  total_professionals: number;
+  active_professionals: number;
+  total_patients: number;
+  active_patients: number;
+  total_appointments: number;
+  appointments_today: number;
+  completed_appointments: number;
+  cancelled_appointments: number;
+}
+
+// Función base para hacer requests
+async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const url = `${API_URL}/api${endpoint}`;
+  
+  const response = await fetch(url, {
     headers: {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...options?.headers,
     },
-  };
+    ...options,
+  });
 
-  try {
-    const response = await fetch(`${API_URL}/api${endpoint}`, config);
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error?.message || `Error HTTP: ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error(`Error en public request ${endpoint}:`, error);
-    throw error;
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.status} ${response.statusText}`);
   }
+
+  return response.json();
 }
 
-// APIs para cada entidad con filtros automáticos por clínica
-export const clinicApi = {
-  // Obtener datos de la clínica actual
-  getCurrent: () => {
-    const clinicId = getCurrentClinicId();
-    return publicRequest<SingleApiResponse<Clinic>>(`/clinics/${clinicId}?populate=*`);
-  },
-  
-  // Actualizar datos de la clínica actual
-  updateCurrent: (data: Partial<Clinic>) => {
-    const clinicId = getCurrentClinicId();
-    return publicRequest<SingleApiResponse<Clinic>>(`/clinics/${clinicId}`, {
+// ✅ API para Clínicas
+export const clinicsApi = {
+  getAll: () => apiRequest<ApiResponse<Clinic>>('/clinics?populate=*'),
+  getById: (id: number) => apiRequest<SingleApiResponse<Clinic>>(`/clinics/${id}?populate=*`),
+  create: (data: Partial<Clinic['attributes']>) => 
+    apiRequest<SingleApiResponse<Clinic>>('/clinics', {
+      method: 'POST',
+      body: JSON.stringify({ data }),
+    }),
+  update: (id: number, data: Partial<Clinic['attributes']>) =>
+    apiRequest<SingleApiResponse<Clinic>>(`/clinics/${id}`, {
       method: 'PUT',
       body: JSON.stringify({ data }),
-    });
-  },
-
-  // Para login (público)
-  getByEmail: (email: string) => 
-    publicRequest<ApiResponse<Clinic>>(`/clinics?filters[email][$eq]=${email}&filters[status_clinic][$eq]=active`),
+    }),
 };
 
 export const professionalsApi = {
-  // Obtener todos los profesionales de la clínica actual
-  getAll: () => {
-    const clinicId = getCurrentClinicId();
-    return publicRequest<ApiResponse<Professional>>(`/professionals?filters[clinic][id][$eq]=${clinicId}&populate=*`);
-  },
-  
-  // Obtener un profesional específico
-  getById: (id: number) => 
-    publicRequest<SingleApiResponse<Professional>>(`/professionals/${id}?populate=*`),
-  
-  // Crear un nuevo profesional
-  create: (data: Partial<Professional>) => {
-    const clinicId = getCurrentClinicId();
-    const professionalData = {
-      ...data,
-      clinic: clinicId, // Asignar automáticamente a la clínica actual
-    };
-    return publicRequest<SingleApiResponse<Professional>>('/professionals', {
-      method: 'POST',
-      body: JSON.stringify({ data: professionalData }),
-    });
-  },
-  
-  // Actualizar un profesional
-  update: (id: number, data: Partial<Professional>) => 
-    publicRequest<SingleApiResponse<Professional>>(`/professionals/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify({ data }),
-    }),
-  
-  // Eliminar un profesional
-  delete: (id: number) => 
-    publicRequest<void>(`/professionals/${id}`, {
-      method: 'DELETE',
-    }),
+  getAll: () => apiRequest<ApiResponse<Professional>>('/professionals?populate=*'),
+  getById: (id: number) => apiRequest<SingleApiResponse<Professional>>(`/professionals/${id}?populate=*`),
+  getByClinic: (clinicId: number) => 
+    apiRequest<ApiResponse<Professional>>(`/professionals?filters[clinic][id][$eq]=${clinicId}&populate=*`),
 };
 
 export const patientsApi = {
-  // Obtener todos los pacientes de la clínica actual
-  getAll: () => {
-    const clinicId = getCurrentClinicId();
-    return publicRequest<ApiResponse<Patient>>(`/patients?filters[clinic][id][$eq]=${clinicId}&populate=*`);
-  },
-  
-  // Obtener un paciente específico
-  getById: (id: number) => 
-    publicRequest<SingleApiResponse<Patient>>(`/patients/${id}?populate=*`),
-  
-  // Buscar paciente por DNI
-  getByDni: (dni: string) => {
-    const clinicId = getCurrentClinicId();
-    return publicRequest<ApiResponse<Patient>>(`/patients?filters[dni][$eq]=${dni}&filters[clinic][id][$eq]=${clinicId}&populate=*`);
-  },
-  
-  // Buscar pacientes por nombre
-  searchByName: (name: string) => {
-    const clinicId = getCurrentClinicId();
-    return publicRequest<ApiResponse<Patient>>(`/patients?filters[$or][0][first_name][$containsi]=${name}&filters[$or][1][last_name][$containsi]=${name}&filters[clinic][id][$eq]=${clinicId}&populate=*`);
-  },
-  
-  // Crear un nuevo paciente
-  create: (data: Partial<Patient>) => {
-    const clinicId = getCurrentClinicId();
-    const patientData = {
-      ...data,
-      clinic: clinicId, // Asignar automáticamente a la clínica actual
-    };
-    return publicRequest<SingleApiResponse<Patient>>('/patients', {
+  getAll: () => apiRequest<ApiResponse<Patient>>('/patients?populate=*'),
+  getById: (id: number) => apiRequest<SingleApiResponse<Patient>>(`/patients/${id}?populate=*`),
+  getByClinic: (clinicId: number) => 
+    apiRequest<ApiResponse<Patient>>(`/patients?filters[clinic][id][$eq]=${clinicId}&populate=*`),
+  create: (data: Partial<Patient['attributes']>) => 
+    apiRequest<SingleApiResponse<Patient>>('/patients', {
       method: 'POST',
-      body: JSON.stringify({ data: patientData }),
-    });
-  },
-  
-  // Actualizar un paciente
-  update: (id: number, data: Partial<Patient>) => 
-    publicRequest<SingleApiResponse<Patient>>(`/patients/${id}`, {
-      method: 'PUT',
       body: JSON.stringify({ data }),
-    }),
-  
-  // Eliminar un paciente
-  delete: (id: number) => 
-    publicRequest<void>(`/patients/${id}`, {
-      method: 'DELETE',
     }),
 };
 
 export const appointmentsApi = {
-  // Obtener todas las citas de la clínica actual
-  getAll: () => {
-    const clinicId = getCurrentClinicId();
-    return publicRequest<ApiResponse<Appointment>>(`/appointments?filters[clinic][id][$eq]=${clinicId}&populate=*`);
-  },
-  
-  // Obtener citas por fecha
-  getByDate: (date: string) => {
-    const clinicId = getCurrentClinicId();
-    return publicRequest<ApiResponse<Appointment>>(`/appointments?filters[datetime][$gte]=${date}T00:00:00.000Z&filters[datetime][$lte]=${date}T23:59:59.999Z&filters[clinic][id][$eq]=${clinicId}&populate=*`);
-  },
-  
-  // Obtener citas por rango de fechas
-  getByDateRange: (startDate: string, endDate: string) => {
-    const clinicId = getCurrentClinicId();
-    return publicRequest<ApiResponse<Appointment>>(`/appointments?filters[datetime][$gte]=${startDate}&filters[datetime][$lte]=${endDate}&filters[clinic][id][$eq]=${clinicId}&populate=*`);
-  },
-  
-  // Obtener citas de un paciente específico
-  getByPatient: (patientId: number) => {
-    const clinicId = getCurrentClinicId();
-    return publicRequest<ApiResponse<Appointment>>(`/appointments?filters[patient][id][$eq]=${patientId}&filters[clinic][id][$eq]=${clinicId}&populate=*`);
-  },
-  
-  // Obtener citas de un profesional específico
-  getByProfessional: (professionalId: number) => {
-    const clinicId = getCurrentClinicId();
-    return publicRequest<ApiResponse<Appointment>>(`/appointments?filters[professional][id][$eq]=${professionalId}&filters[clinic][id][$eq]=${clinicId}&populate=*`);
-  },
-  
-  // Obtener una cita específica
-  getById: (id: number) => 
-    publicRequest<SingleApiResponse<Appointment>>(`/appointments/${id}?populate=*`),
-  
-  // Crear una nueva cita
-  create: (data: Partial<Appointment>) => {
-    const clinicId = getCurrentClinicId();
-    const appointmentData = {
-      ...data,
-      clinic: clinicId, // Asignar automáticamente a la clínica actual
-    };
-    return publicRequest<SingleApiResponse<Appointment>>('/appointments', {
+  getAll: () => apiRequest<ApiResponse<Appointment>>('/appointments?populate=*'),
+  getById: (id: number) => apiRequest<SingleApiResponse<Appointment>>(`/appointments/${id}?populate=*`),
+  getByClinic: (clinicId: number) => 
+    apiRequest<ApiResponse<Appointment>>(`/appointments?filters[clinic][id][$eq]=${clinicId}&populate=*`),
+  getByDate: (date: string) => 
+    apiRequest<ApiResponse<Appointment>>(`/appointments?filters[datetime][$gte]=${date}&populate=*`),
+  create: (data: Partial<Appointment['attributes']>) => 
+    apiRequest<SingleApiResponse<Appointment>>('/appointments', {
       method: 'POST',
-      body: JSON.stringify({ data: appointmentData }),
-    });
-  },
-  
-  // Actualizar una cita
-  update: (id: number, data: Partial<Appointment>) => 
-    publicRequest<SingleApiResponse<Appointment>>(`/appointments/${id}`, {
-      method: 'PUT',
       body: JSON.stringify({ data }),
-    }),
-  
-  // Eliminar una cita
-  delete: (id: number) => 
-    publicRequest<void>(`/appointments/${id}`, {
-      method: 'DELETE',
     }),
 };
 
-// Funciones de estadísticas simples
+export const metricsApi = {
+  getAll: () => apiRequest<ApiResponse<Metric>>('/metrics?populate=*'),
+  getByClinic: (clinicId: number) => 
+    apiRequest<ApiResponse<Metric>>(`/metrics?filters[clinic][id][$eq]=${clinicId}&populate=*`),
+  getByDateRange: (startDate: string, endDate: string) => 
+    apiRequest<ApiResponse<Metric>>(`/metrics?filters[timestamp][$gte]=${startDate}&filters[timestamp][$lte]=${endDate}&populate=*`),
+};
+
+// ✅ API para Estadísticas Básicas (que usas en tu dashboard)
 export const statsApi = {
-  // Obtener estadísticas básicas
-  getBasicStats: async () => {
+  getBasicStats: async (): Promise<BasicStats> => {
     try {
-      const [
-        professionalsResponse,
-        patientsResponse,
-        appointmentsResponse,
-      ] = await Promise.all([
-        professionalsApi.getAll(),
-        patientsApi.getAll(),
-        appointmentsApi.getAll(),
+      // Esta es una implementación mock ya que no tienes endpoint específico
+      // Puedes reemplazar con tu endpoint real o calcular desde los datos existentes
+      const [professionalsRes, patientsRes, appointmentsRes] = await Promise.all([
+        professionalsApi.getAll().catch(() => ({ data: [] })),
+        patientsApi.getAll().catch(() => ({ data: [] })),
+        appointmentsApi.getAll().catch(() => ({ data: [] }))
       ]);
 
-      const professionals = professionalsResponse.data;
-      const patients = patientsResponse.data;
-      const appointments = appointmentsResponse.data;
+      const professionals = professionalsRes.data || [];
+      const patients = patientsRes.data || [];
+      const appointments = appointmentsRes.data || [];
 
-      // Calcular estadísticas
       const today = new Date().toISOString().split('T')[0];
-      const appointmentsToday = appointments.filter(apt => 
-        apt.datetime.startsWith(today)
-      );
-      
-      const activePatients = patients.filter(p => p.status_patient === 'active');
-      const activeProfessionals = professionals.filter(p => p.status_professional === 'active');
       
       return {
         total_professionals: professionals.length,
-        active_professionals: activeProfessionals.length,
+        active_professionals: professionals.filter(p => p.attributes.status_professional === 'active').length,
         total_patients: patients.length,
-        active_patients: activePatients.length,
+        active_patients: patients.filter(p => p.attributes.status_patient === 'active').length,
         total_appointments: appointments.length,
-        appointments_today: appointmentsToday.length,
-        completed_appointments: appointments.filter(a => a.status_appointment === 'completed').length,
-        cancelled_appointments: appointments.filter(a => a.status_appointment === 'cancelled').length,
+        appointments_today: appointments.filter(a => a.attributes.datetime.startsWith(today)).length,
+        completed_appointments: appointments.filter(a => a.attributes.status_appointment === 'completed').length,
+        cancelled_appointments: appointments.filter(a => a.attributes.status_appointment === 'cancelled').length,
       };
     } catch (error) {
-      console.error('Error obteniendo estadísticas:', error);
+      console.error('Error getting basic stats:', error);
       return {
         total_professionals: 0,
         active_professionals: 0,
@@ -371,29 +245,27 @@ export const statsApi = {
         cancelled_appointments: 0,
       };
     }
-  },
+  }
 };
 
-// Utilidades adicionales
-export function isAuthenticated(): boolean {
-  const { token } = getStoredClinicData();
-  return !!token;
-}
-
-export function getCurrentClinic() {
-  const { clinic } = getStoredClinicData();
-  return clinic;
-}
-
 // Hook personalizado para React Query (opcional)
-export const clinicQueries = {
-  clinic: () => ({ queryKey: ['clinic'], queryFn: clinicApi.getCurrent }),
-  professionals: () => ({ queryKey: ['professionals'], queryFn: professionalsApi.getAll }),
-  patients: () => ({ queryKey: ['patients'], queryFn: patientsApi.getAll }),
-  appointments: () => ({ queryKey: ['appointments'], queryFn: appointmentsApi.getAll }),
-  appointmentsByDate: (date: string) => ({ 
-    queryKey: ['appointments', 'date', date], 
-    queryFn: () => appointmentsApi.getByDate(date) 
+export const strapiQueries = {
+  clinics: () => ({ queryKey: ['clinics'], queryFn: clinicsApi.getAll }),
+  professionals: (clinicId?: number) => ({
+    queryKey: ['professionals', clinicId],
+    queryFn: () => clinicId ? professionalsApi.getByClinic(clinicId) : professionalsApi.getAll(),
   }),
-  stats: () => ({ queryKey: ['stats'], queryFn: statsApi.getBasicStats }),
+  patients: (clinicId?: number) => ({
+    queryKey: ['patients', clinicId],
+    queryFn: () => clinicId ? patientsApi.getByClinic(clinicId) : patientsApi.getAll(),
+  }),
+  appointments: (clinicId?: number) => ({
+    queryKey: ['appointments', clinicId],
+    queryFn: () => clinicId ? appointmentsApi.getByClinic(clinicId) : appointmentsApi.getAll(),
+  }),
+  metrics: (clinicId?: number) => ({
+    queryKey: ['metrics', clinicId],
+    queryFn: () => clinicId ? metricsApi.getByClinic(clinicId) : metricsApi.getAll(),
+  }),
+  basicStats: () => ({ queryKey: ['basicStats'], queryFn: statsApi.getBasicStats }),
 };

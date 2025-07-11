@@ -2,15 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { useRef } from 'react';
+
+
+// ✅ IMPORTACIONES CORREGIDAS
+import WhatsAppWAHA from './WhatsAppWAHA';
 import { 
+  clinicsApi, 
   patientsApi, 
   appointmentsApi, 
   professionalsApi, 
   statsApi,
+  type Clinic,
   type Patient,
   type Appointment,
-  type Professional
-} from '@/lib/clinicApi';
+  type Professional,
+  type BasicStats
+} from '@/lib/clinicApi'; 
 import { logoutClinic, type ClinicUser } from '@/lib/clinicAuth';
 
 interface DashboardStats {
@@ -35,7 +43,7 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
   const [patients, setPatients] = useState<Patient[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [professionals, setProfessionals] = useState<Professional[]>([]);
-  const [basicStats, setBasicStats] = useState({
+  const [basicStats, setBasicStats] = useState<BasicStats>({
     total_professionals: 0,
     active_professionals: 0,
     total_patients: 0,
@@ -45,6 +53,22 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
     completed_appointments: 0,
     cancelled_appointments: 0,
   });
+
+  const [whatsappStatus, setWhatsappStatus] = useState<{
+    status: 'WORKING' | 'STARTING' | 'SCAN_QR_CODE' | 'STOPPED' | 'FAILED' | 'UNKNOWN';
+    connected: boolean;
+    sessionName: string;
+    me?: { id: string; pushName: string };
+    lastCheck: Date;
+  }>({
+    status: 'UNKNOWN',
+    connected: false,
+    sessionName: '',
+    lastCheck: new Date(),
+  });
+  
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  
   
   // Cargar datos al montar el componente
   useEffect(() => {
@@ -58,7 +82,7 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
 
       console.log('📊 Cargando datos para clínica:', clinic.name_clinic);
 
-      // Cargar datos en paralelo - automáticamente filtrados por clínica
+      // Cargar datos en paralelo
       const [
         patientsResponse,
         appointmentsResponse,
@@ -108,11 +132,12 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
   const getDashboardStats = (): DashboardStats[] => {
     const today = new Date().toISOString().split('T')[0];
     const appointmentsToday = appointments.filter(apt => 
-      apt.datetime.startsWith(today)
+      apt.attributes.datetime.startsWith(today)
     );
     
-    const activePatients = patients.filter(p => p.status_patient === 'active');
-    const activeProfessionals = professionals.filter(p => p.status_professional === 'active');
+    const activePatients = patients.filter(p => p.attributes.status_patient === 'active');
+    const activeProfessionals = professionals.filter(p => p.attributes.status_professional === 'active');
+    
     
     return [
       {
@@ -127,7 +152,7 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
         value: appointmentsToday.length.toString(),
         icon: "📅",
         description: "Citas programadas para hoy",
-        trend: `${appointmentsToday.filter(a => a.status_appointment === 'confirmed').length} confirmados`
+        trend: `${appointmentsToday.filter(a => a.attributes.status_appointment === 'confirmed').length} confirmados`
       },
       {
         title: "Profesionales",
@@ -139,11 +164,11 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
       {
         title: "Tasa de Asistencia",
         value: appointments.length > 0 
-          ? `${Math.round((appointments.filter(a => a.status_appointment === 'completed').length / appointments.length) * 100)}%`
+          ? `${Math.round((appointments.filter(a => a.attributes.status_appointment === 'completed').length / appointments.length) * 100)}%`
           : "0%",
         icon: "📊",
         description: "Últimos 30 días",
-        trend: `${appointments.filter(a => a.status_appointment === 'cancelled').length} canceladas`
+        trend: `${appointments.filter(a => a.attributes.status_appointment === 'cancelled').length} canceladas`
       }
     ];
   };
@@ -234,12 +259,13 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
 
       <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-white/80 backdrop-blur-sm border border-slate-200/50">
+          {/* ✅ TABS LIST CON WHATSAPP */}
+          <TabsList className="grid w-full grid-cols-6 bg-white/80 backdrop-blur-sm border border-slate-200/50">
             <TabsTrigger value="dashboard" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white">
               📊 Dashboard
             </TabsTrigger>
             <TabsTrigger value="connections" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white">
-              🏥 Clínica
+              🔗 Conexiones
             </TabsTrigger>
             <TabsTrigger value="patients" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white">
               👥 Pacientes
@@ -247,8 +273,11 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
             <TabsTrigger value="schedule" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white">
               📅 Agenda
             </TabsTrigger>
-            <TabsTrigger value="whatsapp" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white">
+            <TabsTrigger value="professionals" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white">
               👨‍⚕️ Profesionales
+            </TabsTrigger>
+            <TabsTrigger value="whatsapp" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white">
+              📱 WhatsApp
             </TabsTrigger>
           </TabsList>
 
@@ -381,22 +410,22 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
                       <div key={patient.id} className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
                           <h4 className="font-medium">
-                            {patient.first_name} {patient.last_name}
+                            {patient.attributes.first_name} {patient.attributes.last_name}
                           </h4>
                           <p className="text-sm text-slate-500">
-                            {patient.dni && `DNI: ${patient.dni}`}
-                            {patient.dni && patient.email && ' | '}
-                            {patient.email}
+                            {patient.attributes.dni && `DNI: ${patient.attributes.dni}`}
+                            {patient.attributes.dni && patient.attributes.email && ' | '}
+                            {patient.attributes.email}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm">{patient.cell_phone}</p>
+                          <p className="text-sm">{patient.attributes.cell_phone}</p>
                           <span className={`text-xs px-2 py-1 rounded-full ${
-                            patient.status_patient === 'active' 
+                            patient.attributes.status_patient === 'active' 
                               ? 'bg-green-100 text-green-800' 
                               : 'bg-red-100 text-red-800'
                           }`}>
-                            {patient.status_patient}
+                            {patient.attributes.status_patient}
                           </span>
                         </div>
                       </div>
@@ -432,20 +461,20 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
                       <div key={appointment.id} className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
                           <h4 className="font-medium">
-                            {new Date(appointment.datetime).toLocaleDateString()} - {new Date(appointment.datetime).toLocaleTimeString()}
+                            {new Date(appointment.attributes.datetime).toLocaleDateString()} - {new Date(appointment.attributes.datetime).toLocaleTimeString()}
                           </h4>
                           <p className="text-sm text-slate-500">
-                            {appointment.type} • {appointment.duration} min
+                            {appointment.attributes.type} • {appointment.attributes.duration} min
                           </p>
                         </div>
                         <div className="text-right">
                           <span className={`text-xs px-2 py-1 rounded-full ${
-                            appointment.status_appointment === 'confirmed' ? 'bg-green-100 text-green-800' :
-                            appointment.status_appointment === 'scheduled' ? 'bg-blue-100 text-blue-800' :
-                            appointment.status_appointment === 'completed' ? 'bg-gray-100 text-gray-800' :
+                            appointment.attributes.status_appointment === 'confirmed' ? 'bg-green-100 text-green-800' :
+                            appointment.attributes.status_appointment === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                            appointment.attributes.status_appointment === 'completed' ? 'bg-gray-100 text-gray-800' :
                             'bg-red-100 text-red-800'
                           }`}>
-                            {appointment.status_appointment}
+                            {appointment.attributes.status_appointment}
                           </span>
                         </div>
                       </div>
@@ -461,7 +490,8 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
             </Card>
           </TabsContent>
 
-          <TabsContent value="whatsapp" className="space-y-6">
+          {/* ✅ TAB DE PROFESIONALES (que estaba en whatsapp por error) */}
+          <TabsContent value="professionals" className="space-y-6">
             <Card className="bg-white/90 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle>Equipo Profesional</CardTitle>
@@ -481,22 +511,22 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
                       <div key={professional.id} className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
                           <h4 className="font-medium">
-                            {professional.first_name} {professional.last_name}
+                            {professional.attributes.first_name} {professional.attributes.last_name}
                           </h4>
                           <p className="text-sm text-slate-500">
-                            {professional.speciality} • {professional.email}
+                            {professional.attributes.speciality} • {professional.attributes.email}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm">{professional.phone}</p>
+                          <p className="text-sm">{professional.attributes.phone}</p>
                           <span className={`text-xs px-2 py-1 rounded-full ${
-                            professional.status_professional === 'active' 
+                            professional.attributes.status_professional === 'active' 
                               ? 'bg-green-100 text-green-800' 
-                              : professional.status_professional === 'vacation'
+                              : professional.attributes.status_professional === 'vacation'
                               ? 'bg-yellow-100 text-yellow-800'
                               : 'bg-red-100 text-red-800'
                           }`}>
-                            {professional.status_professional}
+                            {professional.attributes.status_professional}
                           </span>
                         </div>
                       </div>
@@ -506,6 +536,17 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* ✅ TAB DE WHATSAPP CORREGIDO */}
+          <TabsContent value="whatsapp" className="space-y-6">
+            <div className="bg-white rounded-lg p-6 shadow-lg">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                📱 WhatsApp Business
+              </h2>
+              <WhatsAppWAHA clinic={clinic} />
+              </div>
+          </TabsContent>
+
         </Tabs>
       </div>
     </div>
