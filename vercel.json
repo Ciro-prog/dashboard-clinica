@@ -1,0 +1,31 @@
+{
+    "rewrites": [
+      {
+        "source": "/api/n8n/:path*",
+        "destination": "https://dev-n8n.pampaservers.com/api/:path*"
+      }
+    ],
+    "headers": [
+      {
+        "source": "/api/n8n/:path*",
+        "headers": [
+          {
+            "key": "X-API-Key",
+            "value": "tu-n8n-api-key-aqui"
+          },
+          {
+            "key": "Access-Control-Allow-Origin",
+            "value": "*"
+          },
+          {
+            "key": "Access-Control-Allow-Methods",
+            "value": "GET, POST, PUT, DELETE, OPTIONS"
+          },
+          {
+            "key": "Access-Control-Allow-Headers",
+            "value": "X-API-Key, Content-Type, Authorization"
+          }
+        ]
+      }
+    ]
+  }
