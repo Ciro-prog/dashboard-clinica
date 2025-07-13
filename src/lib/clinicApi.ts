@@ -1,6 +1,6 @@
 // src/lib/clinicApi.tsx
 // Configuración de la API de Strapi
-const API_URL = '/api/proxy';
+const API_URL = '';
 
   export interface ApiResponse<T> {
     data: T[];

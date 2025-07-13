@@ -1,7 +1,7 @@
 // src/lib/clinicAuth.ts - Sistema de autenticación usando Clínica como usuario principal
 
 // 🚀 URL corregida para usar variable de entorno
-const API_URL = '/api/proxy';
+const API_URL = '';
 
 console.log('🔐 Auth API_URL configurado:', API_URL);
 
