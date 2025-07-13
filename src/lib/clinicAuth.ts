@@ -1,8 +1,9 @@
 // src/lib/clinicAuth.ts - Sistema de autenticación usando Clínica como usuario principal
 
-const API_URL = typeof window !== 'undefined' 
-  ? process.env.NEXT_PUBLIC_STRAPI_URL   
-  : process.env.NEXT_PUBLIC_STRAPI_URL 
+// 🚀 URL corregida para usar variable de entorno
+const API_URL = import.meta.env.VITE_STRAPI_BASE_URL || 'https://pampaservers.com:60520';
+
+console.log('🔐 Auth API_URL configurado:', API_URL);
 
 export interface ClinicUser {
   id: number;
@@ -38,19 +39,28 @@ export interface AuthError {
 export async function loginClinic(email: string, password: string): Promise<ClinicAuthResponse> {
   try {
     console.log('🔐 Iniciando login de clínica:', email);
+    console.log('🔗 Usando API URL:', API_URL);
     
-    const response = await fetch(`${API_URL}/api/clinics?filters[email][$eq]=${email}&filters[status_clinic][$eq]=active`, {
+    const url = `${API_URL}/api/clinics?filters[email][$eq]=${email}&filters[status_clinic][$eq]=active`;
+    console.log('📡 Request URL:', url);
+    
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
     });
 
+    console.log('📡 Response status:', response.status);
+    
     const data = await response.json();
 
     if (!response.ok) {
+      console.error('❌ Error response:', data);
       throw new Error(data.error?.message || 'Error al buscar clínica');
     }
+
+    console.log('📊 Clínicas encontradas:', data.data?.length || 0);
 
     if (!data.data || data.data.length === 0) {
       throw new Error('Clínica no encontrada o inactiva');
@@ -78,6 +88,8 @@ export async function loginClinic(email: string, password: string): Promise<Clin
 
     // Remover password del objeto de respuesta
     const { password: _, ...clinicWithoutPassword } = clinic;
+
+    console.log('✅ Login exitoso para:', clinicWithoutPassword.name_clinic);
 
     return {
       clinic: clinicWithoutPassword,
@@ -167,6 +179,7 @@ export function logoutClinic(): void {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('clinic_token');
     localStorage.removeItem('clinic_data');
+    console.log('👋 Logout completado');
   }
 }
 
@@ -183,6 +196,7 @@ export function saveClinicAuthData(authResponse: ClinicAuthResponse): void {
   if (typeof window !== 'undefined') {
     localStorage.setItem('clinic_token', authResponse.jwt);
     localStorage.setItem('clinic_data', JSON.stringify(authResponse.clinic));
+    console.log('💾 Datos de autenticación guardados');
   }
 }
 
@@ -312,7 +326,7 @@ export function createAuthenticatedRequest() {
 
       return await response.json();
     } catch (error) {
-      console.error(`Error en request autenticado ${endpoint}:`, error);
+      console.error(`❌ Error en request autenticado ${endpoint}:`, error);
       throw error;
     }
   };
