@@ -1,7 +1,7 @@
 // src/lib/clinicAuth.ts - Sistema de autenticación usando Clínica como usuario principal
 
 // 🚀 URL corregida para usar variable de entorno
-const API_URL = import.meta.env.VITE_STRAPI_BASE_URL || 'https://pampaservers.com:60520';
+const API_URL = 'https://pampaservers.com:60520';
 
 console.log('🔐 Auth API_URL configurado:', API_URL);
 
@@ -11,7 +11,7 @@ export interface ClinicUser {
   clinic_id: string;
   name_clinic: string;
   suscriber: string;
-  address: string;
+  address: string;  
   email: string;
   cell_phone: string;
   subcription: boolean;

@@ -1,8 +1,6 @@
 // src/lib/clinicApi.tsx
 // Configuración de la API de Strapi
-const API_URL = typeof window !== 'undefined' 
-  ? 'http://localhost:1337'  // En el navegador
-  : process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'; // En el servidor
+const API_URL = 'https://pampaservers.com:60520';
 
   export interface ApiResponse<T> {
     data: T[];
