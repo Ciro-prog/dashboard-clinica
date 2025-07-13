@@ -2,7 +2,7 @@
 
 const API_URL = typeof window !== 'undefined' 
   ? process.env.NEXT_PUBLIC_STRAPI_URL   
-  : process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
+  : process.env.NEXT_PUBLIC_STRAPI_URL 
 
 export interface ClinicUser {
   id: number;
