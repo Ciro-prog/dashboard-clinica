@@ -7,8 +7,8 @@ import { type ClinicUser } from '@/lib/clinicAuth';
 
 // Configuración WAHA
 const WAHA_CONFIG = {
-  baseURL: 'http://pampaservers.com:60513',
-  apiKey: 'pampaserver2025enservermuA!'
+  baseURL: import.meta.env.VITE_WAHA_BASE_URL,
+  apiKey: import.meta.env.VITE_WAHA_API_KEY
 };
 
 interface WAHASession {

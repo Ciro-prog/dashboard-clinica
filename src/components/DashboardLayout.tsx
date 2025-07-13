@@ -71,16 +71,16 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
 
   // Configuración WAHA (igual que en WhatsAppWAHA)
   const WAHA_CONFIG = {
-    baseURL: 'http://pampaservers.com:60513',
-    apiKey: 'pampaserver2025enservermuA!'
+    baseURL: import.meta.env.VITE_WAHA_BASE_URL,
+    apiKey: import.meta.env.VITE_WAHA_API_KEY
   };
 
   // Configuración N8N
   const N8N_CONFIG = {
-    baseURL: 'https://dev-n8n.pampaservers.com',
-    apiKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1YWY2Yjk4Ni1iYTZmLTRjZDktYjYwZS04MjAzODg1MDJjOTgiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzUyMjQ2NDY0fQ.sKdWXV6xYLqlzJDQXo0ybGKr68Z2sU6k5tb9kQtOr0I',
-    projectId: 'rMQfgPYimPe6TUx3',
-    folderId: 'SuVOs3Ryn9jXOdho'
+    baseURL: import.meta.env.VITE_N8N_BASE_URL,
+    apiKey: import.meta.env.VITE_N8N_API_KEY,
+    projectId: import.meta.env.VITE_N8N_PROJECT_ID,
+    folderId: import.meta.env.VITE_N8N_FOLDER_ID
   };
 
   // Estado de N8N

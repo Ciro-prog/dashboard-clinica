@@ -39,9 +39,9 @@ const ConnectionStatus = ({
 
   // Configuración N8N
   const N8N_CONFIG = {
-    baseURL: 'https://dev-n8n.pampaservers.com',
-    apiKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1YWY2Yjk4Ni1iYTZmLTRjZDktYjYwZS04MjAzODg1MDJjOTgiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzUyMjQ2NDY0fQ.sKdWXV6xYLqlzJDQXo0ybGKr68Z2sU6k5tb9kQtOr0I',
-    projectId: 'rMQfgPYimPe6TUx3'
+    baseURL: import.meta.env.VITE_N8N_BASE_URL,
+    apiKey: import.meta.env.VITE_N8N_API_KEY,
+    projectId: import.meta.env.VITE_N8N_PROJECT_ID
   };
 
   // Función para hacer request a través de un proxy backend (solución recomendada)
