@@ -1,7 +1,7 @@
 // src/lib/clinicAuth.ts - Sistema de autenticación usando Clínica como usuario principal
 
 const API_URL = typeof window !== 'undefined' 
-  ? 'http://localhost:1337'  
+  ? process.env.NEXT_PUBLIC_STRAPI_URL   
   : process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
 export interface ClinicUser {
