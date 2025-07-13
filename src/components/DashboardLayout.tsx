@@ -77,7 +77,7 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
 
   // Configuración N8N
   const N8N_CONFIG = {
-    baseURL: import.meta.env.VITE_N8N_BASE_URL,
+    baseURL: '/api/n8n',
     apiKey: import.meta.env.VITE_N8N_API_KEY,
     projectId: import.meta.env.VITE_N8N_PROJECT_ID,
     folderId: import.meta.env.VITE_N8N_FOLDER_ID
@@ -198,34 +198,54 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
       let projectId = null;
       let folderId = null;
       
-      try {
-        console.log('📁 Buscando proyectos en N8N...');
-        const projectsResponse = await fetch(`${N8N_CONFIG.baseURL}/api/v1/projects`, {
-          method: 'GET',
-          headers: {
-            'X-API-Key': N8N_CONFIG.apiKey,
-            'Content-Type': 'application/json'
-          },
-          mode: 'cors'
-        });
-
-        if (projectsResponse.ok) {
-          const projectsData = await projectsResponse.json();
-          console.log('📊 Proyectos encontrados:', projectsData);
+      const checkN8nStatus = async () => {
+        try {
+          console.log('🤖 Verificando N8N via proxy...');
           
-          // Buscar el proyecto que contenga la carpeta del suscriber
-          const projects = Array.isArray(projectsData.data) ? projectsData.data : [];
-          for (const project of projects) {
-            if (project.name && project.name.includes(clinic.suscriber)) {
-              projectId = project.id;
-              console.log(`✅ Proyecto encontrado: ${project.name} (ID: ${projectId})`);
-              break;
+          // ✅ Esta URL funcionará sin CORS
+          const response = await fetch(`${N8N_CONFIG.baseURL}/v1/workflows?projectId=${N8N_CONFIG.projectId}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json'
+              // ✅ El API Key se agrega automáticamente en vercel.json
             }
+          });
+      
+          if (response.ok) {
+            const workflowsData = await response.json();
+            console.log('✅ N8N funcionando via proxy:', workflowsData);
+            
+            // Procesar workflows normalmente...
+            const workflows = Array.isArray(workflowsData.data) ? workflowsData.data : [];
+            const activeWorkflows = workflows.filter((wf: any) => wf.active === true);
+            
+            setN8nStatus(prev => ({
+              ...prev,
+              connected: true,
+              activeWorkflows: activeWorkflows.length,
+              totalWorkflows: workflows.length,
+              workflowList: workflows.map((wf: any) => ({
+                name: wf.name || 'Sin nombre',
+                active: wf.active || false,
+                id: wf.id
+              })),
+              lastCheck: new Date(),
+              error: undefined // ✅ Sin errores CORS!
+            }));
+            
+          } else {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
           }
+          
+        } catch (err) {
+          console.error('❌ Error verificando N8N:', err);
+          setN8nStatus(prev => ({
+            ...prev,
+            connected: false,
+            error: `Error de proxy: ${err.message}`
+          }));
         }
-      } catch (projectError) {
-        console.log('⚠️ No se pudieron obtener proyectos, usando configuración por defecto');
-      }
+      };
 
       // Si no encontramos proyecto específico, usar el configurado
       if (!projectId) {
