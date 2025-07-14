@@ -5,12 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { type ClinicUser } from '@/lib/clinicAuth';
 
-// Configuración WAHA
-const WAHA_CONFIG = {
-    baseURL: '/api/waha',
-    apiKey: import.meta.env.VITE_WAHA_API_KEY
-  };
-
 interface WAHASession {
   name: string;
   status: 'WORKING' | 'STARTING' | 'SCAN_QR_CODE' | 'STOPPED' | 'FAILED';
@@ -21,7 +15,6 @@ interface WAHASession {
   };
 }
 
-// ✅ CAMBIO PRINCIPAL: Ahora recibe los datos de la clínica como prop
 interface WhatsAppWAHAProps {
   clinic?: ClinicUser;
 }
@@ -40,7 +33,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
       console.log('👤 Suscriber disponible:', clinic.suscriber);
       console.log('🆔 Clinic ID disponible:', clinic.clinic_id);
       
-      // Usar exactamente la misma lógica que en el dashboard
+      // ✅ USAR EXACTAMENTE LA MISMA LÓGICA QUE EN EL DASHBOARD
       let finalSessionName;
       if (clinic.suscriber && clinic.suscriber.trim() !== '') {
         finalSessionName = clinic.suscriber.trim();
@@ -58,13 +51,13 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     }
   }, [clinic]);
 
-  // Headers para peticiones WAHA
+  // ✅ HEADERS PARA PRODUCCIÓN - SIN API KEY (vercel.json lo agrega automáticamente)
   const getHeaders = () => ({
     'Content-Type': 'application/json'
-    // No incluir X-API-Key aquí porque se agrega automáticamente en vercel.json
+    // ✅ NO agregamos X-API-Key porque vercel.json ya lo hace automáticamente
   });
 
-  // Verificar estado de sesión
+  // ✅ VERIFICAR ESTADO DE SESIÓN - USANDO LA MISMA URL QUE EL DASHBOARD Y LOGIN
   const checkSession = async () => {
     if (!sessionName) {
       setError('No se ha cargado el nombre de sesión');
@@ -77,9 +70,10 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     try {
       console.log('📊 Verificando estado de sesión:', sessionName);
       
-      const response = await fetch(`${WAHA_CONFIG.baseURL}/sessions/${sessionName}`, {
+      // ✅ USAR LA MISMA URL QUE EN EL DASHBOARD (igual que LoginForm usa /api/proxy)
+      const response = await fetch(`/api/waha/sessions/${sessionName}`, {
         method: 'GET',
-        headers: getHeaders()
+        headers: getHeaders()  // ✅ Solo Content-Type, vercel.json agrega X-API-Key
       });
 
       console.log('📡 Respuesta verificación status:', response.status);
@@ -113,7 +107,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     }
   };
 
-  // Obtener código QR - CORREGIDO para manejar PNG
+  // ✅ OBTENER QR CORREGIDO - URL CONSISTENTE
   const getQR = async () => {
     if (!sessionName) {
       console.error('❌ No hay nombre de sesión para obtener QR');
@@ -123,12 +117,13 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     try {
       console.log('📷 Obteniendo QR para sesión:', sessionName);
       
-      const qrUrl = `${WAHA_CONFIG.baseURL}/${sessionName}/auth/qr`;
+      // ✅ URL CORREGIDA PARA CONSISTENCIA
+      const qrUrl = `/api/waha/sessions/${sessionName}/auth/qr`;
       console.log('🌐 URL del QR:', qrUrl);
       
       const response = await fetch(qrUrl, {
         method: 'GET',
-        headers: getHeaders()
+        headers: getHeaders()  // ✅ vercel.json agrega X-API-Key automáticamente
       });
 
       console.log('📡 Respuesta QR status:', response.status);
@@ -172,7 +167,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     }
   };
 
-  // Crear sesión
+  // ✅ CREAR SESIÓN CORREGIDO
   const createSession = async () => {
     if (!sessionName) {
       setError('No hay nombre de sesión disponible');
@@ -183,9 +178,10 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     setError('');
     
     try {
-      const response = await fetch(`${WAHA_CONFIG.baseURL}/sessions/`, {
+      // ✅ URL CORREGIDA
+      const response = await fetch(`/api/waha/sessions`, {
         method: 'POST',
-        headers: getHeaders(),
+        headers: getHeaders(),  // ✅ vercel.json agrega X-API-Key automáticamente
         body: JSON.stringify({
           name: sessionName
         })
@@ -210,14 +206,14 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     }
   };
 
-  // Detener sesión
+  // ✅ DETENER SESIÓN CORREGIDO
   const stopSession = async () => {
     setIsLoading(true);
     
     try {
-      const response = await fetch(`${WAHA_CONFIG.baseURL}/sessions/${sessionName}/stop`, {
+      const response = await fetch(`/api/waha/sessions/${sessionName}/stop`, {
         method: 'POST',
-        headers: getHeaders()
+        headers: getHeaders()  // ✅ vercel.json agrega X-API-Key automáticamente
       });
 
       if (response.ok) {
@@ -235,14 +231,14 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     }
   };
 
-  // Reiniciar sesión
+  // ✅ REINICIAR SESIÓN CORREGIDO
   const restartSession = async () => {
     setIsLoading(true);
     
     try {
-      const response = await fetch(`${WAHA_CONFIG.baseURL}/sessions/${sessionName}/restart`, {
+      const response = await fetch(`/api/waha/sessions/${sessionName}/restart`, {
         method: 'POST',
-        headers: getHeaders()
+        headers: getHeaders()  // ✅ vercel.json agrega X-API-Key automáticamente
       });
 
       if (response.ok) {
@@ -256,6 +252,36 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
       setError('Error al reiniciar sesión');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // TEST PARA PRODUCCIÓN
+  const testProductionAPI = async () => {
+    try {
+      console.log('🧪 TEST PRODUCCIÓN - Verificando conexión WAHA...');
+      
+      const response = await fetch('/api/waha/sessions', {
+        method: 'GET',
+        headers: getHeaders()
+      });
+      
+      console.log('📡 Status:', response.status);
+      console.log('📡 StatusText:', response.statusText);
+      
+      const responseText = await response.text();
+      console.log('📡 Response:', responseText);
+      
+      if (response.ok) {
+        console.log('✅ API WAHA funcionando correctamente en producción');
+        setError('');
+      } else {
+        console.log('❌ Error en API WAHA:', response.status, responseText);
+        setError(`Error ${response.status}: ${responseText}`);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error de conexión:', error);
+      setError(`Error de conexión: ${error.message}`);
     }
   };
 
@@ -298,7 +324,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     }
   }, [session?.status, qrCode, isLoading]);
 
-  // ✅ CAMBIO: Mostrar loading mientras se cargan los datos de la clínica
+  // ✅ MOSTRAR LOADING MIENTRAS SE CARGAN LOS DATOS DE LA CLÍNICA
   if (!clinic) {
     return (
       <div className="space-y-6">
@@ -316,7 +342,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
 
   return (
     <div className="space-y-6">
-      {/* ✅ CAMBIO: Información de la clínica recibida como prop */}
+      {/* ✅ INFORMACIÓN DE LA CLÍNICA RECIBIDA COMO PROP */}
       <Card className="bg-blue-50 border-blue-200">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
@@ -330,6 +356,25 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
             <strong>Clinic ID:</strong> <code className="bg-blue-200 px-1 rounded">{clinic.clinic_id || 'No definido'}</code>
           </CardDescription>
         </CardHeader>
+      </Card>
+
+      {/* TEST DE PRODUCCIÓN */}
+      <Card className="bg-green-50 border-green-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            🧪 Test de Producción
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-2">
+            <Button onClick={testProductionAPI} variant="outline" size="sm">
+              🧪 Test API WAHA
+            </Button>
+            <Button onClick={checkSession} variant="outline" size="sm" disabled={!sessionName}>
+              🔍 Verificar Sesión
+            </Button>
+          </div>
+        </CardContent>
       </Card>
 
       {/* Estado de la sesión */}
@@ -347,7 +392,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
             )}
           </CardTitle>
           <CardDescription>
-            Conexión directa con WhatsApp Business API
+            Conexión con WhatsApp Business API en Producción
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -373,34 +418,6 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
                 </span>
               </div>
             )}
-          </div>
-
-          {/* Indicadores visuales */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${
-                session?.status === 'WORKING' ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
-              }`}></div>
-              <span className="text-sm">
-                {session?.status === 'WORKING' ? 'Recibiendo mensajes' : 'Sin recepción'}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${
-                session?.status === 'WORKING' ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
-              }`}></div>
-              <span className="text-sm">
-                {session?.status === 'WORKING' ? 'Enviando respuestas' : 'Envío desactivado'}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${
-                sessionName ? 'bg-blue-500' : 'bg-gray-400'
-              }`}></div>
-              <span className="text-sm">
-                API WAHA: {sessionName ? 'Configurado' : 'Sin configurar'}
-              </span>
-            </div>
           </div>
 
           {/* Errores */}
@@ -510,17 +527,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
                   <Button onClick={getQR} variant="outline" size="sm" disabled={isLoading}>
                     {isLoading ? '🔄 Obteniendo...' : '📷 Obtener QR'}
                   </Button>
-                  <Button onClick={checkSession} variant="outline" size="sm" disabled={isLoading}>
-                    {isLoading ? '🔍 Verificando...' : '🔍 Verificar Estado'}
-                  </Button>
                 </div>
-                {error && (
-                  <Alert className="border-red-200 bg-red-50">
-                    <AlertDescription className="text-red-700 text-sm">
-                      ❌ {error}
-                    </AlertDescription>
-                  </Alert>
-                )}
               </div>
             )}
           </CardContent>
@@ -530,14 +537,15 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
       {/* Información técnica y debug */}
       <Card className="bg-gray-50">
         <CardHeader>
-          <CardTitle className="text-base">⚙️ Configuración WAHA</CardTitle>
+          <CardTitle className="text-base">⚙️ Configuración WAHA - Producción</CardTitle>
         </CardHeader>
         <CardContent className="text-sm space-y-2">
-          <div><strong>API URL:</strong> <code className="bg-gray-200 px-1 rounded">{WAHA_CONFIG.baseURL}</code></div>
+          <div><strong>API URL:</strong> <code className="bg-gray-200 px-1 rounded">/api/waha (proxy)</code></div>
+          <div><strong>Servidor:</strong> <code className="bg-gray-200 px-1 rounded">pampaservers.com:60513</code></div>
+          <div><strong>API Key:</strong> <code className="bg-gray-200 px-1 rounded">✅ Configurado en vercel.json</code></div>
           <div><strong>Sesión:</strong> <code className="bg-gray-200 px-1 rounded">{sessionName}</code></div>
           <div><strong>Clínica:</strong> {clinic.name_clinic || 'No disponible'}</div>
           <div><strong>Subscriber:</strong> <code className="bg-gray-200 px-1 rounded">"{clinic.suscriber || 'No disponible'}"</code></div>
-          <div><strong>Clinic ID:</strong> <code className="bg-gray-200 px-1 rounded">"{clinic.clinic_id || 'No disponible'}"</code></div>
           <div><strong>Estado API:</strong> 
             <span className={`ml-2 ${error ? 'text-red-600' : 'text-green-600'}`}>
               {error ? '❌ Error de conexión' : '✅ Conectado'}
@@ -546,21 +554,6 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
           {session && (
             <div><strong>Estado Actual:</strong> <code className="bg-gray-200 px-1 rounded">{session.status}</code></div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Información adicional */}
-      <Card className="bg-yellow-50 border-yellow-200">
-        <CardHeader>
-          <CardTitle className="text-base">ℹ️ Información Importante</CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm space-y-2">
-          <p>• <strong>Esta es una conexión básica</strong> - solo gestiona estados de sesión</p>
-          <p>• <strong>Sin webhook configurado</strong> - no procesa mensajes automáticamente</p>
-          <p>• <strong>Para funcionalidad completa</strong> - configurar webhook en n8n</p>
-          <p>• <strong>El código QR expira</strong> - generar uno nuevo si es necesario</p>
-          <p>• <strong>QR format:</strong> PNG/Data URL compatible</p>
-          <p>• <strong>Sesión basada en:</strong> {clinic.suscriber ? 'Suscriber' : clinic.clinic_id ? 'Clinic ID' : 'Fallback'}</p>
         </CardContent>
       </Card>
     </div>
