@@ -1,6 +1,6 @@
 // src/lib/clinicApi.tsx
 // Configuración de la API de Strapi
-const API_URL = import.meta.env.VITE_STRAPI_API_URL || 'http://pampaservers.com:60520';
+const API_URL = '/api/proxy';
 
   export interface ApiResponse<T> {
     data: T[];
