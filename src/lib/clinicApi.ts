@@ -128,7 +128,7 @@ export interface BasicStats {
 
 // Función base para hacer requests
 async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    const url = `${API_URL}/api${endpoint}`;
+    const url = `${API_URL}${endpoint}`;
     
     console.log('🔗 Haciendo request a:', url);
     

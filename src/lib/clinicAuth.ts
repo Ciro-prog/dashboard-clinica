@@ -41,7 +41,7 @@ export async function loginClinic(email: string, password: string): Promise<Clin
     console.log('🔐 Iniciando login de clínica:', email);
     console.log('🔗 Usando API URL:', API_URL);
     
-    const url = `${API_URL}/api/clinics?filters[email][$eq]=${email}&filters[status_clinic][$eq]=active`;
+    const url = `${API_URL}/clinics?filters[email][$eq]=${email}&filters[status_clinic][$eq]=active`;
     console.log('📡 Request URL:', url);
     
     const response = await fetch(url, {
