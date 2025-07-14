@@ -203,7 +203,8 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
           console.log('🤖 Verificando N8N via proxy...');
           
           // ✅ Esta URL funcionará sin CORS
-          const response = await fetch(`${N8N_CONFIG.baseURL}/v1/workflows?projectId=${N8N_CONFIG.projectId}`, {
+          const response = await fetch(`${N8N_CONFIG.baseURL}/v1/workflows?projectId=${projectId}`
+, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json'
@@ -266,7 +267,8 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
       // Estrategia 1: API directo de workflows con filtros
       try {
         console.log('🔍 Intentando API directo de workflows...');
-        const workflowsResponse = await fetch(`${N8N_CONFIG.baseURL}/api/v1/workflows?projectId=${projectId}`, {
+        const workflowsResponse = await fetch(`${N8N_CONFIG.baseURL}/v1/workflows?projectId=${projectId}`
+, {
           method: 'GET',
           headers: corsHeaders,
           mode: 'cors'
@@ -285,7 +287,7 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
       if (!workflowsData) {
         try {
           console.log('🔄 Intentando modo no-cors...');
-          const noCorsResponse = await fetch(`${N8N_CONFIG.baseURL}/api/v1/workflows`, {
+          const noCorsResponse = await fetch(`${N8N_CONFIG.baseURL}/v1/workflows`, {
             method: 'GET',
             headers: { 'X-API-Key': N8N_CONFIG.apiKey },
             mode: 'no-cors'
@@ -451,7 +453,7 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
     console.log('📱 Verificando estado de WhatsApp para sesión:', sessionName);
 
     try {
-      const response = await fetch(`${WAHA_CONFIG.baseURL}/api/sessions/${sessionName}`, {
+      const response = await fetch(`/api/waha/sessions/${sessionName}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -937,7 +939,7 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
                         </p>
                         <div className="grid grid-cols-2 gap-2">
                           <Button 
-                            onClick={() => window.open(`${N8N_CONFIG.baseURL}/workflows`, '_blank')}
+                            onClick={() => window.open(`${N8N_CONFIG.baseURL}/v1/workflows`, '_blank')}
                             size="sm" 
                             variant="outline"
                             className="border-blue-200 text-blue-700 hover:bg-blue-50"
@@ -1337,7 +1339,7 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
                         🔄 Actualizar
                       </Button>
                       <Button 
-                        onClick={() => window.open(`${N8N_CONFIG.baseURL}/workflows`, '_blank')}
+                        onClick={() => window.open(`${N8N_CONFIG.baseURL}/v1/workflows`, '_blank')}
                         size="sm" 
                         variant="outline"
                       >
