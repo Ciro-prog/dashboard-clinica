@@ -10,7 +10,7 @@
       },
       {
         "source": "/api/waha/:path*",
-        "destination": "http://pampaservers.com:60513/:path*"
+        "destination": "http://pampaservers.com:60513/api/:path*"
       }
     ],
     "headers": [
