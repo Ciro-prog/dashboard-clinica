@@ -1,13 +1,17 @@
 {
     "rewrites": [
-        {
-          "source": "/api/n8n/:path*",
-          "destination": "https://dev-n8n.pampaservers.com/api/:path*"
-        },
-        {
-          "source": "/api/proxy/:path*",
-          "destination": "http://pampaservers.com:60520/api/:path*"
-        }
+      {
+        "source": "/api/n8n/:path*",
+        "destination": "https://dev-n8n.pampaservers.com/api/:path*"
+      },
+      {
+        "source": "/api/proxy/:path*",
+        "destination": "http://pampaservers.com:60520/api/:path*"
+      },
+      {
+        "source": "/api/waha/:path*",
+        "destination": "http://pampaservers.com:60513/api/:path*"
+      }
     ],
     "headers": [
       {
@@ -16,6 +20,27 @@
           {
             "key": "X-API-Key",
             "value": "tu-n8n-api-key-aqui"
+          },
+          {
+            "key": "Access-Control-Allow-Origin",
+            "value": "*"
+          },
+          {
+            "key": "Access-Control-Allow-Methods",
+            "value": "GET, POST, PUT, DELETE, OPTIONS"
+          },
+          {
+            "key": "Access-Control-Allow-Headers",
+            "value": "X-API-Key, Content-Type, Authorization"
+          }
+        ]
+      },
+      {
+        "source": "/api/waha/:path*",
+        "headers": [
+          {
+            "key": "X-API-Key",
+            "value": "pampaserver2025enservermuA!"
           },
           {
             "key": "Access-Control-Allow-Origin",

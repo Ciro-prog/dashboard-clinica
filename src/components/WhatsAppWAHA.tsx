@@ -7,9 +7,9 @@ import { type ClinicUser } from '@/lib/clinicAuth';
 
 // Configuración WAHA
 const WAHA_CONFIG = {
-  baseURL: import.meta.env.VITE_WAHA_BASE_URL,
-  apiKey: import.meta.env.VITE_WAHA_API_KEY
-};
+    baseURL: '/api/waha',
+    apiKey: import.meta.env.VITE_WAHA_API_KEY
+  };
 
 interface WAHASession {
   name: string;
@@ -60,8 +60,8 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
 
   // Headers para peticiones WAHA
   const getHeaders = () => ({
-    'Content-Type': 'application/json',
-    'X-API-Key': WAHA_CONFIG.apiKey
+    'Content-Type': 'application/json'
+    // No incluir X-API-Key aquí porque se agrega automáticamente en vercel.json
   });
 
   // Verificar estado de sesión
