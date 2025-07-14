@@ -52,10 +52,10 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     }
   }, [clinic]);
 
-  // ✅ HEADERS CORRECTOS - SIN API KEY (vercel.json lo agrega automáticamente)
+  // ✅ HEADERS CORRECTOS - AGREGANDO API KEY MANUALMENTE (vercel.json no está funcionando)
   const getHeaders = () => ({
-    'Content-Type': 'application/json'
-    // ✅ NO agregamos X-API-Key porque vercel.json ya lo hace automáticamente
+    'Content-Type': 'application/json',
+    'X-API-Key': 'pampaserver2025enservermuA!'  // ✅ API Key correcto
   });
 
   // ✅ OBTENER TODAS LAS SESIONES PRIMERO
