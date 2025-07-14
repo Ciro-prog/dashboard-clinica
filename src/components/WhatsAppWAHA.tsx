@@ -84,7 +84,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     }
   };
 
-  // ✅ VERIFICAR ESTADO DE SESIÓN ESPECÍFICA
+  // ✅ VERIFICAR ESTADO DE SESIÓN ESPECÍFICA - CORREGIDO
   const checkSession = async () => {
     if (!sessionName) {
       setError('No se ha cargado el nombre de sesión');
@@ -93,31 +93,44 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
 
     setIsLoading(true);
     setError('');
+    setSuccess('');
     
     try {
       console.log('📊 Verificando estado de sesión específica:', sessionName);
       
-      // Primero obtener todas las sesiones para verificar si existe
-      const allSessions = await getAllSessions();
-      
-      // Buscar nuestra sesión específica
-      const existingSession = allSessions.find(s => s.name === sessionName);
-      
-      if (existingSession) {
-        console.log('✅ Sesión encontrada:', existingSession);
-        setSession(existingSession);
+      // ✅ VERIFICAR DIRECTAMENTE LA SESIÓN ESPECÍFICA
+      const response = await fetch(`/api/waha/sessions/${sessionName}`, {
+        method: 'GET',
+        headers: getHeaders()
+      });
+
+      console.log('📡 Respuesta verificación status:', response.status);
+
+      if (response.ok) {
+        const sessionData = await response.json();
+        console.log('✅ Sesión encontrada:', sessionData);
+        setSession(sessionData);
         
         // Limpiar QR si el estado cambió
-        if (existingSession.status !== 'SCAN_QR_CODE') {
+        if (sessionData.status !== 'SCAN_QR_CODE') {
           setQrCode('');
           console.log('🧹 QR limpiado - estado no es SCAN_QR_CODE');
         }
         
-        console.log('📊 Estado de sesión actual:', existingSession.status);
-      } else {
+        console.log('📊 Estado de sesión actual:', sessionData.status);
+        
+      } else if (response.status === 404) {
         console.log('ℹ️ Sesión no existe - puede crear una nueva');
         setSession(null);
         setQrCode('');
+        
+        // También intentar obtener todas las sesiones por si acaso
+        await getAllSessions();
+        
+      } else {
+        const errorText = await response.text();
+        console.error('❌ Error HTTP verificando sesión:', response.status, errorText);
+        throw new Error(`Error ${response.status}: ${errorText}`);
       }
       
     } catch (err) {
@@ -189,7 +202,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     }
   };
 
-  // ✅ CREAR SESIÓN MEJORADA
+  // ✅ CREAR O ACTUALIZAR SESIÓN
   const createSession = async () => {
     if (!sessionName) {
       setError('No hay nombre de sesión disponible');
@@ -221,6 +234,12 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
         setTimeout(() => {
           checkSession();
         }, 2000);
+        
+      } else if (response.status === 409) {
+        // Conflicto - la sesión ya existe, intentar actualizarla
+        console.log('⚠️ Sesión ya existe, intentando actualizar...');
+        await updateSession();
+        
       } else {
         const errorText = await response.text();
         let errorData;
@@ -234,6 +253,56 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     } catch (err) {
       console.error('❌ Error creando sesión:', err);
       setError(err instanceof Error ? err.message : 'Error al crear sesión');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ✅ ACTUALIZAR SESIÓN EXISTENTE (PUT)
+  const updateSession = async () => {
+    if (!sessionName) {
+      setError('No hay nombre de sesión disponible');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
+    
+    try {
+      console.log('🔄 Actualizando sesión existente:', sessionName);
+      
+      const response = await fetch(`/api/waha/sessions/${sessionName}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          name: sessionName
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSession(data);
+        setSuccess('Sesión actualizada correctamente. Preparando conexión...');
+        console.log('✅ Sesión actualizada:', data);
+        
+        // Verificar estado después de actualizar
+        setTimeout(() => {
+          checkSession();
+        }, 2000);
+      } else {
+        const errorText = await response.text();
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: errorText };
+        }
+        throw new Error(errorData.message || 'Error al actualizar sesión');
+      }
+    } catch (err) {
+      console.error('❌ Error actualizando sesión:', err);
+      setError(err instanceof Error ? err.message : 'Error al actualizar sesión');
     } finally {
       setIsLoading(false);
     }
@@ -546,7 +615,22 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
           </div>
 
           {/* ✅ INFORMACIÓN DE ACCIONES DISPONIBLES */}
-          {session && (
+          {!session ? (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <span className="text-yellow-600 text-sm">⚠️</span>
+                <div className="text-sm text-yellow-800">
+                  <strong>No se detectó sesión activa:</strong>
+                  <br />
+                  • <strong>Crear Sesión:</strong> Crear una nueva sesión desde cero
+                  <br />
+                  • <strong>Actualizar Existente:</strong> Conectar con una sesión que ya existe pero no se detecta
+                  <br />
+                  <em>Si ves el error "sesión ya existe", usa "Actualizar Existente"</em>
+                </div>
+              </div>
+            </div>
+          ) : (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <div className="flex items-start gap-2">
                 <span className="text-blue-600 text-sm">💡</span>
@@ -592,15 +676,25 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
             </Button>
 
             {!session ? (
-              // Sin sesión - solo crear
-              <Button 
-                onClick={createSession}
-                disabled={isLoading || !sessionName}
-                className="bg-green-600 hover:bg-green-700"
-                size="sm"
-              >
-                {isLoading ? '➕ Creando...' : '➕ Crear Sesión'}
-              </Button>
+              // Sin sesión detectada - opciones para crear o actualizar
+              <div className="flex gap-2 flex-wrap">
+                <Button 
+                  onClick={createSession}
+                  disabled={isLoading || !sessionName}
+                  className="bg-green-600 hover:bg-green-700"
+                  size="sm"
+                >
+                  {isLoading ? '➕ Creando...' : '➕ Crear Sesión'}
+                </Button>
+                <Button 
+                  onClick={updateSession}
+                  disabled={isLoading || !sessionName}
+                  className="bg-blue-600 hover:bg-blue-700"
+                  size="sm"
+                >
+                  {isLoading ? '🔄 Actualizando...' : '🔄 Actualizar Existente'}
+                </Button>
+              </div>
             ) : (
               // Con sesión - botones según estado
               <>
@@ -816,10 +910,12 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
             <strong>Operaciones WAHA disponibles:</strong>
             <div className="mt-1 text-xs text-gray-600 space-y-1">
               <div>• <code>POST /sessions</code> - Crear nueva sesión</div>
+              <div>• <code>PUT /sessions/&#123;name&#125;</code> - Actualizar sesión existente</div>
               <div>• <code>POST /sessions/&#123;name&#125;/start</code> - Iniciar sesión</div>
               <div>• <code>POST /sessions/&#123;name&#125;/stop</code> - Detener sesión</div>
               <div>• <code>POST /sessions/&#123;name&#125;/restart</code> - Reiniciar sesión</div>
               <div>• <code>DELETE /sessions/&#123;name&#125;</code> - Eliminar sesión</div>
+              <div>• <code>GET /sessions/&#123;name&#125;</code> - Obtener estado de sesión</div>
               <div>• <code>GET /sessions/&#123;name&#125;/auth/qr</code> - Obtener código QR</div>
             </div>
           </div>
