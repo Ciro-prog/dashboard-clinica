@@ -77,7 +77,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     try {
       console.log('📊 Verificando estado de sesión:', sessionName);
       
-      const response = await fetch(`${WAHA_CONFIG.baseURL}/api/sessions/${sessionName}`, {
+      const response = await fetch(`${WAHA_CONFIG.baseURL}/sessions/${sessionName}`, {
         method: 'GET',
         headers: getHeaders()
       });
@@ -123,7 +123,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     try {
       console.log('📷 Obteniendo QR para sesión:', sessionName);
       
-      const qrUrl = `${WAHA_CONFIG.baseURL}/api/${sessionName}/auth/qr`;
+      const qrUrl = `${WAHA_CONFIG.baseURL}/${sessionName}/auth/qr`;
       console.log('🌐 URL del QR:', qrUrl);
       
       const response = await fetch(qrUrl, {
@@ -183,7 +183,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     setError('');
     
     try {
-      const response = await fetch(`${WAHA_CONFIG.baseURL}/api/sessions/`, {
+      const response = await fetch(`${WAHA_CONFIG.baseURL}/sessions/`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({
@@ -215,7 +215,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     setIsLoading(true);
     
     try {
-      const response = await fetch(`${WAHA_CONFIG.baseURL}/api/sessions/${sessionName}/stop`, {
+      const response = await fetch(`${WAHA_CONFIG.baseURL}/sessions/${sessionName}/stop`, {
         method: 'POST',
         headers: getHeaders()
       });
@@ -240,7 +240,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     setIsLoading(true);
     
     try {
-      const response = await fetch(`${WAHA_CONFIG.baseURL}/api/sessions/${sessionName}/restart`, {
+      const response = await fetch(`${WAHA_CONFIG.baseURL}/sessions/${sessionName}/restart`, {
         method: 'POST',
         headers: getHeaders()
       });
