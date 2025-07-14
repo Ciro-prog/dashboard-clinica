@@ -24,6 +24,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
   const [qrCode, setQrCode] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
+  const [success, setSuccess] = useState<string>('');
   const [sessionName, setSessionName] = useState<string>('');
   const [allSessions, setAllSessions] = useState<WAHASession[]>([]);
 
@@ -197,6 +198,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
 
     setIsLoading(true);
     setError('');
+    setSuccess('');
     
     try {
       console.log('➕ Creando nueva sesión:', sessionName);
@@ -212,6 +214,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
       if (response.ok) {
         const data = await response.json();
         setSession(data);
+        setSuccess('Sesión creada correctamente. Preparando conexión...');
         console.log('✅ Sesión creada:', data);
         
         // Verificar estado después de crear
@@ -268,10 +271,86 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     }
   };
 
+  // ✅ INICIAR SESIÓN (para sesiones STOPPED)
+  const startSession = async () => {
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
+    
+    try {
+      console.log('▶️ Iniciando sesión:', sessionName);
+      
+      const response = await fetch(`/api/waha/sessions/${sessionName}/start`, {
+        method: 'POST',
+        headers: getHeaders()
+      });
+
+      if (response.ok) {
+        console.log('▶️ Sesión iniciada exitosamente');
+        setSuccess('Sesión iniciada correctamente. Conectando con WhatsApp...');
+        
+        // Verificar estado después de iniciar
+        setTimeout(() => {
+          checkSession();
+        }, 3000);
+      } else {
+        const errorText = await response.text();
+        throw new Error(`Error al iniciar sesión: ${errorText}`);
+      }
+    } catch (err) {
+      console.error('❌ Error iniciando sesión:', err);
+      setError(err instanceof Error ? err.message : 'Error al iniciar sesión');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ✅ ELIMINAR SESIÓN CON CONFIRMACIÓN
+  const deleteSession = async () => {
+    // Confirmación antes de eliminar
+    if (!confirm(`¿Estás seguro de que quieres eliminar la sesión "${sessionName}"? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
+    
+    try {
+      console.log('🗑️ Eliminando sesión:', sessionName);
+      
+      const response = await fetch(`/api/waha/sessions/${sessionName}`, {
+        method: 'DELETE',
+        headers: getHeaders()
+      });
+
+      if (response.ok) {
+        console.log('🗑️ Sesión eliminada exitosamente');
+        setSuccess('Sesión eliminada correctamente.');
+        setSession(null);
+        setQrCode('');
+        
+        // Refrescar la lista después de eliminar
+        setTimeout(() => {
+          checkSession();
+        }, 1000);
+      } else {
+        const errorText = await response.text();
+        throw new Error(`Error al eliminar sesión: ${errorText}`);
+      }
+    } catch (err) {
+      console.error('❌ Error eliminando sesión:', err);
+      setError(err instanceof Error ? err.message : 'Error al eliminar sesión');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // ✅ REINICIAR SESIÓN
   const restartSession = async () => {
     setIsLoading(true);
     setError('');
+    setSuccess('');
     
     try {
       console.log('🔄 Reiniciando sesión:', sessionName);
@@ -283,6 +362,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
 
       if (response.ok) {
         console.log('🔄 Sesión reiniciada exitosamente');
+        setSuccess('Sesión reiniciada correctamente. Reestableciendo conexión...');
         
         // Verificar estado después de reiniciar
         setTimeout(() => {
@@ -324,17 +404,34 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     }
   };
 
-  // Obtener mensaje descriptivo del estado
+  // Obtener mensaje descriptivo del estado con acciones disponibles
   const getStatusDescription = (status: string) => {
     switch (status) {
-      case 'WORKING': return 'WhatsApp conectado y funcionando correctamente';
-      case 'STARTING': return 'Estableciendo conexión con WhatsApp...';
-      case 'SCAN_QR_CODE': return 'Esperando escaneo del código QR';
-      case 'STOPPED': return 'Sesión desconectada';
-      case 'FAILED': return 'Error en la conexión';
-      default: return 'Estado desconocido';
+      case 'WORKING': 
+        return 'WhatsApp conectado y funcionando correctamente. Puedes detener la sesión si es necesario.';
+      case 'STARTING': 
+        return 'Estableciendo conexión con WhatsApp... Si tarda mucho, puedes reiniciar.';
+      case 'SCAN_QR_CODE': 
+        return 'Esperando escaneo del código QR. Escanea con tu WhatsApp o reinicia si hay problemas.';
+      case 'STOPPED': 
+        return 'Sesión desconectada. Puedes iniciarla nuevamente o eliminarla si ya no la necesitas.';
+      case 'FAILED': 
+        return 'Error en la conexión. Puedes reiniciar para intentar reconectar o eliminar la sesión.';
+      default: 
+        return 'Estado desconocido. Verifica el estado de la sesión.';
     }
   };
+
+  // ✅ LIMPIAR MENSAJES DE ÉXITO AUTOMÁTICAMENTE
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => {
+        setSuccess('');
+      }, 5000); // Limpiar después de 5 segundos
+      
+      return () => clearTimeout(timer);
+    }
+  }, [success]);
 
   // ✅ VERIFICAR AUTOMÁTICAMENTE AL CARGAR
   useEffect(() => {
@@ -448,7 +545,25 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
             </div>
           </div>
 
-          {/* ✅ ERRORES */}
+          {/* ✅ INFORMACIÓN DE ACCIONES DISPONIBLES */}
+          {session && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <span className="text-blue-600 text-sm">💡</span>
+                <div className="text-sm text-blue-800">
+                  <strong>Acciones disponibles:</strong>
+                  <br />
+                  {session.status === 'STOPPED' && 'Puedes iniciar la sesión para conectar WhatsApp o eliminarla si ya no la necesitas.'}
+                  {session.status === 'STARTING' && 'La sesión está iniciando. Si tarda mucho, puedes reiniciarla.'}
+                  {session.status === 'WORKING' && 'Todo funcionando correctamente. Puedes detener la sesión si es necesario.'}
+                  {session.status === 'SCAN_QR_CODE' && 'Escanea el código QR con tu WhatsApp. Si hay problemas, puedes reiniciar o detener.'}
+                  {session.status === 'FAILED' && 'Hay un error. Puedes reiniciar para intentar reconectar o eliminar la sesión.'}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ✅ MENSAJES DE ERROR Y ÉXITO */}
           {error && (
             <Alert className="border-red-200 bg-red-50">
               <AlertDescription className="text-red-700">
@@ -456,8 +571,16 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
               </AlertDescription>
             </Alert>
           )}
+          
+          {success && (
+            <Alert className="border-green-200 bg-green-50">
+              <AlertDescription className="text-green-700">
+                ✅ {success}
+              </AlertDescription>
+            </Alert>
+          )}
 
-          {/* ✅ BOTONES DE CONTROL */}
+          {/* ✅ BOTONES DE CONTROL SEGÚN ESTADO */}
           <div className="flex gap-2 flex-wrap">
             <Button 
               onClick={checkSession}
@@ -469,6 +592,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
             </Button>
 
             {!session ? (
+              // Sin sesión - solo crear
               <Button 
                 onClick={createSession}
                 disabled={isLoading || !sessionName}
@@ -478,8 +602,30 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
                 {isLoading ? '➕ Creando...' : '➕ Crear Sesión'}
               </Button>
             ) : (
+              // Con sesión - botones según estado
               <>
-                {session.status !== 'WORKING' && (
+                {session.status === 'STOPPED' && (
+                  <>
+                    <Button 
+                      onClick={startSession}
+                      disabled={isLoading}
+                      className="bg-green-600 hover:bg-green-700"
+                      size="sm"
+                    >
+                      {isLoading ? '▶️ Iniciando...' : '▶️ Iniciar'}
+                    </Button>
+                    <Button 
+                      onClick={deleteSession}
+                      disabled={isLoading}
+                      variant="destructive"
+                      size="sm"
+                    >
+                      {isLoading ? '🗑️ Eliminando...' : '🗑️ Eliminar'}
+                    </Button>
+                  </>
+                )}
+
+                {session.status === 'STARTING' && (
                   <Button 
                     onClick={restartSession}
                     disabled={isLoading}
@@ -489,14 +635,59 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
                     {isLoading ? '🔄 Reiniciando...' : '🔄 Reiniciar'}
                   </Button>
                 )}
-                <Button 
-                  onClick={stopSession}
-                  disabled={isLoading}
-                  variant="destructive"
-                  size="sm"
-                >
-                  {isLoading ? '⏹️ Deteniendo...' : '⏹️ Detener'}
-                </Button>
+
+                {session.status === 'WORKING' && (
+                  <Button 
+                    onClick={stopSession}
+                    disabled={isLoading}
+                    variant="destructive"
+                    size="sm"
+                  >
+                    {isLoading ? '⏹️ Deteniendo...' : '⏹️ Detener'}
+                  </Button>
+                )}
+
+                {session.status === 'SCAN_QR_CODE' && (
+                  <>
+                    <Button 
+                      onClick={restartSession}
+                      disabled={isLoading}
+                      variant="outline"
+                      size="sm"
+                    >
+                      {isLoading ? '🔄 Reiniciando...' : '🔄 Reiniciar'}
+                    </Button>
+                    <Button 
+                      onClick={stopSession}
+                      disabled={isLoading}
+                      variant="destructive"
+                      size="sm"
+                    >
+                      {isLoading ? '⏹️ Deteniendo...' : '⏹️ Detener'}
+                    </Button>
+                  </>
+                )}
+
+                {session.status === 'FAILED' && (
+                  <>
+                    <Button 
+                      onClick={restartSession}
+                      disabled={isLoading}
+                      variant="outline"
+                      size="sm"
+                    >
+                      {isLoading ? '🔄 Reiniciando...' : '🔄 Reiniciar'}
+                    </Button>
+                    <Button 
+                      onClick={deleteSession}
+                      disabled={isLoading}
+                      variant="destructive"
+                      size="sm"
+                    >
+                      {isLoading ? '🗑️ Eliminando...' : '🗑️ Eliminar'}
+                    </Button>
+                  </>
+                )}
               </>
             )}
           </div>
@@ -618,6 +809,19 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
             <span className={`ml-2 ${error ? 'text-red-600' : 'text-green-600'}`}>
               {error ? '❌ Error' : '✅ Conectado'}
             </span>
+          </div>
+          
+          {/* Operaciones WAHA disponibles */}
+          <div className="pt-2 border-t">
+            <strong>Operaciones WAHA disponibles:</strong>
+            <div className="mt-1 text-xs text-gray-600 space-y-1">
+              <div>• <code>POST /sessions</code> - Crear nueva sesión</div>
+              <div>• <code>POST /sessions/&#123;name&#125;/start</code> - Iniciar sesión</div>
+              <div>• <code>POST /sessions/&#123;name&#125;/stop</code> - Detener sesión</div>
+              <div>• <code>POST /sessions/&#123;name&#125;/restart</code> - Reiniciar sesión</div>
+              <div>• <code>DELETE /sessions/&#123;name&#125;</code> - Eliminar sesión</div>
+              <div>• <code>GET /sessions/&#123;name&#125;/auth/qr</code> - Obtener código QR</div>
+            </div>
           </div>
         </CardContent>
       </Card>
