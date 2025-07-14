@@ -25,6 +25,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [sessionName, setSessionName] = useState<string>('');
+  const [allSessions, setAllSessions] = useState<WAHASession[]>([]);
 
   // ✅ REPLICAR EXACTAMENTE LA LÓGICA DEL DASHBOARD
   useEffect(() => {
@@ -51,13 +52,38 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     }
   }, [clinic]);
 
-  // ✅ HEADERS PARA PRODUCCIÓN - SIN API KEY (vercel.json lo agrega automáticamente)
+  // ✅ HEADERS CORRECTOS - SIN API KEY (vercel.json lo agrega automáticamente)
   const getHeaders = () => ({
     'Content-Type': 'application/json'
     // ✅ NO agregamos X-API-Key porque vercel.json ya lo hace automáticamente
   });
 
-  // ✅ VERIFICAR ESTADO DE SESIÓN - USANDO LA MISMA URL QUE EL DASHBOARD Y LOGIN
+  // ✅ OBTENER TODAS LAS SESIONES PRIMERO
+  const getAllSessions = async () => {
+    try {
+      console.log('📊 Obteniendo todas las sesiones disponibles...');
+      
+      const response = await fetch('/api/waha/sessions', {
+        method: 'GET',
+        headers: getHeaders()
+      });
+
+      if (response.ok) {
+        const sessions = await response.json();
+        console.log('📊 Sesiones disponibles:', sessions);
+        setAllSessions(sessions);
+        return sessions;
+      } else {
+        console.error('❌ Error obteniendo sesiones:', response.status);
+        return [];
+      }
+    } catch (err) {
+      console.error('❌ Error de red obteniendo sesiones:', err);
+      return [];
+    }
+  };
+
+  // ✅ VERIFICAR ESTADO DE SESIÓN ESPECÍFICA
   const checkSession = async () => {
     if (!sessionName) {
       setError('No se ha cargado el nombre de sesión');
@@ -68,37 +94,31 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     setError('');
     
     try {
-      console.log('📊 Verificando estado de sesión:', sessionName);
+      console.log('📊 Verificando estado de sesión específica:', sessionName);
       
-      // ✅ USAR LA MISMA URL QUE EN EL DASHBOARD (igual que LoginForm usa /api/proxy)
-      const response = await fetch(`/api/waha/sessions/${sessionName}`, {
-        method: 'GET',
-        headers: getHeaders()  // ✅ Solo Content-Type, vercel.json agrega X-API-Key
-      });
-
-      console.log('📡 Respuesta verificación status:', response.status);
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('📊 Datos de sesión recibidos:', data);
-        setSession(data);
+      // Primero obtener todas las sesiones para verificar si existe
+      const allSessions = await getAllSessions();
+      
+      // Buscar nuestra sesión específica
+      const existingSession = allSessions.find(s => s.name === sessionName);
+      
+      if (existingSession) {
+        console.log('✅ Sesión encontrada:', existingSession);
+        setSession(existingSession);
         
         // Limpiar QR si el estado cambió
-        if (data.status !== 'SCAN_QR_CODE') {
+        if (existingSession.status !== 'SCAN_QR_CODE') {
           setQrCode('');
           console.log('🧹 QR limpiado - estado no es SCAN_QR_CODE');
         }
         
-        console.log('📊 Estado de sesión actual:', data.status);
-      } else if (response.status === 404) {
+        console.log('📊 Estado de sesión actual:', existingSession.status);
+      } else {
+        console.log('ℹ️ Sesión no existe - puede crear una nueva');
         setSession(null);
         setQrCode('');
-        console.log('ℹ️ Sesión no existe - puede crear una nueva');
-      } else {
-        const errorText = await response.text();
-        console.error('❌ Error HTTP verificando sesión:', response.status, errorText);
-        throw new Error(`Error ${response.status}: ${errorText}`);
       }
+      
     } catch (err) {
       console.error('❌ Error verificando sesión:', err);
       setError('Error al verificar la sesión. Verifica que WAHA esté ejecutándose.');
@@ -107,27 +127,26 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     }
   };
 
-  // ✅ OBTENER QR CORREGIDO - URL CONSISTENTE
+  // ✅ OBTENER QR MEJORADO
   const getQR = async () => {
     if (!sessionName) {
       console.error('❌ No hay nombre de sesión para obtener QR');
       return;
     }
     
+    setIsLoading(true);
     try {
       console.log('📷 Obteniendo QR para sesión:', sessionName);
       
-      // ✅ URL CORREGIDA PARA CONSISTENCIA
       const qrUrl = `/api/waha/sessions/${sessionName}/auth/qr`;
       console.log('🌐 URL del QR:', qrUrl);
       
       const response = await fetch(qrUrl, {
         method: 'GET',
-        headers: getHeaders()  // ✅ vercel.json agrega X-API-Key automáticamente
+        headers: getHeaders()
       });
 
       console.log('📡 Respuesta QR status:', response.status);
-      console.log('📡 Respuesta QR headers:', response.headers.get('content-type'));
       
       if (response.ok) {
         const contentType = response.headers.get('content-type');
@@ -164,10 +183,12 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     } catch (err) {
       console.error('❌ Error de red obteniendo QR:', err);
       setError('Error de conexión al obtener QR');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // ✅ CREAR SESIÓN CORREGIDO
+  // ✅ CREAR SESIÓN MEJORADA
   const createSession = async () => {
     if (!sessionName) {
       setError('No hay nombre de sesión disponible');
@@ -178,10 +199,11 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     setError('');
     
     try {
-      // ✅ URL CORREGIDA
-      const response = await fetch(`/api/waha/sessions`, {
+      console.log('➕ Creando nueva sesión:', sessionName);
+      
+      const response = await fetch('/api/waha/sessions', {
         method: 'POST',
-        headers: getHeaders(),  // ✅ vercel.json agrega X-API-Key automáticamente
+        headers: getHeaders(),
         body: JSON.stringify({
           name: sessionName
         })
@@ -190,12 +212,20 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
       if (response.ok) {
         const data = await response.json();
         setSession(data);
-        console.log('✅ Sesión creada:', data.name);
+        console.log('✅ Sesión creada:', data);
         
         // Verificar estado después de crear
-        setTimeout(checkSession, 2000);
+        setTimeout(() => {
+          checkSession();
+        }, 2000);
       } else {
-        const errorData = await response.json();
+        const errorText = await response.text();
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: errorText };
+        }
         throw new Error(errorData.message || 'Error al crear sesión');
       }
     } catch (err) {
@@ -206,82 +236,67 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     }
   };
 
-  // ✅ DETENER SESIÓN CORREGIDO
+  // ✅ DETENER SESIÓN
   const stopSession = async () => {
     setIsLoading(true);
+    setError('');
     
     try {
+      console.log('⏹️ Deteniendo sesión:', sessionName);
+      
       const response = await fetch(`/api/waha/sessions/${sessionName}/stop`, {
         method: 'POST',
-        headers: getHeaders()  // ✅ vercel.json agrega X-API-Key automáticamente
+        headers: getHeaders()
       });
 
       if (response.ok) {
         setSession(null);
         setQrCode('');
-        console.log('⏹️ Sesión detenida');
+        console.log('⏹️ Sesión detenida exitosamente');
+        
+        // Refrescar la lista después de detener
+        setTimeout(checkSession, 1000);
       } else {
-        throw new Error('Error al detener sesión');
+        const errorText = await response.text();
+        throw new Error(`Error al detener sesión: ${errorText}`);
       }
     } catch (err) {
       console.error('❌ Error deteniendo sesión:', err);
-      setError('Error al detener sesión');
+      setError(err instanceof Error ? err.message : 'Error al detener sesión');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // ✅ REINICIAR SESIÓN CORREGIDO
+  // ✅ REINICIAR SESIÓN
   const restartSession = async () => {
     setIsLoading(true);
+    setError('');
     
     try {
+      console.log('🔄 Reiniciando sesión:', sessionName);
+      
       const response = await fetch(`/api/waha/sessions/${sessionName}/restart`, {
         method: 'POST',
-        headers: getHeaders()  // ✅ vercel.json agrega X-API-Key automáticamente
+        headers: getHeaders()
       });
 
       if (response.ok) {
-        console.log('🔄 Sesión reiniciada');
-        setTimeout(checkSession, 3000);
+        console.log('🔄 Sesión reiniciada exitosamente');
+        
+        // Verificar estado después de reiniciar
+        setTimeout(() => {
+          checkSession();
+        }, 3000);
       } else {
-        throw new Error('Error al reiniciar sesión');
+        const errorText = await response.text();
+        throw new Error(`Error al reiniciar sesión: ${errorText}`);
       }
     } catch (err) {
       console.error('❌ Error reiniciando sesión:', err);
-      setError('Error al reiniciar sesión');
+      setError(err instanceof Error ? err.message : 'Error al reiniciar sesión');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  // TEST PARA PRODUCCIÓN
-  const testProductionAPI = async () => {
-    try {
-      console.log('🧪 TEST PRODUCCIÓN - Verificando conexión WAHA...');
-      
-      const response = await fetch('/api/waha/sessions', {
-        method: 'GET',
-        headers: getHeaders()
-      });
-      
-      console.log('📡 Status:', response.status);
-      console.log('📡 StatusText:', response.statusText);
-      
-      const responseText = await response.text();
-      console.log('📡 Response:', responseText);
-      
-      if (response.ok) {
-        console.log('✅ API WAHA funcionando correctamente en producción');
-        setError('');
-      } else {
-        console.log('❌ Error en API WAHA:', response.status, responseText);
-        setError(`Error ${response.status}: ${responseText}`);
-      }
-      
-    } catch (error) {
-      console.error('❌ Error de conexión:', error);
-      setError(`Error de conexión: ${error.message}`);
     }
   };
 
@@ -309,14 +324,26 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     }
   };
 
-  // Verificar automáticamente al cargar
+  // Obtener mensaje descriptivo del estado
+  const getStatusDescription = (status: string) => {
+    switch (status) {
+      case 'WORKING': return 'WhatsApp conectado y funcionando correctamente';
+      case 'STARTING': return 'Estableciendo conexión con WhatsApp...';
+      case 'SCAN_QR_CODE': return 'Esperando escaneo del código QR';
+      case 'STOPPED': return 'Sesión desconectada';
+      case 'FAILED': return 'Error en la conexión';
+      default: return 'Estado desconocido';
+    }
+  };
+
+  // ✅ VERIFICAR AUTOMÁTICAMENTE AL CARGAR
   useEffect(() => {
     if (sessionName) {
       checkSession();
     }
   }, [sessionName]);
 
-  // Obtener QR automáticamente cuando el estado sea SCAN_QR_CODE
+  // ✅ OBTENER QR AUTOMÁTICAMENTE CUANDO SEA NECESARIO
   useEffect(() => {
     if (session?.status === 'SCAN_QR_CODE' && !qrCode && !isLoading) {
       console.log('🔄 Estado SCAN_QR_CODE detectado, obteniendo QR automáticamente...');
@@ -324,7 +351,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     }
   }, [session?.status, qrCode, isLoading]);
 
-  // ✅ MOSTRAR LOADING MIENTRAS SE CARGAN LOS DATOS DE LA CLÍNICA
+  // ✅ MOSTRAR LOADING MIENTRAS SE CARGAN LOS DATOS
   if (!clinic) {
     return (
       <div className="space-y-6">
@@ -332,7 +359,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
           <CardContent className="flex items-center justify-center py-8">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-              <p className="mt-2 text-sm text-gray-600">Esperando datos de la clínica...</p>
+              <p className="mt-2 text-sm text-gray-600">Cargando datos de la clínica...</p>
             </div>
           </CardContent>
         </Card>
@@ -342,7 +369,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
 
   return (
     <div className="space-y-6">
-      {/* ✅ INFORMACIÓN DE LA CLÍNICA RECIBIDA COMO PROP */}
+      {/* ✅ INFORMACIÓN DE LA CLÍNICA */}
       <Card className="bg-blue-50 border-blue-200">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
@@ -358,32 +385,13 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
         </CardHeader>
       </Card>
 
-      {/* TEST DE PRODUCCIÓN */}
-      <Card className="bg-green-50 border-green-200">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            🧪 Test de Producción
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-2">
-            <Button onClick={testProductionAPI} variant="outline" size="sm">
-              🧪 Test API WAHA
-            </Button>
-            <Button onClick={checkSession} variant="outline" size="sm" disabled={!sessionName}>
-              🔍 Verificar Sesión
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Estado de la sesión */}
+      {/* ✅ ESTADO DE LA SESIÓN PRINCIPAL */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span>📱</span>
-              <span>Estado de WhatsApp WAHA</span>
+              <span>WhatsApp Business</span>
             </div>
             {session && (
               <Badge className={`${getBadgeColor(session.status)} text-white`}>
@@ -392,11 +400,11 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
             )}
           </CardTitle>
           <CardDescription>
-            Conexión con WhatsApp Business API en Producción
+            {session ? getStatusDescription(session.status) : 'Sin sesión activa'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Información del estado */}
+          {/* ✅ INFORMACIÓN DEL ESTADO */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
               <span className="font-medium">Estado:</span>
@@ -420,7 +428,27 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
             )}
           </div>
 
-          {/* Errores */}
+          {/* ✅ INDICADORES VISUALES */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className={`w-3 h-3 rounded-full ${
+                session?.status === 'WORKING' ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+              }`}></div>
+              <span className="text-sm">
+                {session?.status === 'WORKING' ? 'Recibiendo mensajes' : 'Sin recepción'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className={`w-3 h-3 rounded-full ${
+                session?.status === 'WORKING' ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+              }`}></div>
+              <span className="text-sm">
+                {session?.status === 'WORKING' ? 'Bot respondiendo' : 'Bot inactivo'}
+              </span>
+            </div>
+          </div>
+
+          {/* ✅ ERRORES */}
           {error && (
             <Alert className="border-red-200 bg-red-50">
               <AlertDescription className="text-red-700">
@@ -429,7 +457,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
             </Alert>
           )}
 
-          {/* Botones de control */}
+          {/* ✅ BOTONES DE CONTROL */}
           <div className="flex gap-2 flex-wrap">
             <Button 
               onClick={checkSession}
@@ -447,25 +475,27 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
                 className="bg-green-600 hover:bg-green-700"
                 size="sm"
               >
-                ➕ Crear Sesión
+                {isLoading ? '➕ Creando...' : '➕ Crear Sesión'}
               </Button>
             ) : (
               <>
-                <Button 
-                  onClick={restartSession}
-                  disabled={isLoading}
-                  variant="outline"
-                  size="sm"
-                >
-                  🔄 Reiniciar
-                </Button>
+                {session.status !== 'WORKING' && (
+                  <Button 
+                    onClick={restartSession}
+                    disabled={isLoading}
+                    variant="outline"
+                    size="sm"
+                  >
+                    {isLoading ? '🔄 Reiniciando...' : '🔄 Reiniciar'}
+                  </Button>
+                )}
                 <Button 
                   onClick={stopSession}
                   disabled={isLoading}
                   variant="destructive"
                   size="sm"
                 >
-                  ⏹️ Detener
+                  {isLoading ? '⏹️ Deteniendo...' : '⏹️ Detener'}
                 </Button>
               </>
             )}
@@ -473,7 +503,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
         </CardContent>
       </Card>
 
-      {/* Código QR */}
+      {/* ✅ CÓDIGO QR MEJORADO */}
       {session?.status === 'SCAN_QR_CODE' && (
         <Card className="border-blue-200">
           <CardHeader>
@@ -482,7 +512,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
               <span>Código QR de WhatsApp</span>
             </CardTitle>
             <CardDescription>
-              Escanea este código con tu WhatsApp para conectar la sesión: <strong>{sessionName}</strong>
+              Escanea este código QR con tu WhatsApp para conectar la sesión: <strong>{sessionName}</strong>
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center space-y-4">
@@ -493,7 +523,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
                     src={qrCode} 
                     alt="WhatsApp QR Code" 
                     className="w-64 h-64 border rounded-lg shadow-lg bg-white p-2"
-                    onError={(e) => {
+                    onError={() => {
                       console.error('❌ Error cargando imagen QR');
                       setError('Error al cargar la imagen del QR');
                     }}
@@ -520,7 +550,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
                 <div className="w-64 h-64 mx-auto bg-gray-100 rounded-lg flex items-center justify-center">
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                    <p className="mt-2 text-sm text-gray-600">Generando QR...</p>
+                    <p className="mt-2 text-sm text-gray-600">Generando código QR...</p>
                   </div>
                 </div>
                 <div className="flex gap-2 justify-center">
@@ -534,26 +564,61 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
         </Card>
       )}
 
-      {/* Información técnica y debug */}
+      {/* ✅ SESIONES DISPONIBLES */}
+      {allSessions.length > 0 && (
+        <Card className="bg-gray-50">
+          <CardHeader>
+            <CardTitle className="text-base">📱 Sesiones WhatsApp Disponibles</CardTitle>
+            <CardDescription>
+              Todas las sesiones actualmente en el servidor WAHA
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {allSessions.map((sess) => (
+                <div 
+                  key={sess.name} 
+                  className={`flex items-center justify-between p-3 rounded border ${
+                    sess.name === sessionName ? 'border-blue-300 bg-blue-50' : 'border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full ${getBadgeColor(sess.status).replace('bg-', 'bg-')}`}></div>
+                    <div>
+                      <span className="font-medium">{sess.name}</span>
+                      {sess.name === sessionName && <span className="text-xs text-blue-600 ml-2">(tu sesión)</span>}
+                      {sess.me && (
+                        <p className="text-xs text-gray-600">
+                          Conectado: {sess.me.pushName}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <Badge className={`${getBadgeColor(sess.status)} text-white text-xs`}>
+                    {getStatusText(sess.status)}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ✅ INFORMACIÓN TÉCNICA */}
       <Card className="bg-gray-50">
         <CardHeader>
-          <CardTitle className="text-base">⚙️ Configuración WAHA - Producción</CardTitle>
+          <CardTitle className="text-base">⚙️ Información Técnica</CardTitle>
         </CardHeader>
         <CardContent className="text-sm space-y-2">
           <div><strong>API URL:</strong> <code className="bg-gray-200 px-1 rounded">/api/waha (proxy)</code></div>
           <div><strong>Servidor:</strong> <code className="bg-gray-200 px-1 rounded">pampaservers.com:60513</code></div>
-          <div><strong>API Key:</strong> <code className="bg-gray-200 px-1 rounded">✅ Configurado en vercel.json</code></div>
+          <div><strong>API Key:</strong> <code className="bg-gray-200 px-1 rounded">✅ pampaserver2025enservermuA!</code></div>
           <div><strong>Sesión:</strong> <code className="bg-gray-200 px-1 rounded">{sessionName}</code></div>
-          <div><strong>Clínica:</strong> {clinic.name_clinic || 'No disponible'}</div>
-          <div><strong>Subscriber:</strong> <code className="bg-gray-200 px-1 rounded">"{clinic.suscriber || 'No disponible'}"</code></div>
           <div><strong>Estado API:</strong> 
             <span className={`ml-2 ${error ? 'text-red-600' : 'text-green-600'}`}>
-              {error ? '❌ Error de conexión' : '✅ Conectado'}
+              {error ? '❌ Error' : '✅ Conectado'}
             </span>
           </div>
-          {session && (
-            <div><strong>Estado Actual:</strong> <code className="bg-gray-200 px-1 rounded">{session.status}</code></div>
-          )}
         </CardContent>
       </Card>
     </div>
