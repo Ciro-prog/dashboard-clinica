@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +28,39 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
   const [sessionName, setSessionName] = useState<string>('');
   const [allSessions, setAllSessions] = useState<WAHASession[]>([]);
 
+  // ✅ REF PARA CONTROLAR SI EL COMPONENTE ESTÁ MONTADO
+  const isMountedRef = useRef(true);
+  const timeoutRefs = useRef<NodeJS.Timeout[]>([]);
+
+  // ✅ CLEANUP AL DESMONTAR
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      // Limpiar todos los timeouts
+      timeoutRefs.current.forEach(timeout => clearTimeout(timeout));
+      timeoutRefs.current = [];
+    };
+  }, []);
+
+  // ✅ FUNCIÓN HELPER PARA ACTUALIZAR ESTADO SOLO SI ESTÁ MONTADO
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+  const safeSetState = useCallback((setter: Function, value: any) => {
+    if (isMountedRef.current) {
+      setter(value);
+    }
+  }, []);
+
+  // ✅ FUNCIÓN HELPER PARA TIMEOUTS SEGUROS
+  const safeSetTimeout = useCallback((callback: () => void, delay: number) => {
+    const timeout = setTimeout(() => {
+      if (isMountedRef.current) {
+        callback();
+      }
+    }, delay);
+    timeoutRefs.current.push(timeout);
+    return timeout;
+  }, []);
+
   // ✅ REPLICAR EXACTAMENTE LA LÓGICA DEL DASHBOARD
   useEffect(() => {
     if (clinic) {
@@ -53,14 +86,14 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     }
   }, [clinic]);
 
-  // ✅ HEADERS CORRECTOS - AGREGANDO API KEY MANUALMENTE (vercel.json no está funcionando)
-  const getHeaders = () => ({
+  // ✅ HEADERS CORRECTOS - AGREGANDO API KEY MANUALMENTE
+  const getHeaders = useCallback(() => ({
     'Content-Type': 'application/json',
     'X-API-Key': 'pampaserver2025enservermuA!'  // ✅ API Key correcto
-  });
+  }), []);
 
   // ✅ OBTENER TODAS LAS SESIONES PRIMERO
-  const getAllSessions = async () => {
+  const getAllSessions = useCallback(async () => {
     try {
       console.log('📊 Obteniendo todas las sesiones disponibles...');
       
@@ -69,10 +102,10 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
         headers: getHeaders()
       });
 
-      if (response.ok) {
+      if (response.ok && isMountedRef.current) {
         const sessions = await response.json();
         console.log('📊 Sesiones disponibles:', sessions);
-        setAllSessions(sessions);
+        safeSetState(setAllSessions, sessions);
         return sessions;
       } else {
         console.error('❌ Error obteniendo sesiones:', response.status);
@@ -82,18 +115,18 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
       console.error('❌ Error de red obteniendo sesiones:', err);
       return [];
     }
-  };
+  }, [safeSetState, getHeaders]);
 
   // ✅ VERIFICAR ESTADO DE SESIÓN ESPECÍFICA - CORREGIDO
-  const checkSession = async () => {
+  const checkSession = useCallback(async () => {
     if (!sessionName) {
-      setError('No se ha cargado el nombre de sesión');
+      safeSetState(setError, 'No se ha cargado el nombre de sesión');
       return;
     }
 
-    setIsLoading(true);
-    setError('');
-    setSuccess('');
+    safeSetState(setIsLoading, true);
+    safeSetState(setError, '');
+    safeSetState(setSuccess, '');
     
     try {
       console.log('📊 Verificando estado de sesión específica:', sessionName);
@@ -106,28 +139,28 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
 
       console.log('📡 Respuesta verificación status:', response.status);
 
-      if (response.ok) {
+      if (response.ok && isMountedRef.current) {
         const sessionData = await response.json();
         console.log('✅ Sesión encontrada:', sessionData);
-        setSession(sessionData);
+        safeSetState(setSession, sessionData);
         
         // Limpiar QR si el estado cambió
         if (sessionData.status !== 'SCAN_QR_CODE') {
-          setQrCode('');
+          safeSetState(setQrCode, '');
           console.log('🧹 QR limpiado - estado no es SCAN_QR_CODE');
         }
         
         console.log('📊 Estado de sesión actual:', sessionData.status);
         
-      } else if (response.status === 404) {
+      } else if (response.status === 404 && isMountedRef.current) {
         console.log('ℹ️ Sesión no existe - puede crear una nueva');
-        setSession(null);
-        setQrCode('');
+        safeSetState(setSession, null);
+        safeSetState(setQrCode, '');
         
         // También intentar obtener todas las sesiones por si acaso
         await getAllSessions();
         
-      } else {
+      } else if (isMountedRef.current) {
         const errorText = await response.text();
         console.error('❌ Error HTTP verificando sesión:', response.status, errorText);
         throw new Error(`Error ${response.status}: ${errorText}`);
@@ -135,11 +168,15 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
       
     } catch (err) {
       console.error('❌ Error verificando sesión:', err);
-      setError('Error al verificar la sesión. Verifica que WAHA esté ejecutándose.');
+      if (isMountedRef.current) {
+        safeSetState(setError, 'Error al verificar la sesión. Verifica que WAHA esté ejecutándose.');
+      }
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) {
+        safeSetState(setIsLoading, false);
+      }
     }
-  };
+  }, [sessionName, safeSetState, getAllSessions, getHeaders]);
 
   // ✅ OBTENER QR MEJORADO
   const getQR = async () => {
@@ -203,15 +240,15 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
   };
 
   // ✅ CREAR O ACTUALIZAR SESIÓN
-  const createSession = async () => {
+  const createSession = useCallback(async () => {
     if (!sessionName) {
-      setError('No hay nombre de sesión disponible');
+      safeSetState(setError, 'No hay nombre de sesión disponible');
       return;
     }
 
-    setIsLoading(true);
-    setError('');
-    setSuccess('');
+    safeSetState(setIsLoading, true);
+    safeSetState(setError, '');
+    safeSetState(setSuccess, '');
     
     try {
       console.log('➕ Creando nueva sesión:', sessionName);
@@ -224,23 +261,23 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
         })
       });
 
-      if (response.ok) {
+      if (response.ok && isMountedRef.current) {
         const data = await response.json();
-        setSession(data);
-        setSuccess('Sesión creada correctamente. Preparando conexión...');
+        safeSetState(setSession, data);
+        safeSetState(setSuccess, 'Sesión creada correctamente. Preparando conexión...');
         console.log('✅ Sesión creada:', data);
         
         // Verificar estado después de crear
-        setTimeout(() => {
+        safeSetTimeout(() => {
           checkSession();
         }, 2000);
         
-      } else if (response.status === 409) {
+      } else if (response.status === 409 && isMountedRef.current) {
         // Conflicto - la sesión ya existe, intentar actualizarla
         console.log('⚠️ Sesión ya existe, intentando actualizar...');
         await updateSession();
         
-      } else {
+      } else if (isMountedRef.current) {
         const errorText = await response.text();
         let errorData;
         try {
@@ -252,22 +289,26 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
       }
     } catch (err) {
       console.error('❌ Error creando sesión:', err);
-      setError(err instanceof Error ? err.message : 'Error al crear sesión');
+      if (isMountedRef.current) {
+        safeSetState(setError, err instanceof Error ? err.message : 'Error al crear sesión');
+      }
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) {
+        safeSetState(setIsLoading, false);
+      }
     }
-  };
+  }, [sessionName, safeSetState, safeSetTimeout, checkSession, getHeaders]); // ✅ Sin updateSession para evitar ciclo
 
   // ✅ ACTUALIZAR SESIÓN EXISTENTE (PUT)
-  const updateSession = async () => {
+  const updateSession = useCallback(async () => {
     if (!sessionName) {
-      setError('No hay nombre de sesión disponible');
+      safeSetState(setError, 'No hay nombre de sesión disponible');
       return;
     }
 
-    setIsLoading(true);
-    setError('');
-    setSuccess('');
+    safeSetState(setIsLoading, true);
+    safeSetState(setError, '');
+    safeSetState(setSuccess, '');
     
     try {
       console.log('🔄 Actualizando sesión existente:', sessionName);
@@ -280,17 +321,17 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
         })
       });
 
-      if (response.ok) {
+      if (response.ok && isMountedRef.current) {
         const data = await response.json();
-        setSession(data);
-        setSuccess('Sesión actualizada correctamente. Preparando conexión...');
+        safeSetState(setSession, data);
+        safeSetState(setSuccess, 'Sesión actualizada correctamente. Preparando conexión...');
         console.log('✅ Sesión actualizada:', data);
         
         // Verificar estado después de actualizar
-        setTimeout(() => {
+        safeSetTimeout(() => {
           checkSession();
         }, 2000);
-      } else {
+      } else if (isMountedRef.current) {
         const errorText = await response.text();
         let errorData;
         try {
@@ -302,11 +343,15 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
       }
     } catch (err) {
       console.error('❌ Error actualizando sesión:', err);
-      setError(err instanceof Error ? err.message : 'Error al actualizar sesión');
+      if (isMountedRef.current) {
+        safeSetState(setError, err instanceof Error ? err.message : 'Error al actualizar sesión');
+      }
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) {
+        safeSetState(setIsLoading, false);
+      }
     }
-  };
+  }, [sessionName, safeSetState, safeSetTimeout, checkSession]); // ✅ Sin createSession para evitar ciclo
 
   // ✅ DETENER SESIÓN
   const stopSession = async () => {
@@ -341,10 +386,10 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
   };
 
   // ✅ INICIAR SESIÓN (para sesiones STOPPED)
-  const startSession = async () => {
-    setIsLoading(true);
-    setError('');
-    setSuccess('');
+  const startSession = useCallback(async () => {
+    safeSetState(setIsLoading, true);
+    safeSetState(setError, '');
+    safeSetState(setSuccess, '');
     
     try {
       console.log('▶️ Iniciando sesión:', sessionName);
@@ -354,36 +399,40 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
         headers: getHeaders()
       });
 
-      if (response.ok) {
+      if (response.ok && isMountedRef.current) {
         console.log('▶️ Sesión iniciada exitosamente');
-        setSuccess('Sesión iniciada correctamente. Conectando con WhatsApp...');
+        safeSetState(setSuccess, 'Sesión iniciada correctamente. Conectando con WhatsApp...');
         
         // Verificar estado después de iniciar
-        setTimeout(() => {
+        safeSetTimeout(() => {
           checkSession();
         }, 3000);
-      } else {
+      } else if (isMountedRef.current) {
         const errorText = await response.text();
         throw new Error(`Error al iniciar sesión: ${errorText}`);
       }
     } catch (err) {
       console.error('❌ Error iniciando sesión:', err);
-      setError(err instanceof Error ? err.message : 'Error al iniciar sesión');
+      if (isMountedRef.current) {
+        safeSetState(setError, err instanceof Error ? err.message : 'Error al iniciar sesión');
+      }
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) {
+        safeSetState(setIsLoading, false);
+      }
     }
-  };
+  }, [sessionName, safeSetState, safeSetTimeout, checkSession]);
 
   // ✅ ELIMINAR SESIÓN CON CONFIRMACIÓN
-  const deleteSession = async () => {
+  const deleteSession = useCallback(async () => {
     // Confirmación antes de eliminar
     if (!confirm(`¿Estás seguro de que quieres eliminar la sesión "${sessionName}"? Esta acción no se puede deshacer.`)) {
       return;
     }
 
-    setIsLoading(true);
-    setError('');
-    setSuccess('');
+    safeSetState(setIsLoading, true);
+    safeSetState(setError, '');
+    safeSetState(setSuccess, '');
     
     try {
       console.log('🗑️ Eliminando sesión:', sessionName);
@@ -393,27 +442,31 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
         headers: getHeaders()
       });
 
-      if (response.ok) {
+      if (response.ok && isMountedRef.current) {
         console.log('🗑️ Sesión eliminada exitosamente');
-        setSuccess('Sesión eliminada correctamente.');
-        setSession(null);
-        setQrCode('');
+        safeSetState(setSuccess, 'Sesión eliminada correctamente.');
+        safeSetState(setSession, null);
+        safeSetState(setQrCode, '');
         
         // Refrescar la lista después de eliminar
-        setTimeout(() => {
+        safeSetTimeout(() => {
           checkSession();
         }, 1000);
-      } else {
+      } else if (isMountedRef.current) {
         const errorText = await response.text();
         throw new Error(`Error al eliminar sesión: ${errorText}`);
       }
     } catch (err) {
       console.error('❌ Error eliminando sesión:', err);
-      setError(err instanceof Error ? err.message : 'Error al eliminar sesión');
+      if (isMountedRef.current) {
+        safeSetState(setError, err instanceof Error ? err.message : 'Error al eliminar sesión');
+      }
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) {
+        safeSetState(setIsLoading, false);
+      }
     }
-  };
+  }, [sessionName, safeSetState, safeSetTimeout, checkSession]);
 
   // ✅ REINICIAR SESIÓN
   const restartSession = async () => {
@@ -531,6 +584,11 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
         </Card>
       </div>
     );
+  }
+
+  // ✅ NO RENDERIZAR SI EL COMPONENTE SE ESTÁ DESMONTANDO
+  if (!isMountedRef.current) {
+    return null;
   }
 
   return (
@@ -860,9 +918,9 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {allSessions.map((sess) => (
+              {allSessions.map((sess, index) => (
                 <div 
-                  key={sess.name} 
+                  key={`${sess.name}-${index}`} // ✅ Key única usando nombre e índice
                   className={`flex items-center justify-between p-3 rounded border ${
                     sess.name === sessionName ? 'border-blue-300 bg-blue-50' : 'border-gray-200'
                   }`}
