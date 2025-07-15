@@ -26,582 +26,480 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
   const [sessionName, setSessionName] = useState<string>('');
-  const [allSessions, setAllSessions] = useState<WAHASession[]>([]);
 
-  // ✅ CONTROL ULTRA ESTABLE
-  const mountedRef = useRef(true);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  // ✅ REF INICIALIZADO CORRECTAMENTE
+  const isMounted = useRef(true);
 
-  // ✅ CLEANUP COMPLETO AL DESMONTAR
+  // ✅ CLEANUP SIMPLE Y SEGURO
   useEffect(() => {
+    isMounted.current = true;
     return () => {
-      console.log('🧹 Limpiando componente WhatsApp WAHA...');
-      mountedRef.current = false;
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
+      isMounted.current = false;
+      console.log('🧹 Componente WhatsApp desmontado');
     };
   }, []);
 
-  // ✅ HEADERS SEGUROS
-  const getHeaders = useCallback(() => ({
-    'Content-Type': 'application/json',
-    'X-API-Key': 'pampaserver2025enservermuA!'
-  }), []);
-
-  // ✅ FUNCIÓN HELPER PARA UPDATES SEGUROS
-  const safeUpdate = useCallback((updateFn: () => void) => {
-    if (mountedRef.current) {
-      try {
-        updateFn();
-      } catch (err) {
-        console.error('Error en safeUpdate:', err);
-      }
-    }
-  }, []);
-
-  // ✅ CONFIGURAR NOMBRE DE SESIÓN (SOLO UNA VEZ)
+  // ✅ CONFIGURAR NOMBRE DE SESIÓN (UNA SOLA VEZ)
   useEffect(() => {
-    if (clinic && !sessionName && mountedRef.current) {
-      let finalSessionName;
-      if (clinic.suscriber && clinic.suscriber.trim() !== '') {
+    if (clinic && !sessionName && isMounted.current) {
+      let finalSessionName = '';
+      
+      if (clinic.suscriber?.trim()) {
         finalSessionName = clinic.suscriber.trim();
-      } else if (clinic.clinic_id && clinic.clinic_id.trim() !== '') {
+      } else if (clinic.clinic_id?.trim()) {
         finalSessionName = clinic.clinic_id.trim();
       } else {
         finalSessionName = `clinic-${clinic.clinic_id || 'unknown'}`;
       }
       
       console.log('📱 Configurando nombre de sesión:', finalSessionName);
-      safeUpdate(() => setSessionName(finalSessionName));
+      setSessionName(finalSessionName);
     }
-  }, [clinic, sessionName, safeUpdate]);
+  }, [clinic, sessionName]);
 
-  // ✅ VERIFICAR ESTADO DE SESIÓN - ULTRA SIMPLE
+  // ✅ HEADERS SIMPLES
+  const headers = {
+    'Content-Type': 'application/json',
+    'X-API-Key': 'pampaserver2025enservermuA!'
+  };
+
+  // ✅ VERIFICAR SESIÓN - ULTRA SIMPLE
   const checkSession = useCallback(async () => {
-    if (!sessionName || !mountedRef.current) return;
+    if (!sessionName || !isMounted.current) return;
 
     console.log('🔍 Verificando sesión:', sessionName);
     
     try {
       const response = await fetch(`/api/waha/sessions/${sessionName}`, {
         method: 'GET',
-        headers: getHeaders(),
-        signal: abortControllerRef.current?.signal
+        headers
       });
 
-      if (!mountedRef.current) return;
+      if (!isMounted.current) return;
 
       if (response.ok) {
-        const sessionData = await response.json();
-        console.log('✅ Sesión encontrada:', sessionData.status);
-        
-        safeUpdate(() => {
-          setSession(sessionData);
-          setError('');
-          if (sessionData.status !== 'SCAN_QR_CODE') {
-            setQrCode('');
-          }
-        });
+        const data = await response.json();
+        console.log('✅ Sesión encontrada:', data.status);
+        setSession(data);
+        setError('');
+        if (data.status !== 'SCAN_QR_CODE') {
+          setQrCode('');
+        }
       } else if (response.status === 404) {
         console.log('ℹ️ Sesión no existe');
-        safeUpdate(() => {
-          setSession(null);
-          setQrCode('');
-          setError('');
-        });
+        setSession(null);
+        setQrCode('');
+        setError('');
       } else {
         throw new Error(`Error ${response.status}`);
       }
-    } catch (err: any) {
-      if (err.name === 'AbortError') return;
+    } catch (err) {
       console.error('❌ Error verificando sesión:', err);
-      if (mountedRef.current) {
-        safeUpdate(() => setError('Error al verificar sesión'));
+      if (isMounted.current) {
+        setError('Error al verificar sesión');
       }
     }
-  }, [sessionName, getHeaders, safeUpdate]);
+  }, [sessionName, headers]);
 
-  // ✅ VERIFICAR AUTOMÁTICAMENTE AL CARGAR (UNA SOLA VEZ)
-  useEffect(() => {
-    if (sessionName && mountedRef.current) {
-      console.log('🔄 Verificación inicial automática');
-      checkSession();
-    }
-  }, [sessionName]); // Solo cuando cambia sessionName
-
-  // ✅ CREAR SESIÓN - ULTRA SIMPLIFICADO
+  // ✅ CREAR SESIÓN
   const createSession = useCallback(async () => {
-    if (!sessionName || !mountedRef.current) return;
+    if (!sessionName || !isMounted.current) return;
 
-    safeUpdate(() => {
-      setIsLoading(true);
-      setError('');
-      setSuccess('');
-    });
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
 
     try {
       console.log('➕ Creando sesión:', sessionName);
       
       const response = await fetch('/api/waha/sessions', {
         method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({ name: sessionName }),
-        signal: abortControllerRef.current?.signal
+        headers,
+        body: JSON.stringify({ name: sessionName })
       });
 
-      if (!mountedRef.current) return;
+      if (!isMounted.current) return;
 
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ Sesión creada exitosamente');
+        console.log('✅ Sesión creada');
+        setSession(data);
+        setSuccess('✅ Sesión creada correctamente');
         
-        safeUpdate(() => {
-          setSession(data);
-          setSuccess('✅ Sesión creada correctamente');
-          setError('');
-        });
-        
-        // ✅ NO USAR TIMEOUT - Verificar inmediatamente
-        if (mountedRef.current) {
-          await checkSession();
-        }
+        // Verificar después de crear
+        setTimeout(() => {
+          if (isMounted.current) checkSession();
+        }, 1000);
       } else {
         const errorText = await response.text();
         throw new Error(errorText);
       }
-    } catch (err: any) {
-      if (err.name === 'AbortError') return;
+    } catch (err) {
       console.error('❌ Error creando sesión:', err);
-      if (mountedRef.current) {
-        safeUpdate(() => setError(`Error al crear sesión: ${err.message}`));
+      if (isMounted.current) {
+        setError(`Error al crear sesión: ${err instanceof Error ? err.message : 'Error desconocido'}`);
       }
     } finally {
-      if (mountedRef.current) {
-        safeUpdate(() => setIsLoading(false));
+      if (isMounted.current) {
+        setIsLoading(false);
       }
     }
-  }, [sessionName, getHeaders, safeUpdate, checkSession]);
+  }, [sessionName, headers, checkSession]);
 
-  // ✅ ACTUALIZAR SESIÓN EXISTENTE
+  // ✅ ACTUALIZAR SESIÓN
   const updateSession = useCallback(async () => {
-    if (!sessionName || !mountedRef.current) return;
+    if (!sessionName || !isMounted.current) return;
 
-    safeUpdate(() => {
-      setIsLoading(true);
-      setError('');
-      setSuccess('');
-    });
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
 
     try {
       console.log('🔄 Actualizando sesión:', sessionName);
       
       const response = await fetch(`/api/waha/sessions/${sessionName}`, {
         method: 'PUT',
-        headers: getHeaders(),
-        body: JSON.stringify({ name: sessionName }),
-        signal: abortControllerRef.current?.signal
+        headers,
+        body: JSON.stringify({ name: sessionName })
       });
 
-      if (!mountedRef.current) return;
+      if (!isMounted.current) return;
 
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ Sesión actualizada exitosamente');
+        console.log('✅ Sesión actualizada');
+        setSession(data);
+        setSuccess('✅ Sesión actualizada correctamente');
         
-        safeUpdate(() => {
-          setSession(data);
-          setSuccess('✅ Sesión actualizada correctamente');
-          setError('');
-        });
-        
-        if (mountedRef.current) {
-          await checkSession();
-        }
+        setTimeout(() => {
+          if (isMounted.current) checkSession();
+        }, 1000);
       } else {
         const errorText = await response.text();
         throw new Error(errorText);
       }
-    } catch (err: any) {
-      if (err.name === 'AbortError') return;
+    } catch (err) {
       console.error('❌ Error actualizando sesión:', err);
-      if (mountedRef.current) {
-        safeUpdate(() => setError(`Error al actualizar sesión: ${err.message}`));
+      if (isMounted.current) {
+        setError(`Error al actualizar sesión: ${err instanceof Error ? err.message : 'Error desconocido'}`);
       }
     } finally {
-      if (mountedRef.current) {
-        safeUpdate(() => setIsLoading(false));
+      if (isMounted.current) {
+        setIsLoading(false);
       }
     }
-  }, [sessionName, getHeaders, safeUpdate, checkSession]);
+  }, [sessionName, headers, checkSession]);
 
   // ✅ INICIAR SESIÓN
   const startSession = useCallback(async () => {
-    if (!sessionName || !mountedRef.current) return;
+    if (!sessionName || !isMounted.current) return;
 
-    safeUpdate(() => {
-      setIsLoading(true);
-      setError('');
-      setSuccess('');
-    });
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
 
     try {
       console.log('▶️ Iniciando sesión:', sessionName);
       
       const response = await fetch(`/api/waha/sessions/${sessionName}/start`, {
         method: 'POST',
-        headers: getHeaders(),
-        signal: abortControllerRef.current?.signal
+        headers
       });
 
-      if (!mountedRef.current) return;
+      if (!isMounted.current) return;
 
       if (response.ok) {
-        console.log('✅ Sesión iniciada exitosamente');
+        console.log('✅ Sesión iniciada');
+        setSuccess('✅ Sesión iniciada correctamente');
         
-        safeUpdate(() => {
-          setSuccess('✅ Sesión iniciada correctamente');
-          setError('');
-        });
-        
-        if (mountedRef.current) {
-          await checkSession();
-        }
+        setTimeout(() => {
+          if (isMounted.current) checkSession();
+        }, 2000);
       } else {
         const errorText = await response.text();
         throw new Error(errorText);
       }
-    } catch (err: any) {
-      if (err.name === 'AbortError') return;
+    } catch (err) {
       console.error('❌ Error iniciando sesión:', err);
-      if (mountedRef.current) {
-        safeUpdate(() => setError(`Error al iniciar sesión: ${err.message}`));
+      if (isMounted.current) {
+        setError(`Error al iniciar sesión: ${err instanceof Error ? err.message : 'Error desconocido'}`);
       }
     } finally {
-      if (mountedRef.current) {
-        safeUpdate(() => setIsLoading(false));
+      if (isMounted.current) {
+        setIsLoading(false);
       }
     }
-  }, [sessionName, getHeaders, safeUpdate, checkSession]);
+  }, [sessionName, headers, checkSession]);
 
   // ✅ DETENER SESIÓN
   const stopSession = useCallback(async () => {
-    if (!sessionName || !mountedRef.current) return;
+    if (!sessionName || !isMounted.current) return;
 
-    safeUpdate(() => {
-      setIsLoading(true);
-      setError('');
-      setSuccess('');
-    });
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
 
     try {
       console.log('⏹️ Deteniendo sesión:', sessionName);
       
       const response = await fetch(`/api/waha/sessions/${sessionName}/stop`, {
         method: 'POST',
-        headers: getHeaders(),
-        signal: abortControllerRef.current?.signal
+        headers
       });
 
-      if (!mountedRef.current) return;
+      if (!isMounted.current) return;
 
       if (response.ok) {
-        console.log('✅ Sesión detenida exitosamente');
+        console.log('✅ Sesión detenida');
+        setSuccess('✅ Sesión detenida correctamente');
+        setQrCode('');
         
-        safeUpdate(() => {
-          setSuccess('✅ Sesión detenida correctamente');
-          setError('');
-          setQrCode('');
-        });
-        
-        if (mountedRef.current) {
-          await checkSession();
-        }
+        setTimeout(() => {
+          if (isMounted.current) checkSession();
+        }, 1000);
       } else {
         const errorText = await response.text();
         throw new Error(errorText);
       }
-    } catch (err: any) {
-      if (err.name === 'AbortError') return;
+    } catch (err) {
       console.error('❌ Error deteniendo sesión:', err);
-      if (mountedRef.current) {
-        safeUpdate(() => setError(`Error al detener sesión: ${err.message}`));
+      if (isMounted.current) {
+        setError(`Error al detener sesión: ${err instanceof Error ? err.message : 'Error desconocido'}`);
       }
     } finally {
-      if (mountedRef.current) {
-        safeUpdate(() => setIsLoading(false));
+      if (isMounted.current) {
+        setIsLoading(false);
       }
     }
-  }, [sessionName, getHeaders, safeUpdate, checkSession]);
+  }, [sessionName, headers, checkSession]);
 
   // ✅ REINICIAR SESIÓN
   const restartSession = useCallback(async () => {
-    if (!sessionName || !mountedRef.current) return;
+    if (!sessionName || !isMounted.current) return;
 
-    safeUpdate(() => {
-      setIsLoading(true);
-      setError('');
-      setSuccess('');
-    });
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
 
     try {
       console.log('🔄 Reiniciando sesión:', sessionName);
       
       const response = await fetch(`/api/waha/sessions/${sessionName}/restart`, {
         method: 'POST',
-        headers: getHeaders(),
-        signal: abortControllerRef.current?.signal
+        headers
       });
 
-      if (!mountedRef.current) return;
+      if (!isMounted.current) return;
 
       if (response.ok) {
-        console.log('✅ Sesión reiniciada exitosamente');
+        console.log('✅ Sesión reiniciada');
+        setSuccess('✅ Sesión reiniciada correctamente');
         
-        safeUpdate(() => {
-          setSuccess('✅ Sesión reiniciada correctamente');
-          setError('');
-        });
-        
-        if (mountedRef.current) {
-          await checkSession();
-        }
+        setTimeout(() => {
+          if (isMounted.current) checkSession();
+        }, 2000);
       } else {
         const errorText = await response.text();
         throw new Error(errorText);
       }
-    } catch (err: any) {
-      if (err.name === 'AbortError') return;
+    } catch (err) {
       console.error('❌ Error reiniciando sesión:', err);
-      if (mountedRef.current) {
-        safeUpdate(() => setError(`Error al reiniciar sesión: ${err.message}`));
+      if (isMounted.current) {
+        setError(`Error al reiniciar sesión: ${err instanceof Error ? err.message : 'Error desconocido'}`);
       }
     } finally {
-      if (mountedRef.current) {
-        safeUpdate(() => setIsLoading(false));
+      if (isMounted.current) {
+        setIsLoading(false);
       }
     }
-  }, [sessionName, getHeaders, safeUpdate, checkSession]);
-
-  // ✅ INICIAR SESIÓN Y OBTENER QR EN UN SOLO PASO
-  const startAndGetQR = useCallback(async () => {
-    if (!sessionName || !mountedRef.current) return;
-
-    safeUpdate(() => {
-      setIsLoading(true);
-      setError('');
-      setSuccess('');
-    });
-
-    try {
-      console.log('🚀 Iniciando sesión y obteniendo QR:', sessionName);
-      
-      // Paso 1: Iniciar la sesión si está STOPPED
-      if (session?.status === 'STOPPED') {
-        console.log('▶️ Primero iniciando sesión...');
-        
-        const startResponse = await fetch(`/api/waha/sessions/${sessionName}/start`, {
-          method: 'POST',
-          headers: getHeaders(),
-          signal: abortControllerRef.current?.signal
-        });
-
-        if (!startResponse.ok) {
-          const errorText = await startResponse.text();
-          throw new Error(`Error al iniciar sesión: ${errorText}`);
-        }
-
-        console.log('✅ Sesión iniciada, esperando estado...');
-        
-        // Esperar un momento para que cambie el estado
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Verificar el nuevo estado
-        await checkSession();
-      }
-
-      // Paso 2: Obtener QR
-      console.log('📷 Obteniendo código QR...');
-      await getQR();
-      
-    } catch (err: any) {
-      if (err.name === 'AbortError') return;
-      console.error('❌ Error en startAndGetQR:', err);
-      if (mountedRef.current) {
-        safeUpdate(() => setError(`Error: ${err.message}`));
-      }
-    } finally {
-      if (mountedRef.current) {
-        safeUpdate(() => setIsLoading(false));
-      }
-    }
-  }, [sessionName, session?.status, getHeaders, safeUpdate, checkSession, getQR]);
+  }, [sessionName, headers, checkSession]);
 
   // ✅ ELIMINAR SESIÓN
   const deleteSession = useCallback(async () => {
-    if (!sessionName || !mountedRef.current) return;
+    if (!sessionName || !isMounted.current) return;
     
-    if (!confirm(`¿Eliminar la sesión "${sessionName}"? Esta acción no se puede deshacer.`)) {
-      return;
-    }
+    if (!confirm(`¿Eliminar la sesión "${sessionName}"?`)) return;
 
-    safeUpdate(() => {
-      setIsLoading(true);
-      setError('');
-      setSuccess('');
-    });
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
 
     try {
       console.log('🗑️ Eliminando sesión:', sessionName);
       
       const response = await fetch(`/api/waha/sessions/${sessionName}`, {
         method: 'DELETE',
-        headers: getHeaders(),
-        signal: abortControllerRef.current?.signal
+        headers
       });
 
-      if (!mountedRef.current) return;
+      if (!isMounted.current) return;
 
       if (response.ok) {
-        console.log('✅ Sesión eliminada exitosamente');
-        
-        safeUpdate(() => {
-          setSession(null);
-          setQrCode('');
-          setSuccess('✅ Sesión eliminada correctamente');
-          setError('');
-        });
+        console.log('✅ Sesión eliminada');
+        setSession(null);
+        setQrCode('');
+        setSuccess('✅ Sesión eliminada correctamente');
       } else {
         const errorText = await response.text();
         throw new Error(errorText);
       }
-    } catch (err: any) {
-      if (err.name === 'AbortError') return;
+    } catch (err) {
       console.error('❌ Error eliminando sesión:', err);
-      if (mountedRef.current) {
-        safeUpdate(() => setError(`Error al eliminar sesión: ${err.message}`));
+      if (isMounted.current) {
+        setError(`Error al eliminar sesión: ${err instanceof Error ? err.message : 'Error desconocido'}`);
       }
     } finally {
-      if (mountedRef.current) {
-        safeUpdate(() => setIsLoading(false));
+      if (isMounted.current) {
+        setIsLoading(false);
       }
     }
-  }, [sessionName, getHeaders, safeUpdate]);
+  }, [sessionName, headers]);
 
-  // ✅ OBTENER QR - CORREGIDO CON MÚLTIPLES ENDPOINTS
+  // ✅ OBTENER QR - MÚLTIPLES ENDPOINTS
   const getQR = useCallback(async () => {
-    if (!sessionName || !mountedRef.current) return;
+    if (!sessionName || !isMounted.current) return;
 
-    safeUpdate(() => setIsLoading(true));
+    setIsLoading(true);
+    setError('');
+
+    // Lista de endpoints a probar
+    const qrEndpoints = [
+      `/api/waha/sessions/${sessionName}/auth/qr`,
+      `/api/waha/sessions/${sessionName}/qr`,
+      `/api/waha/${sessionName}/auth/qr`,
+      `/api/waha/${sessionName}/qr`
+    ];
 
     try {
       console.log('📷 Obteniendo QR para sesión:', sessionName);
       
-      // ✅ PROBAR MÚLTIPLES ENDPOINTS DE QR SEGÚN DOCUMENTACIÓN WAHA
-      const qrEndpoints = [
-        `/api/waha/sessions/${sessionName}/auth/qr`,     // Endpoint estándar
-        `/api/waha/sessions/${sessionName}/qr`,          // Endpoint alternativo
-        `/api/waha/sessions/${sessionName}/screenshot`,  // Endpoint de screenshot
-        `/api/waha/${sessionName}/auth/qr`,              // Sin 'sessions'
-        `/api/waha/${sessionName}/qr`                    // Sin 'sessions' alternativo
-      ];
-
-      let qrData = null;
-      let successEndpoint = null;
+      let qrFound = false;
 
       for (const endpoint of qrEndpoints) {
+        if (!isMounted.current || qrFound) break;
+
         try {
-          console.log(`🔍 Probando endpoint: ${endpoint}`);
+          console.log(`🔍 Probando: ${endpoint}`);
           
           const response = await fetch(endpoint, {
             method: 'GET',
-            headers: getHeaders(),
-            signal: abortControllerRef.current?.signal
+            headers
           });
-
-          console.log(`📡 Respuesta ${endpoint}: ${response.status}`);
 
           if (response.ok) {
             const contentType = response.headers.get('content-type');
             
-            if (contentType && contentType.includes('image/png')) {
-              console.log('📷 Respuesta es PNG');
+            if (contentType?.includes('image/png')) {
               const blob = await response.blob();
-              qrData = await new Promise<string>((resolve) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result as string);
-                reader.readAsDataURL(blob);
-              });
+              const reader = new FileReader();
+              reader.onload = () => {
+                if (isMounted.current) {
+                  setQrCode(reader.result as string);
+                  setSuccess(`✅ QR obtenido desde: ${endpoint}`);
+                  qrFound = true;
+                }
+              };
+              reader.readAsDataURL(blob);
+              break;
             } else {
-              console.log('📷 Respuesta es JSON');
               const data = await response.json();
               if (data.qr) {
-                qrData = data.qr;
-              } else if (data.base64) {
-                qrData = `data:image/png;base64,${data.base64}`;
-              } else {
-                console.log('📷 Estructura de respuesta:', data);
+                if (isMounted.current) {
+                  setQrCode(data.qr);
+                  setSuccess(`✅ QR obtenido desde: ${endpoint}`);
+                  qrFound = true;
+                }
+                break;
               }
             }
-            
-            if (qrData) {
-              successEndpoint = endpoint;
-              console.log(`✅ QR obtenido exitosamente desde: ${endpoint}`);
-              break;
-            }
-          } else if (response.status !== 404) {
-            // Si no es 404, mostrar el error para debug
-            const errorText = await response.text();
-            console.log(`⚠️ Error ${response.status} en ${endpoint}: ${errorText}`);
+          } else {
+            console.log(`❌ ${endpoint}: ${response.status}`);
           }
-        } catch (err: any) {
-          if (err.name === 'AbortError') return;
-          console.log(`❌ Error de red en ${endpoint}:`, err.message);
+        } catch (endpointErr) {
+          console.log(`❌ Error en ${endpoint}:`, endpointErr);
         }
       }
 
-      if (!mountedRef.current) return;
-
-      if (qrData) {
-        safeUpdate(() => {
-          setQrCode(qrData);
-          setError('');
-          setSuccess(`✅ QR obtenido desde: ${successEndpoint}`);
-        });
-      } else {
-        // Si ningún endpoint funcionó, verificar el estado de la sesión
-        console.log('🔍 No se pudo obtener QR, verificando estado de sesión...');
-        await checkSession();
-        
-        throw new Error('No se pudo obtener el código QR desde ningún endpoint. Verifica que la sesión esté en estado SCAN_QR_CODE.');
+      if (!qrFound && isMounted.current) {
+        throw new Error('No se pudo obtener el QR desde ningún endpoint. Verifica que la sesión esté en estado SCAN_QR_CODE.');
       }
-    } catch (err: any) {
-      if (err.name === 'AbortError') return;
+    } catch (err) {
       console.error('❌ Error obteniendo QR:', err);
-      if (mountedRef.current) {
-        safeUpdate(() => setError(`Error al obtener QR: ${err.message}`));
+      if (isMounted.current) {
+        setError(`Error al obtener QR: ${err instanceof Error ? err.message : 'Error desconocido'}`);
       }
     } finally {
-      if (mountedRef.current) {
-        safeUpdate(() => setIsLoading(false));
+      if (isMounted.current) {
+        setIsLoading(false);
       }
     }
-  }, [sessionName, getHeaders, safeUpdate, checkSession]);
+  }, [sessionName, headers]);
 
-  // ✅ LIMPIAR MENSAJES DE ÉXITO
+  // ✅ INICIAR Y OBTENER QR
+  const startAndGetQR = useCallback(async () => {
+    if (!sessionName || !isMounted.current) return;
+
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      console.log('🚀 Iniciando sesión y obteniendo QR');
+      
+      // Iniciar sesión
+      const startResponse = await fetch(`/api/waha/sessions/${sessionName}/start`, {
+        method: 'POST',
+        headers
+      });
+
+      if (!startResponse.ok) {
+        const errorText = await startResponse.text();
+        throw new Error(`Error al iniciar: ${errorText}`);
+      }
+
+      if (!isMounted.current) return;
+
+      // Esperar un momento
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      if (!isMounted.current) return;
+
+      // Verificar estado
+      await checkSession();
+
+      // Intentar obtener QR
+      await getQR();
+      
+    } catch (err) {
+      console.error('❌ Error en startAndGetQR:', err);
+      if (isMounted.current) {
+        setError(`Error: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+      }
+    } finally {
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
+    }
+  }, [sessionName, headers, checkSession, getQR]);
+
+  // ✅ VERIFICAR AL CARGAR
+  useEffect(() => {
+    if (sessionName && isMounted.current) {
+      checkSession();
+    }
+  }, [sessionName, checkSession]);
+
+  // ✅ LIMPIAR MENSAJES
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => {
-        if (mountedRef.current) {
-          safeUpdate(() => setSuccess(''));
-        }
+        if (isMounted.current) setSuccess('');
       }, 4000);
-      
       return () => clearTimeout(timer);
     }
-  }, [success, safeUpdate]);
+  }, [success]);
 
-  // ✅ FUNCIONES HELPER PARA UI
+  // ✅ FUNCIONES HELPER
   const getBadgeColor = (status: string) => {
     switch (status) {
       case 'WORKING': return 'bg-green-500';
@@ -627,41 +525,32 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
   // ✅ LOADING STATE
   if (!clinic) {
     return (
-      <div className="space-y-6">
-        <Card>
-          <CardContent className="flex items-center justify-center py-8">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-              <p className="mt-2 text-sm text-gray-600">Cargando datos de la clínica...</p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="flex justify-center items-center py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-2 text-sm text-gray-600">Cargando...</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* ✅ INFORMACIÓN DE LA CLÍNICA */}
+      {/* INFORMACIÓN DE CLÍNICA */}
       <Card className="bg-blue-50 border-blue-200">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            🏥 {clinic.name_clinic || 'Clínica'}
-          </CardTitle>
+        <CardHeader>
+          <CardTitle className="text-lg">🏥 {clinic.name_clinic}</CardTitle>
           <CardDescription>
-            <strong>Sesión WhatsApp:</strong> <code className="bg-blue-200 px-1 rounded">{sessionName}</code>
+            Sesión: <code className="bg-blue-200 px-1 rounded">{sessionName}</code>
           </CardDescription>
         </CardHeader>
       </Card>
 
-      {/* ✅ ESTADO DE LA SESIÓN */}
+      {/* ESTADO DE SESIÓN */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span>📱</span>
-              <span>WhatsApp Business</span>
-            </div>
+            <span>📱 WhatsApp Business</span>
             {session && (
               <Badge className={`${getBadgeColor(session.status)} text-white`}>
                 {getStatusText(session.status)}
@@ -669,12 +558,12 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
             )}
           </CardTitle>
           <CardDescription>
-            {session ? `Estado: ${session.status}` : 'Sin sesión activa'}
+            {session ? `Estado: ${session.status}` : 'Sin sesión'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* ✅ INFORMACIÓN BÁSICA */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          {/* INFORMACIÓN */}
+          <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="font-medium">Estado:</span>
               <span className={`ml-2 ${session?.status === 'WORKING' ? 'text-green-600' : 'text-gray-600'}`}>
@@ -683,189 +572,99 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
             </div>
             <div>
               <span className="font-medium">Sesión:</span>
-              <span className="ml-2 text-gray-600 font-mono text-xs">
-                {sessionName || 'Cargando...'}
-              </span>
+              <span className="ml-2 font-mono text-xs">{sessionName}</span>
             </div>
             {session?.me && (
-              <div className="md:col-span-2">
-                <span className="font-medium">Conectado como:</span>
-                <span className="ml-2 text-green-600 font-medium">
-                  {session.me.pushName} ({session.me.id})
-                </span>
+              <div className="col-span-2">
+                <span className="font-medium">Conectado:</span>
+                <span className="ml-2 text-green-600">{session.me.pushName}</span>
               </div>
             )}
           </div>
 
-          {/* ✅ MENSAJES DE ERROR Y ÉXITO */}
+          {/* MENSAJES */}
           {error && (
             <Alert className="border-red-200 bg-red-50">
-              <AlertDescription className="text-red-700">
-                {error}
-              </AlertDescription>
+              <AlertDescription className="text-red-700">{error}</AlertDescription>
             </Alert>
           )}
           
-          {/* ✅ GUÍAS ESPECÍFICAS POR ESTADO */}
-          {session && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <div className="flex items-start gap-2">
-                <span className="text-blue-600 text-sm">💡</span>
-                <div className="text-sm text-blue-800">
-                  <strong>Guía para tu estado actual ({session.status}):</strong>
-                  <br />
-                  {session.status === 'STOPPED' && (
-                    <>
-                      <strong>Opción 1:</strong> Usa "🚀 Iniciar + QR" para iniciar la sesión y obtener el QR automáticamente.
-                      <br />
-                      <strong>Opción 2:</strong> Usa "▶️ Iniciar" primero, luego "📷 Obtener QR" cuando cambie a SCAN_QR_CODE.
-                    </>
-                  )}
-                  {session.status === 'STARTING' && 'La sesión está iniciando. Espera a que cambie a SCAN_QR_CODE para obtener el QR.'}
-                  {session.status === 'WORKING' && 'WhatsApp ya está conectado y funcionando correctamente.'}
-                  {session.status === 'SCAN_QR_CODE' && 'Perfecto! Ahora puedes usar "📷 Obtener QR" para generar el código QR.'}
-                  {session.status === 'FAILED' && 'Hay un error. Usa "🔄 Reiniciar" para intentar reconectar.'}
-                </div>
-              </div>
-            </div>
+          {success && (
+            <Alert className="border-green-200 bg-green-50">
+              <AlertDescription className="text-green-700">{success}</AlertDescription>
+            </Alert>
           )}
 
-          {/* ✅ BOTONES DE CONTROL SIMPLIFICADOS */}
+          {/* BOTONES */}
           <div className="flex gap-2 flex-wrap">
-            <Button 
-              onClick={checkSession}
-              disabled={isLoading}
-              variant="outline"
-              size="sm"
-            >
-              {isLoading ? '🔄 Verificando...' : '🔍 Verificar'}
+            <Button onClick={checkSession} disabled={isLoading} variant="outline" size="sm">
+              {isLoading ? '🔄' : '🔍'} Verificar
             </Button>
 
             {!session ? (
               <>
-                <Button 
-                  onClick={createSession}
-                  disabled={isLoading}
-                  className="bg-green-600 hover:bg-green-700"
-                  size="sm"
-                >
-                  {isLoading ? '➕ Creando...' : '➕ Crear Sesión'}
+                <Button onClick={createSession} disabled={isLoading} className="bg-green-600" size="sm">
+                  {isLoading ? '➕' : '➕'} Crear
                 </Button>
-                <Button 
-                  onClick={updateSession}
-                  disabled={isLoading}
-                  className="bg-blue-600 hover:bg-blue-700"
-                  size="sm"
-                >
-                  {isLoading ? '🔄 Actualizando...' : '🔄 Actualizar'}
+                <Button onClick={updateSession} disabled={isLoading} className="bg-blue-600" size="sm">
+                  {isLoading ? '🔄' : '🔄'} Actualizar
                 </Button>
               </>
             ) : (
               <>
                 {session.status === 'STOPPED' && (
                   <>
-                    <Button 
-                      onClick={startSession}
-                      disabled={isLoading}
-                      className="bg-green-600 hover:bg-green-700"
-                      size="sm"
-                    >
-                      {isLoading ? '▶️ Iniciando...' : '▶️ Iniciar'}
+                    <Button onClick={startSession} disabled={isLoading} className="bg-green-600" size="sm">
+                      {isLoading ? '▶️' : '▶️'} Iniciar
                     </Button>
-                    <Button 
-                      onClick={startAndGetQR}
-                      disabled={isLoading}
-                      className="bg-purple-600 hover:bg-purple-700"
-                      size="sm"
-                    >
-                      {isLoading ? '🚀 Iniciando+QR...' : '🚀 Iniciar + QR'}
+                    <Button onClick={startAndGetQR} disabled={isLoading} className="bg-purple-600" size="sm">
+                      {isLoading ? '🚀' : '🚀'} Iniciar + QR
                     </Button>
-                    <Button 
-                      onClick={deleteSession}
-                      disabled={isLoading}
-                      variant="destructive"
-                      size="sm"
-                    >
-                      {isLoading ? '🗑️ Eliminando...' : '🗑️ Eliminar'}
+                    <Button onClick={deleteSession} disabled={isLoading} variant="destructive" size="sm">
+                      {isLoading ? '🗑️' : '🗑️'} Eliminar
                     </Button>
                   </>
                 )}
 
                 {session.status === 'STARTING' && (
-                  <Button 
-                    onClick={restartSession}
-                    disabled={isLoading}
-                    variant="outline"
-                    size="sm"
-                  >
-                    {isLoading ? '🔄 Reiniciando...' : '🔄 Reiniciar'}
+                  <Button onClick={restartSession} disabled={isLoading} variant="outline" size="sm">
+                    {isLoading ? '🔄' : '🔄'} Reiniciar
                   </Button>
                 )}
 
                 {session.status === 'WORKING' && (
-                  <Button 
-                    onClick={stopSession}
-                    disabled={isLoading}
-                    variant="destructive"
-                    size="sm"
-                  >
-                    {isLoading ? '⏹️ Deteniendo...' : '⏹️ Detener'}
+                  <Button onClick={stopSession} disabled={isLoading} variant="destructive" size="sm">
+                    {isLoading ? '⏹️' : '⏹️'} Detener
                   </Button>
                 )}
 
                 {session.status === 'SCAN_QR_CODE' && (
                   <>
-                    <Button 
-                      onClick={getQR}
-                      disabled={isLoading}
-                      className="bg-blue-600 hover:bg-blue-700"
-                      size="sm"
-                    >
-                      {isLoading ? '📷 Obteniendo...' : '📷 Obtener QR'}
+                    <Button onClick={getQR} disabled={isLoading} className="bg-blue-600" size="sm">
+                      {isLoading ? '📷' : '📷'} Obtener QR
                     </Button>
-                    <Button 
-                      onClick={restartSession}
-                      disabled={isLoading}
-                      variant="outline"
-                      size="sm"
-                    >
-                      {isLoading ? '🔄 Reiniciando...' : '🔄 Reiniciar'}
+                    <Button onClick={restartSession} disabled={isLoading} variant="outline" size="sm">
+                      {isLoading ? '🔄' : '🔄'} Reiniciar
                     </Button>
                   </>
-                )}
-
-                {/* ✅ BOTÓN ESPECIAL PARA CUALQUIER ESTADO - FORZAR QR */}
-                {session && session.status !== 'WORKING' && (
-                  <Button 
-                    onClick={getQR}
-                    disabled={isLoading}
-                    variant="outline"
-                    size="sm"
-                    className="border-orange-300 text-orange-700 hover:bg-orange-50"
-                  >
-                    {isLoading ? '🔍 Probando...' : '🔍 Probar QR'}
-                  </Button>
                 )}
 
                 {session.status === 'FAILED' && (
                   <>
-                    <Button 
-                      onClick={restartSession}
-                      disabled={isLoading}
-                      variant="outline"
-                      size="sm"
-                    >
-                      {isLoading ? '🔄 Reiniciando...' : '🔄 Reiniciar'}
+                    <Button onClick={restartSession} disabled={isLoading} variant="outline" size="sm">
+                      {isLoading ? '🔄' : '🔄'} Reiniciar
                     </Button>
-                    <Button 
-                      onClick={deleteSession}
-                      disabled={isLoading}
-                      variant="destructive"
-                      size="sm"
-                    >
-                      {isLoading ? '🗑️ Eliminando...' : '🗑️ Eliminar'}
+                    <Button onClick={deleteSession} disabled={isLoading} variant="destructive" size="sm">
+                      {isLoading ? '🗑️' : '🗑️'} Eliminar
                     </Button>
                   </>
+                )}
+
+                {/* BOTÓN UNIVERSAL PARA PROBAR QR */}
+                {session.status !== 'WORKING' && (
+                  <Button onClick={getQR} disabled={isLoading} variant="outline" size="sm">
+                    {isLoading ? '🔍' : '🔍'} Probar QR
+                  </Button>
                 )}
               </>
             )}
@@ -873,79 +672,44 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
         </CardContent>
       </Card>
 
-      {/* ✅ CÓDIGO QR - SOLO SI HAY CÓDIGO */}
+      {/* QR CODE */}
       {session?.status === 'SCAN_QR_CODE' && qrCode && (
         <Card className="border-blue-200">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <span>📷</span>
-              <span>Código QR de WhatsApp</span>
-            </CardTitle>
-            <CardDescription>
-              Escanea este código con tu WhatsApp para conectar la sesión
-            </CardDescription>
+            <CardTitle>📷 Código QR WhatsApp</CardTitle>
+            <CardDescription>Escanea con tu WhatsApp</CardDescription>
           </CardHeader>
           <CardContent className="text-center space-y-4">
-            <div className="flex justify-center">
-              <img 
-                src={qrCode} 
-                alt="WhatsApp QR Code" 
-                className="w-64 h-64 border rounded-lg shadow-lg bg-white p-2"
-                onError={() => {
-                  console.error('❌ Error cargando imagen QR');
-                  if (mountedRef.current) {
-                    safeUpdate(() => setError('Error al cargar la imagen del QR'));
-                  }
-                }}
-              />
+            <img 
+              src={qrCode} 
+              alt="QR Code" 
+              className="w-64 h-64 mx-auto border rounded-lg bg-white p-2"
+              onError={() => setError('Error al cargar imagen QR')}
+            />
+            <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded">
+              <p><strong>Pasos:</strong></p>
+              <p>1. Abre WhatsApp en tu teléfono</p>
+              <p>2. Menú → Dispositivos vinculados</p>
+              <p>3. Vincular dispositivo</p>
+              <p>4. Escanea este código</p>
             </div>
-            <div className="text-sm text-gray-600 space-y-1 bg-blue-50 p-4 rounded-lg">
-              <p><strong>📱 Pasos para conectar:</strong></p>
-              <p>1. Abre <strong>WhatsApp</strong> en tu teléfono</p>
-              <p>2. Toca <strong>Menú (⋮)</strong> → <strong>Dispositivos vinculados</strong></p>
-              <p>3. Toca <strong>"Vincular un dispositivo"</strong></p>
-              <p>4. <strong>Escanea este código QR</strong></p>
-            </div>
-            <Button onClick={getQR} variant="outline" size="sm" disabled={isLoading}>
-              {isLoading ? '🔄 Actualizando...' : '🔄 Actualizar QR'}
+            <Button onClick={getQR} variant="outline" size="sm">
+              🔄 Actualizar QR
             </Button>
           </CardContent>
         </Card>
       )}
 
-      {/* ✅ INFORMACIÓN TÉCNICA Y DEBUG */}
+      {/* INFORMACIÓN TÉCNICA */}
       <Card className="bg-gray-50">
         <CardHeader>
-          <CardTitle className="text-base">⚙️ Configuración y Debug</CardTitle>
+          <CardTitle className="text-base">⚙️ Información</CardTitle>
         </CardHeader>
         <CardContent className="text-sm space-y-2">
           <div><strong>Servidor:</strong> pampaservers.com:60513</div>
           <div><strong>API Key:</strong> ✅ Configurado</div>
           <div><strong>Sesión:</strong> {sessionName}</div>
-          <div><strong>Estado:</strong> {session?.status || 'No detectada'}</div>
-          
-          {/* Debug de endpoints QR */}
-          <div className="pt-2 border-t">
-            <strong>Endpoints QR probados (en orden):</strong>
-            <div className="mt-1 text-xs text-gray-600 space-y-1">
-              <div>• <code>/api/waha/sessions/&#123;name&#125;/auth/qr</code> - Estándar WAHA</div>
-              <div>• <code>/api/waha/sessions/&#123;name&#125;/qr</code> - Alternativo</div>
-              <div>• <code>/api/waha/sessions/&#123;name&#125;/screenshot</code> - Screenshot</div>
-              <div>• <code>/api/waha/&#123;name&#125;/auth/qr</code> - Sin 'sessions'</div>
-              <div>• <code>/api/waha/&#123;name&#125;/qr</code> - Sin 'sessions' alt</div>
-            </div>
-          </div>
-
-          {/* Guía de resolución */}
-          <div className="pt-2 border-t">
-            <strong>💡 Solución recomendada para QR:</strong>
-            <div className="mt-1 text-xs text-gray-600 space-y-1">
-              <div>1. <strong>Usar "🚀 Iniciar + QR"</strong> - Inicia sesión y obtiene QR</div>
-              <div>2. <strong>Si sesión existe:</strong> "🔍 Probar QR" - Prueba todos los endpoints</div>
-              <div>3. <strong>Verificar estado:</strong> Debe estar en SCAN_QR_CODE o STARTING</div>
-              <div>4. <strong>Si falla:</strong> Reiniciar sesión y volver a intentar</div>
-            </div>
-          </div>
+          <div><strong>Estado actual:</strong> {session?.status || 'No detectada'}</div>
         </CardContent>
       </Card>
     </div>
