@@ -383,6 +383,60 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     }
   }, [sessionName, getHeaders, safeUpdate, checkSession]);
 
+  // ✅ INICIAR SESIÓN Y OBTENER QR EN UN SOLO PASO
+  const startAndGetQR = useCallback(async () => {
+    if (!sessionName || !mountedRef.current) return;
+
+    safeUpdate(() => {
+      setIsLoading(true);
+      setError('');
+      setSuccess('');
+    });
+
+    try {
+      console.log('🚀 Iniciando sesión y obteniendo QR:', sessionName);
+      
+      // Paso 1: Iniciar la sesión si está STOPPED
+      if (session?.status === 'STOPPED') {
+        console.log('▶️ Primero iniciando sesión...');
+        
+        const startResponse = await fetch(`/api/waha/sessions/${sessionName}/start`, {
+          method: 'POST',
+          headers: getHeaders(),
+          signal: abortControllerRef.current?.signal
+        });
+
+        if (!startResponse.ok) {
+          const errorText = await startResponse.text();
+          throw new Error(`Error al iniciar sesión: ${errorText}`);
+        }
+
+        console.log('✅ Sesión iniciada, esperando estado...');
+        
+        // Esperar un momento para que cambie el estado
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Verificar el nuevo estado
+        await checkSession();
+      }
+
+      // Paso 2: Obtener QR
+      console.log('📷 Obteniendo código QR...');
+      await getQR();
+      
+    } catch (err: any) {
+      if (err.name === 'AbortError') return;
+      console.error('❌ Error en startAndGetQR:', err);
+      if (mountedRef.current) {
+        safeUpdate(() => setError(`Error: ${err.message}`));
+      }
+    } finally {
+      if (mountedRef.current) {
+        safeUpdate(() => setIsLoading(false));
+      }
+    }
+  }, [sessionName, session?.status, getHeaders, safeUpdate, checkSession, getQR]);
+
   // ✅ ELIMINAR SESIÓN
   const deleteSession = useCallback(async () => {
     if (!sessionName || !mountedRef.current) return;
@@ -434,7 +488,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     }
   }, [sessionName, getHeaders, safeUpdate]);
 
-  // ✅ OBTENER QR - SOLO MANUAL
+  // ✅ OBTENER QR - CORREGIDO CON MÚLTIPLES ENDPOINTS
   const getQR = useCallback(async () => {
     if (!sessionName || !mountedRef.current) return;
 
@@ -443,42 +497,83 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     try {
       console.log('📷 Obteniendo QR para sesión:', sessionName);
       
-      const response = await fetch(`/api/waha/sessions/${sessionName}/auth/qr`, {
-        method: 'GET',
-        headers: getHeaders(),
-        signal: abortControllerRef.current?.signal
-      });
+      // ✅ PROBAR MÚLTIPLES ENDPOINTS DE QR SEGÚN DOCUMENTACIÓN WAHA
+      const qrEndpoints = [
+        `/api/waha/sessions/${sessionName}/auth/qr`,     // Endpoint estándar
+        `/api/waha/sessions/${sessionName}/qr`,          // Endpoint alternativo
+        `/api/waha/sessions/${sessionName}/screenshot`,  // Endpoint de screenshot
+        `/api/waha/${sessionName}/auth/qr`,              // Sin 'sessions'
+        `/api/waha/${sessionName}/qr`                    // Sin 'sessions' alternativo
+      ];
+
+      let qrData = null;
+      let successEndpoint = null;
+
+      for (const endpoint of qrEndpoints) {
+        try {
+          console.log(`🔍 Probando endpoint: ${endpoint}`);
+          
+          const response = await fetch(endpoint, {
+            method: 'GET',
+            headers: getHeaders(),
+            signal: abortControllerRef.current?.signal
+          });
+
+          console.log(`📡 Respuesta ${endpoint}: ${response.status}`);
+
+          if (response.ok) {
+            const contentType = response.headers.get('content-type');
+            
+            if (contentType && contentType.includes('image/png')) {
+              console.log('📷 Respuesta es PNG');
+              const blob = await response.blob();
+              qrData = await new Promise<string>((resolve) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result as string);
+                reader.readAsDataURL(blob);
+              });
+            } else {
+              console.log('📷 Respuesta es JSON');
+              const data = await response.json();
+              if (data.qr) {
+                qrData = data.qr;
+              } else if (data.base64) {
+                qrData = `data:image/png;base64,${data.base64}`;
+              } else {
+                console.log('📷 Estructura de respuesta:', data);
+              }
+            }
+            
+            if (qrData) {
+              successEndpoint = endpoint;
+              console.log(`✅ QR obtenido exitosamente desde: ${endpoint}`);
+              break;
+            }
+          } else if (response.status !== 404) {
+            // Si no es 404, mostrar el error para debug
+            const errorText = await response.text();
+            console.log(`⚠️ Error ${response.status} en ${endpoint}: ${errorText}`);
+          }
+        } catch (err: any) {
+          if (err.name === 'AbortError') return;
+          console.log(`❌ Error de red en ${endpoint}:`, err.message);
+        }
+      }
 
       if (!mountedRef.current) return;
 
-      if (response.ok) {
-        const contentType = response.headers.get('content-type');
-        
-        if (contentType && contentType.includes('image/png')) {
-          const blob = await response.blob();
-          const dataUrl = await new Promise<string>((resolve) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.readAsDataURL(blob);
-          });
-          
-          if (mountedRef.current) {
-            safeUpdate(() => {
-              setQrCode(dataUrl);
-              setError('');
-            });
-          }
-        } else {
-          const data = await response.json();
-          if (data.qr && mountedRef.current) {
-            safeUpdate(() => {
-              setQrCode(data.qr);
-              setError('');
-            });
-          }
-        }
+      if (qrData) {
+        safeUpdate(() => {
+          setQrCode(qrData);
+          setError('');
+          setSuccess(`✅ QR obtenido desde: ${successEndpoint}`);
+        });
       } else {
-        throw new Error(`Error ${response.status} al obtener QR`);
+        // Si ningún endpoint funcionó, verificar el estado de la sesión
+        console.log('🔍 No se pudo obtener QR, verificando estado de sesión...');
+        await checkSession();
+        
+        throw new Error('No se pudo obtener el código QR desde ningún endpoint. Verifica que la sesión esté en estado SCAN_QR_CODE.');
       }
     } catch (err: any) {
       if (err.name === 'AbortError') return;
@@ -491,7 +586,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
         safeUpdate(() => setIsLoading(false));
       }
     }
-  }, [sessionName, getHeaders, safeUpdate]);
+  }, [sessionName, getHeaders, safeUpdate, checkSession]);
 
   // ✅ LIMPIAR MENSAJES DE ÉXITO
   useEffect(() => {
@@ -611,12 +706,28 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
             </Alert>
           )}
           
-          {success && (
-            <Alert className="border-green-200 bg-green-50">
-              <AlertDescription className="text-green-700">
-                {success}
-              </AlertDescription>
-            </Alert>
+          {/* ✅ GUÍAS ESPECÍFICAS POR ESTADO */}
+          {session && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <span className="text-blue-600 text-sm">💡</span>
+                <div className="text-sm text-blue-800">
+                  <strong>Guía para tu estado actual ({session.status}):</strong>
+                  <br />
+                  {session.status === 'STOPPED' && (
+                    <>
+                      <strong>Opción 1:</strong> Usa "🚀 Iniciar + QR" para iniciar la sesión y obtener el QR automáticamente.
+                      <br />
+                      <strong>Opción 2:</strong> Usa "▶️ Iniciar" primero, luego "📷 Obtener QR" cuando cambie a SCAN_QR_CODE.
+                    </>
+                  )}
+                  {session.status === 'STARTING' && 'La sesión está iniciando. Espera a que cambie a SCAN_QR_CODE para obtener el QR.'}
+                  {session.status === 'WORKING' && 'WhatsApp ya está conectado y funcionando correctamente.'}
+                  {session.status === 'SCAN_QR_CODE' && 'Perfecto! Ahora puedes usar "📷 Obtener QR" para generar el código QR.'}
+                  {session.status === 'FAILED' && 'Hay un error. Usa "🔄 Reiniciar" para intentar reconectar.'}
+                </div>
+              </div>
+            </div>
           )}
 
           {/* ✅ BOTONES DE CONTROL SIMPLIFICADOS */}
@@ -660,6 +771,14 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
                       size="sm"
                     >
                       {isLoading ? '▶️ Iniciando...' : '▶️ Iniciar'}
+                    </Button>
+                    <Button 
+                      onClick={startAndGetQR}
+                      disabled={isLoading}
+                      className="bg-purple-600 hover:bg-purple-700"
+                      size="sm"
+                    >
+                      {isLoading ? '🚀 Iniciando+QR...' : '🚀 Iniciar + QR'}
                     </Button>
                     <Button 
                       onClick={deleteSession}
@@ -713,6 +832,19 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
                       {isLoading ? '🔄 Reiniciando...' : '🔄 Reiniciar'}
                     </Button>
                   </>
+                )}
+
+                {/* ✅ BOTÓN ESPECIAL PARA CUALQUIER ESTADO - FORZAR QR */}
+                {session && session.status !== 'WORKING' && (
+                  <Button 
+                    onClick={getQR}
+                    disabled={isLoading}
+                    variant="outline"
+                    size="sm"
+                    className="border-orange-300 text-orange-700 hover:bg-orange-50"
+                  >
+                    {isLoading ? '🔍 Probando...' : '🔍 Probar QR'}
+                  </Button>
                 )}
 
                 {session.status === 'FAILED' && (
@@ -781,16 +913,39 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
         </Card>
       )}
 
-      {/* ✅ INFORMACIÓN TÉCNICA */}
+      {/* ✅ INFORMACIÓN TÉCNICA Y DEBUG */}
       <Card className="bg-gray-50">
         <CardHeader>
-          <CardTitle className="text-base">⚙️ Configuración</CardTitle>
+          <CardTitle className="text-base">⚙️ Configuración y Debug</CardTitle>
         </CardHeader>
         <CardContent className="text-sm space-y-2">
           <div><strong>Servidor:</strong> pampaservers.com:60513</div>
           <div><strong>API Key:</strong> ✅ Configurado</div>
           <div><strong>Sesión:</strong> {sessionName}</div>
           <div><strong>Estado:</strong> {session?.status || 'No detectada'}</div>
+          
+          {/* Debug de endpoints QR */}
+          <div className="pt-2 border-t">
+            <strong>Endpoints QR probados (en orden):</strong>
+            <div className="mt-1 text-xs text-gray-600 space-y-1">
+              <div>• <code>/api/waha/sessions/&#123;name&#125;/auth/qr</code> - Estándar WAHA</div>
+              <div>• <code>/api/waha/sessions/&#123;name&#125;/qr</code> - Alternativo</div>
+              <div>• <code>/api/waha/sessions/&#123;name&#125;/screenshot</code> - Screenshot</div>
+              <div>• <code>/api/waha/&#123;name&#125;/auth/qr</code> - Sin 'sessions'</div>
+              <div>• <code>/api/waha/&#123;name&#125;/qr</code> - Sin 'sessions' alt</div>
+            </div>
+          </div>
+
+          {/* Guía de resolución */}
+          <div className="pt-2 border-t">
+            <strong>💡 Solución recomendada para QR:</strong>
+            <div className="mt-1 text-xs text-gray-600 space-y-1">
+              <div>1. <strong>Usar "🚀 Iniciar + QR"</strong> - Inicia sesión y obtiene QR</div>
+              <div>2. <strong>Si sesión existe:</strong> "🔍 Probar QR" - Prueba todos los endpoints</div>
+              <div>3. <strong>Verificar estado:</strong> Debe estar en SCAN_QR_CODE o STARTING</div>
+              <div>4. <strong>Si falla:</strong> Reiniciar sesión y volver a intentar</div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
