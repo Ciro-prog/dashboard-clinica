@@ -26,7 +26,8 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
   const [sessionName, setSessionName] = useState<string>('');
-  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [autoRefresh, setAutoRefresh] = useState(false); // ✅ Iniciar desactivado por defecto
+  const [lastCheck, setLastCheck] = useState<Date | null>(null);
 
   // ✅ REF INICIALIZADO CORRECTAMENTE
   const isMounted = useRef(true);
@@ -92,6 +93,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
         }
         setSession(data);
         setError('');
+        setLastCheck(new Date());
         if (data.status !== 'SCAN_QR_CODE') {
           setQrCode('');
         }
@@ -102,6 +104,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
         setSession(null);
         setQrCode('');
         setError('');
+        setLastCheck(new Date());
       } else {
         throw new Error(`Error ${response.status}`);
       }
@@ -112,7 +115,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
       }
       // En modo silencioso, no mostrar errores al usuario
     }
-  }, [sessionName, headers]);
+  }, [sessionName]); // ✅ Solo depende de sessionName
 
   // ✅ CREAR SESIÓN
   const createSession = useCallback(async () => {
@@ -502,6 +505,82 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     }
   }, [sessionName, checkSession]);
 
+  // ✅ SISTEMA DE AUTO-REFRESH CADA 3 MINUTOS - CORREGIDO
+  useEffect(() => {
+    if (sessionName && autoRefresh && isMounted.current) {
+      console.log('⏰ Configurando auto-refresh cada 3 minutos para:', sessionName);
+      
+      // Limpiar interval existente
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      
+      // Crear nuevo interval
+      intervalRef.current = setInterval(() => {
+        if (isMounted.current && autoRefresh) {
+          console.log('🔄 Auto-refresh ejecutándose...');
+          // ✅ Llamar directamente a la función para evitar dependencias circulares
+          const doSilentCheck = async () => {
+            if (!sessionName || !isMounted.current) return;
+            
+            try {
+              const response = await fetch(`/api/waha/sessions/${sessionName}`, {
+                method: 'GET',
+                headers
+              });
+
+              if (!isMounted.current) return;
+
+              if (response.ok) {
+                const data = await response.json();
+                setSession(data);
+                setError('');
+                setLastCheck(new Date());
+                if (data.status !== 'SCAN_QR_CODE') {
+                  setQrCode('');
+                }
+              } else if (response.status === 404) {
+                setSession(null);
+                setQrCode('');
+                setError('');
+                setLastCheck(new Date());
+              }
+            } catch (err) {
+              // Error silencioso en auto-refresh
+              console.log('🔄 Auto-refresh: Error de conexión (normal)');
+            }
+          };
+          
+          doSilentCheck();
+        }
+      }, 3 * 60 * 1000); // 3 minutos
+      
+      return () => {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+      };
+    }
+  }, [sessionName, autoRefresh]); // ✅ Solo estas dependencias
+
+  // ✅ TOGGLE PARA AUTO-REFRESH
+  const toggleAutoRefresh = useCallback(() => {
+    setAutoRefresh(prev => {
+      const newValue = !prev;
+      console.log(`🔄 Auto-refresh ${newValue ? 'activado' : 'desactivado'}`);
+      
+      if (!newValue && intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+        console.log('⏰ Interval limpiado');
+      }
+      
+      return newValue;
+    });
+  }, []);
+
   // ✅ LIMPIAR MENSAJES
   useEffect(() => {
     if (success) {
@@ -564,14 +643,27 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>📱 WhatsApp Business</span>
-            {session && (
-              <Badge className={`${getBadgeColor(session.status)} text-white`}>
-                {getStatusText(session.status)}
-              </Badge>
-            )}
+            <div className="flex items-center gap-2">
+              {autoRefresh && (
+                <div className="flex items-center gap-1 text-xs text-green-600">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span>Auto</span>
+                </div>
+              )}
+              {session && (
+                <Badge className={`${getBadgeColor(session.status)} text-white`}>
+                  {getStatusText(session.status)}
+                </Badge>
+              )}
+            </div>
           </CardTitle>
           <CardDescription>
             {session ? `Estado: ${session.status}` : 'Sin sesión'}
+            {autoRefresh && lastCheck && (
+              <span className="text-green-600 ml-2">
+                • Próxima verificación: {new Date(lastCheck.getTime() + 3 * 60 * 1000).toLocaleTimeString()}
+              </span>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -586,6 +678,18 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
             <div>
               <span className="font-medium">Sesión:</span>
               <span className="ml-2 font-mono text-xs">{sessionName}</span>
+            </div>
+            <div>
+              <span className="font-medium">Auto-refresh:</span>
+              <span className={`ml-2 text-xs ${autoRefresh ? 'text-green-600' : 'text-gray-600'}`}>
+                {autoRefresh ? '⏰ Cada 3 min' : '⏰ Desactivado'}
+              </span>
+            </div>
+            <div>
+              <span className="font-medium">Última verificación:</span>
+              <span className="ml-2 text-xs text-gray-600">
+                {lastCheck ? lastCheck.toLocaleTimeString() : 'Nunca'}
+              </span>
             </div>
             {session?.me && (
               <div className="col-span-2">
@@ -610,8 +714,17 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
 
           {/* BOTONES */}
           <div className="flex gap-2 flex-wrap">
-            <Button onClick={checkSession} disabled={isLoading} variant="outline" size="sm">
+            <Button onClick={() => checkSession()} disabled={isLoading} variant="outline" size="sm">
               {isLoading ? '🔄' : '🔍'} Verificar
+            </Button>
+
+            <Button 
+              onClick={toggleAutoRefresh} 
+              variant="outline" 
+              size="sm"
+              className={autoRefresh ? 'border-green-300 text-green-700 bg-green-50' : 'border-gray-300'}
+            >
+              {autoRefresh ? '⏰ Auto ON (3min)' : '⏰ Auto OFF'}
             </Button>
 
             {!session ? (
@@ -723,6 +836,42 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
           <div><strong>API Key:</strong> ✅ Configurado</div>
           <div><strong>Sesión:</strong> {sessionName}</div>
           <div><strong>Estado actual:</strong> {session?.status || 'No detectada'}</div>
+          
+          {/* Auto-refresh info */}
+          <div className="pt-2 border-t">
+            <div className="flex items-center gap-2">
+              <strong>Auto-refresh:</strong>
+              <span className={`px-2 py-1 text-xs rounded-full ${
+                autoRefresh 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-gray-100 text-gray-800'
+              }`}>
+                {autoRefresh ? '⏰ Activo (cada 3 min)' : '⏰ Inactivo'}
+              </span>
+            </div>
+            
+            {lastCheck && (
+              <div className="text-xs text-gray-600 mt-1">
+                <strong>Última verificación:</strong> {lastCheck.toLocaleTimeString()}
+                {autoRefresh && (
+                  <span className="block">
+                    <strong>Próxima verificación:</strong> {new Date(lastCheck.getTime() + 3 * 60 * 1000).toLocaleTimeString()}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+          
+          {/* Info del auto-refresh */}
+          <div className="pt-2 border-t">
+            <div className="text-xs text-gray-600 space-y-1">
+              <div><strong>💡 Auto-refresh beneficios:</strong></div>
+              <div>• Detecta desconexiones automáticamente</div>
+              <div>• Actualiza estado si cambia desde el teléfono</div>
+              <div>• No interfiere con operaciones manuales</div>
+              <div>• Se ejecuta silenciosamente (sin errores molestos)</div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
