@@ -26,15 +26,21 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
   const [sessionName, setSessionName] = useState<string>('');
+  const [autoRefresh, setAutoRefresh] = useState(true);
 
   // ✅ REF INICIALIZADO CORRECTAMENTE
   const isMounted = useRef(true);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // ✅ CLEANUP SIMPLE Y SEGURO
   useEffect(() => {
     isMounted.current = true;
     return () => {
       isMounted.current = false;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
       console.log('🧹 Componente WhatsApp desmontado');
     };
   }, []);
@@ -64,10 +70,12 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
   };
 
   // ✅ VERIFICAR SESIÓN - ULTRA SIMPLE
-  const checkSession = useCallback(async () => {
+  const checkSession = useCallback(async (silent = false) => {
     if (!sessionName || !isMounted.current) return;
 
-    console.log('🔍 Verificando sesión:', sessionName);
+    if (!silent) {
+      console.log('🔍 Verificando sesión:', sessionName);
+    }
     
     try {
       const response = await fetch(`/api/waha/sessions/${sessionName}`, {
@@ -79,14 +87,18 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ Sesión encontrada:', data.status);
+        if (!silent) {
+          console.log('✅ Sesión encontrada:', data.status);
+        }
         setSession(data);
         setError('');
         if (data.status !== 'SCAN_QR_CODE') {
           setQrCode('');
         }
       } else if (response.status === 404) {
-        console.log('ℹ️ Sesión no existe');
+        if (!silent) {
+          console.log('ℹ️ Sesión no existe');
+        }
         setSession(null);
         setQrCode('');
         setError('');
@@ -94,10 +106,11 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
         throw new Error(`Error ${response.status}`);
       }
     } catch (err) {
-      console.error('❌ Error verificando sesión:', err);
-      if (isMounted.current) {
+      if (!silent) {
+        console.error('❌ Error verificando sesión:', err);
         setError('Error al verificar sesión');
       }
+      // En modo silencioso, no mostrar errores al usuario
     }
   }, [sessionName, headers]);
 
