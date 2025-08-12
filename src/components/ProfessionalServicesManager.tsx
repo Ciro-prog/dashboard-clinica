@@ -18,10 +18,10 @@ import {
 } from 'lucide-react';
 
 interface ProfessionalService {
-  id: string;
-  service_type: string;
-  description: string;
-  price: number;
+  id: string;              // Unique ID scoped to professional
+  service_type: string;    // Shared type from clinic, individual pricing
+  description: string;     // Professional-specific description
+  price: number;          // Individual pricing per professional
   duration_minutes?: number;
   is_active: boolean;
 }
@@ -32,6 +32,8 @@ interface ProfessionalServicesManagerProps {
   onServicesUpdate: (services: ProfessionalService[]) => void;
 }
 
+// Shared service types across the clinic - professionals can select from these
+// but each professional sets their own individual pricing and availability
 const commonServiceTypes = [
   'Consulta General',
   'Consulta de Control',
@@ -81,10 +83,11 @@ export default function ProfessionalServicesManager({
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9]/g, '')
-      .substring(0, 10);
+      .substring(0, 8);
     
+    const profSlug = professionalId.slice(-4); // Last 4 chars of professional ID
     const timestamp = Date.now().toString().slice(-6);
-    return `srv-${typeSlug}-${timestamp}`;
+    return `srv-${profSlug}-${typeSlug}-${timestamp}`;
   };
 
   const handleInputChange = (field: string, value: string | boolean) => {
@@ -308,9 +311,9 @@ export default function ProfessionalServicesManager({
                             type.toLowerCase().includes(formData.service_type.toLowerCase())
                           )
                           .slice(0, 5)
-                          .map(type => (
+                          .map((type, index) => (
                             <button
-                              key={type}
+                              key={`service-type-${index}-${type.replace(/\s+/g, '-').toLowerCase()}`}
                               type="button"
                               onClick={() => {
                                 handleInputChange('service_type', type);
