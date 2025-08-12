@@ -1,0 +1,21 @@
+# Configuración de la Base de Datos
+DATABASE_URL=mongodb://localhost:27017
+DATABASE_NAME=clinica-dashboard
+
+# Configuración de la API
+API_HOST=0.0.0.0
+API_PORT=8000
+DEBUG=true
+
+# Configuración de Seguridad
+SECRET_KEY=your-secret-key-change-in-production-environment-make-it-secure
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
+
+# Configuración de CORS
+CORS_ORIGINS=["http://localhost:3000","http://localhost:8080","http://localhost:8000"]
+
+# Configuración de Admin (para inicialización)
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin123
+ADMIN_EMAIL=admin@clinicaadmin.com

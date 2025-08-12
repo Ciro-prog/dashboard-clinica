@@ -1,0 +1,44 @@
+# Minimal Requirements - Core Dependencies Only
+# Use this for environments with compilation issues
+
+# Core FastAPI Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+starlette==0.27.0
+
+# Database
+motor==3.3.2
+pymongo==4.6.0
+
+# Data Validation  
+pydantic==2.11.7
+pydantic-settings==2.1.0
+
+# HTTP and Files
+httpx==0.25.2
+aiofiles==23.2.1
+python-multipart==0.0.6
+
+# Configuration
+python-dotenv==1.0.0
+
+# Email Validation (lightweight)
+email-validator==2.2.0
+
+# Authentication Dependencies
+python-jose==3.3.0
+passlib==1.7.4
+bcrypt==4.3.0
+
+# Text Processing
+unidecode==1.4.0
+
+# Essential HTTP Dependencies
+anyio==3.7.1
+certifi==2025.7.14
+click==8.2.1
+h11==0.16.0
+httpcore==1.0.9
+idna==3.10
+sniffio==1.3.1
+typing-extensions==4.14.1

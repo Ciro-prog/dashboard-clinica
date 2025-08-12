@@ -1,24 +1,30 @@
 // src/lib/clinicAuth.ts - Sistema de autenticación usando Clínica como usuario principal
 
-// 🚀 URL corregida para usar variable de entorno
-const API_URL = '/api/proxy';
+// 🚀 URL para usar el nuevo backend FastAPI
+const API_URL = '/api';
 
 console.log('🔐 Auth API_URL configurado:', API_URL);
 
 export interface ClinicUser {
-  id: number;
-  documentId: string;
+  id: string;
   clinic_id: string;
   name_clinic: string;
   suscriber: string;
   address: string;  
   email: string;
   cell_phone: string;
-  subcription: boolean;
-  status_clinic: 'active' | 'inactive' | 'maintenance';
-  whatsapp_number?: string;
-  logo?: string;
-  password?: string;
+  subscription_status: 'trial' | 'active' | 'expired' | 'cancelled';
+  subscription_plan: 'trial' | 'basic' | 'premium' | 'enterprise';
+  status_clinic: 'active' | 'inactive' | 'suspended';
+  domain_name: string;
+  email_domain?: string;
+  subscription_expires?: string;
+  max_professionals: number;
+  max_patients: number;
+  whatsapp_session_name?: string;
+  created_at: string;
+  updated_at: string;
+  last_login?: string;
 }
 
 export interface ClinicAuthResponse {
@@ -39,16 +45,25 @@ export interface AuthError {
 export async function loginClinic(email: string, password: string): Promise<ClinicAuthResponse> {
   try {
     console.log('🔐 Iniciando login de clínica:', email);
+    
+    // ✅ NUEVO FLUJO - Usar el backend FastAPI
     console.log('🔗 Usando API URL:', API_URL);
     
-    const url = `${API_URL}/clinics?filters[email][$eq]=${email}&filters[status_clinic][$eq]=active`;
+    const url = `${API_URL}/auth/login`;
     console.log('📡 Request URL:', url);
     
+    const loginData = {
+      username: email,
+      password: password,
+      user_type: "clinic"
+    };
+    
     const response = await fetch(url, {
-      method: 'GET',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify(loginData)
     });
 
     console.log('📡 Response status:', response.status);
@@ -57,43 +72,39 @@ export async function loginClinic(email: string, password: string): Promise<Clin
 
     if (!response.ok) {
       console.error('❌ Error response:', data);
-      throw new Error(data.error?.message || 'Error al buscar clínica');
+      throw new Error(data.detail || 'Error de autenticación');
     }
 
-    console.log('📊 Clínicas encontradas:', data.data?.length || 0);
+    console.log('📊 Login response:', data);
 
-    if (!data.data || data.data.length === 0) {
-      throw new Error('Clínica no encontrada o inactiva');
-    }
+    // Adaptar la respuesta del backend MongoDB al formato esperado por el frontend
+    const clinicUser: ClinicUser = {
+      id: data.user_data.id,
+      clinic_id: data.user_data.clinic_id,
+      name_clinic: data.user_data.name_clinic,
+      suscriber: data.user_data.suscriber,
+      address: data.user_data.address,
+      email: data.user_data.email,
+      cell_phone: data.user_data.cell_phone,
+      subscription_status: data.user_data.subscription_status,
+      subscription_plan: data.user_data.subscription_plan,
+      status_clinic: data.user_data.status_clinic,
+      domain_name: data.user_data.domain_name || '',
+      email_domain: data.user_data.email_domain,
+      subscription_expires: data.user_data.subscription_expires,
+      max_professionals: data.user_data.max_professionals || 2,
+      max_patients: data.user_data.max_patients || 50,
+      whatsapp_session_name: data.user_data.whatsapp_number,
+      created_at: data.user_data.created_at || '',
+      updated_at: data.user_data.updated_at || '',
+      last_login: data.user_data.last_login
+    };
 
-    const clinic = data.data[0];
-
-    // Verificar password (en un caso real, deberías usar bcrypt)
-    // Por ahora, comparación directa (NO recomendado para producción)
-    if (!clinic.password || clinic.password !== password) {
-      throw new Error('Contraseña incorrecta');
-    }
-
-    // Verificar estado de la clínica
-    if (clinic.status_clinic !== 'active') {
-      throw new Error('La clínica está inactiva. Contacta al administrador.');
-    }
-
-    if (!clinic.subcription) {
-      throw new Error('La suscripción de la clínica ha expirado.');
-    }
-
-    // Generar JWT simple (en producción, usar una biblioteca de JWT)
-    const jwt = generateSimpleJWT(clinic);
-
-    // Remover password del objeto de respuesta
-    const { password: _, ...clinicWithoutPassword } = clinic;
-
-    console.log('✅ Login exitoso para:', clinicWithoutPassword.name_clinic);
+    console.log('✅ Login exitoso para:', clinicUser.name_clinic);
 
     return {
-      clinic: clinicWithoutPassword,
-      jwt
+      clinic: clinicUser,
+      jwt: data.access_token
     };
 
   } catch (error) {

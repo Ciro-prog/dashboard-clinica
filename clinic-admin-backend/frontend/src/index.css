@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-gray-200;
+  }
+  body {
+    @apply bg-white text-gray-900;
+  }
+}
+
+/* Custom medical theme styles */
+.medical-gradient {
+  background: linear-gradient(135deg, #3B82F6, #1E40AF);
+}
+
+.card-shadow {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Medical color palette */
+.text-medical-50 { color: #eff6ff; }
+.text-medical-100 { color: #dbeafe; }
+.text-medical-200 { color: #bfdbfe; }
+.text-medical-500 { color: #3b82f6; }
+.text-medical-600 { color: #2563eb; }
+.text-medical-700 { color: #1d4ed8; }
+.text-medical-800 { color: #1e40af; }
+
+.bg-medical-50 { background-color: #eff6ff; }
+.bg-medical-100 { background-color: #dbeafe; }
+.bg-medical-200 { background-color: #bfdbfe; }
+.bg-medical-500 { background-color: #3b82f6; }
+.bg-medical-600 { background-color: #2563eb; }
+.bg-medical-700 { background-color: #1d4ed8; }
+.bg-medical-800 { background-color: #1e40af; }
+
+.border-medical-200 { border-color: #bfdbfe; }
+.border-medical-500 { border-color: #3b82f6; }
+
+.from-medical-50 { --tw-gradient-from: #eff6ff; }
+.to-medical-100 { --tw-gradient-to: #dbeafe; }
+
+.focus\:ring-medical-500:focus {
+  --tw-ring-color: #3b82f6;
+}

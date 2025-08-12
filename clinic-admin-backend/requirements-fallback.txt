@@ -1,0 +1,22 @@
+# Fallback Requirements - No Compilation Required
+# Use when requirements.txt or requirements-minimal.txt fail
+
+# Absolute minimum for FastAPI to run
+fastapi==0.104.1
+uvicorn==0.24.0
+pydantic==2.11.7
+python-dotenv==1.0.0
+
+# Database essentials
+pymongo==4.6.0
+motor==3.3.2
+
+# Authentication essentials
+python-jose==3.3.0
+passlib==1.7.4
+bcrypt==4.3.0
+
+# HTTP essentials  
+httpx==0.25.2
+anyio==3.7.1
+sniffio==1.3.1

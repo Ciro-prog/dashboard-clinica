@@ -97,6 +97,60 @@
     --emergency: #B91C1C;     /* Rojo emergencia */
     --emergency-foreground: #FFFFFF;
   }
+
+  .dark {
+    /* Colores base para modo oscuro con mejor contraste */
+    --background: #0F172A;
+    --foreground: #F1F5F9;
+    
+    --card: #1E293B;
+    --card-foreground: #F1F5F9;
+    
+    --popover: #1E293B;
+    --popover-foreground: #F1F5F9;
+    
+    /* Azul médico más claro para el tema oscuro */
+    --primary: #60A5FA;
+    --primary-foreground: #0F172A;
+    
+    /* Grises oscuros con mejor contraste */
+    --secondary: #374151;
+    --secondary-foreground: #E2E8F0;
+    
+    --muted: #374151;
+    --muted-foreground: #CBD5E1;
+    
+    --accent: #1E40AF;
+    --accent-foreground: #F1F5F9;
+    
+    /* Rojo para emergencias en oscuro */
+    --destructive: #F87171;
+    --destructive-foreground: #0F172A;
+    
+    --border: #475569;
+    --input: #475569;
+    --ring: #60A5FA;
+    
+    /* Sidebar en modo oscuro */
+    --sidebar-background: #1E293B;
+    --sidebar-foreground: #F1F5F9;
+    --sidebar-primary: #60A5FA;
+    --sidebar-primary-foreground: #0F172A;
+    --sidebar-accent: #374151;
+    --sidebar-accent-foreground: #E2E8F0;
+    --sidebar-border: #475569;
+    --sidebar-ring: #60A5FA;
+    
+    /* Estados médicos en modo oscuro */
+    --success: #22C55E;
+    --success-foreground: #0F172A;
+    
+    --info: #3B82F6;
+    --info-foreground: #F8FAFC;
+    
+    --emergency: #EF4444;
+    --emergency-foreground: #F8FAFC;
+  }
 }
 
 @layer base {
@@ -105,8 +159,28 @@
   }
   
   body {
-    @apply bg-gradient-to-br from-slate-50 via-sky-50/40 to-blue-50/30 text-foreground font-sans;
+    @apply bg-background text-foreground font-sans;
     min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  /* Asegurar que las variables CSS se apliquen correctamente */
+  html.dark {
+    color-scheme: dark;
+  }
+  
+  html.light {
+    color-scheme: light;
+  }
+  
+  html.dark body {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+  
+  html.light body {
+    background-color: var(--background);
+    color: var(--foreground);
   }
 }
 

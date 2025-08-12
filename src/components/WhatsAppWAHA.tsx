@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { type ClinicUser } from '@/lib/clinicAuth';
+import { useWAHAService } from '@/hooks/useWAHAService';
 
 interface WAHASession {
   name: string;
@@ -20,35 +21,18 @@ interface WhatsAppWAHAProps {
 }
 
 const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
-  const [session, setSession] = useState<WAHASession | null>(null);
-  const [qrCode, setQrCode] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
   const [sessionName, setSessionName] = useState<string>('');
-  const [autoRefresh, setAutoRefresh] = useState(false); // ✅ Iniciar desactivado por defecto
+  const [autoRefresh, setAutoRefresh] = useState(false);
   const [lastCheck, setLastCheck] = useState<Date | null>(null);
 
-  // ✅ REF INICIALIZADO CORRECTAMENTE
-  const isMounted = useRef(true);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  // ✅ CLEANUP SIMPLE Y SEGURO
-  useEffect(() => {
-    isMounted.current = true;
-    return () => {
-      isMounted.current = false;
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      console.log('🧹 Componente WhatsApp desmontado');
-    };
-  }, []);
+  const isPollingActive = useRef(false);
 
   // ✅ CONFIGURAR NOMBRE DE SESIÓN (UNA SOLA VEZ)
   useEffect(() => {
-    if (clinic && !sessionName && isMounted.current) {
+    if (clinic && !sessionName) {
       let finalSessionName = '';
       
       if (clinic.suscriber?.trim()) {
@@ -64,25 +48,62 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     }
   }, [clinic, sessionName]);
 
-  // ✅ HEADERS SIMPLES
-  const headers = {
-    'Content-Type': 'application/json',
-    'X-API-Key': 'pampaserver2025enservermuA!'
-  };
+  // ✅ Hook personalizado para WAHA con autenticación persistente
+  const {
+    isLoading,
+    session,
+    qrCode,
+    checkSession,
+    startAndGetQR,
+    deleteSession,
+    cleanup
+  } = useWAHAService({
+    sessionName,
+    onSessionUpdate: (sessionData) => {
+      setLastCheck(new Date());
+    },
+    onQRCodeUpdate: (qr) => {
+      // QR code se maneja automáticamente en el hook
+    },
+    onError: (errorMessage) => {
+      setError(errorMessage);
+      setSuccess('');
+    },
+    onSuccess: (successMessage) => {
+      setSuccess(successMessage);
+      setError('');
+    }
+  });
+
+  // ✅ CLEANUP
+  useEffect(() => {
+    return () => {
+      isPollingActive.current = false;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      cleanup();
+      console.log('🧹 Componente WhatsApp desmontado');
+    };
+  }, [cleanup]);
 
   // ✅ VERIFICAR SESIÓN - ULTRA SIMPLE
   const checkSession = useCallback(async (silent = false) => {
     if (!sessionName || !isMounted.current) return;
 
+    // ✅ Si es acción manual, detener polling automático
+    if (!silent) {
+      console.log('🔍 Verificando sesión manualmente:', sessionName);
+      isPollingActive.current = false; // Detener cualquier polling activo
+    }
+    
     if (!silent) {
       console.log('🔍 Verificando sesión:', sessionName);
     }
     
     try {
-      const response = await fetch(`/api/waha/sessions/${sessionName}`, {
-        method: 'GET',
-        headers
-      });
+      const response = await wahaRequest(`/api/sessions/${sessionName}`);
 
       if (!isMounted.current) return;
 
@@ -90,34 +111,81 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
         const data = await response.json();
         if (!silent) {
           console.log('✅ Sesión encontrada:', data.status);
+          console.log('📊 Datos completos de sesión:', data);
         }
         setSession(data);
         setError('');
         setLastCheck(new Date());
         if (data.status !== 'SCAN_QR_CODE') {
           setQrCode('');
+        } else if (data.status === 'SCAN_QR_CODE' && !qrCode && !silent) {
+          // ✅ Si detectamos SCAN_QR_CODE y no tenemos QR, iniciar polling
+          console.log('📱 Estado SCAN_QR_CODE detectado, iniciando polling para sincronizar...');
+          setTimeout(() => {
+            if (isMounted.current) {
+              pollSessionStateAndQR();
+            }
+          }, 1000);
+        } else if (data.status === 'SCAN_QR_CODE' && qrCode && !silent) {
+          // ✅ Si ya tenemos QR pero verificamos manualmente, iniciar monitoreo
+          console.log('👀 QR ya disponible, iniciando monitoreo de escaneo...');
+          setTimeout(() => {
+            if (isMounted.current) {
+              pollSessionStateAndQR(1, 30, true); // Monitoreo con QR existente
+            }
+          }, 1000);
         }
       } else if (response.status === 404) {
         if (!silent) {
-          console.log('ℹ️ Sesión no existe');
+          console.log('ℹ️ Sesión no existe - se puede crear una nueva');
         }
         setSession(null);
         setQrCode('');
         setError('');
         setLastCheck(new Date());
       } else {
-        throw new Error(`Error ${response.status}`);
+        const errorText = await response.text();
+        console.error('❌ Error HTTP:', response.status, errorText);
+        if (!silent) {
+          setError(`Error ${response.status}: ${errorText}`);
+        }
       }
     } catch (err) {
+      console.error('❌ Error de conexión:', err);
       if (!silent) {
-        console.error('❌ Error verificando sesión:', err);
-        setError('Error al verificar sesión');
+        setError('🔌 Verificando conexión... Reintenta en unos momentos.');
       }
-      // En modo silencioso, no mostrar errores al usuario
     }
   }, [sessionName]); // ✅ Solo depende de sessionName
 
-  // ✅ CREAR SESIÓN
+  // ✅ PROBAR CONECTIVIDAD CON SERVIDOR WAHA
+  const testWAHAConnection = useCallback(async () => {
+    console.log('🔌 Probando conectividad con servidor WAHA...');
+    
+    try {
+      // ✅ Probar primero el endpoint que ya sabemos que funciona
+      const response = await wahaRequest('/api/sessions?all=false');
+
+      console.log('🔌 Test conectividad GET /sessions - Status:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ WAHA servidor está corriendo. Sesiones existentes:', data);
+        return true;
+      } else if (response.status === 401) {
+        console.error('🚨 API Key incorrecto o faltante');
+        return false;
+      } else {
+        console.log('⚠️ Servidor responde pero con error:', response.status);
+        return false;
+      }
+    } catch (err) {
+      console.error('❌ No se puede conectar con servidor WAHA:', err);
+      return false;
+    }
+  }, []);
+
+  // ✅ CREAR SESIÓN - CORREGIDO SEGÚN DOCUMENTACIÓN WAHA
   const createSession = useCallback(async () => {
     if (!sessionName || !isMounted.current) return;
 
@@ -126,34 +194,126 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     setSuccess('');
 
     try {
-      console.log('➕ Creando sesión:', sessionName);
+      console.log('➕ Creando sesión WAHA:', sessionName);
       
-      const response = await fetch('/api/waha/sessions', {
+      // ✅ Primero probar conectividad
+      const isConnected = await testWAHAConnection();
+      if (!isConnected) {
+        throw new Error('No se puede conectar con el servidor WAHA. Verifica que esté corriendo en pampaservers.com:60513');
+      }
+      
+      // ✅ Estructura correcta según curl funcionando
+      const requestBody = {
+        name: sessionName,
+        start: true,
+        config: {
+          metadata: {
+            "user.id": sessionName,
+            "user.email": "dashboard@clinica.com",
+            "clinic": sessionName
+          },
+          proxy: null,
+          debug: false,
+          noweb: {
+            store: {
+              enabled: true,
+              fullSync: false
+            }
+          },
+          webhooks: []
+        }
+      };
+      
+      console.log('📤 Enviando petición a /api/sessions (directo):', requestBody);
+      console.log('📤 Headers enviados:', headers);
+      console.log('📤 URL será: http://pampaservers.com:60513/api/sessions');
+      
+      const response = await wahaRequest('/api/sessions', {
         method: 'POST',
-        headers,
-        body: JSON.stringify({ name: sessionName })
+        body: JSON.stringify(requestBody)
       });
+
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!isMounted.current) return;
 
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ Sesión creada');
+        console.log('✅ Sesión creada exitosamente:', data);
         setSession(data);
-        setSuccess('✅ Sesión creada correctamente');
+        setSuccess(`✅ Sesión "${sessionName}" creada correctamente`);
         
-        // Verificar después de crear
-        setTimeout(() => {
-          if (isMounted.current) checkSession();
-        }, 1000);
+        // ✅ Flujo automático: verificar estado y obtener QR si es necesario
+        setTimeout(async () => {
+          if (isMounted.current) {
+            console.log('🔄 Verificando estado post-creación...');
+            
+            // Verificar estado actual del servidor
+            try {
+              const response = await fetch(`/api/sessions/${sessionName}`, {
+                method: 'GET',
+                headers
+              });
+
+              if (response.ok) {
+                const currentData = await response.json();
+                console.log('📊 Estado actual verificado:', currentData.status);
+                setSession(currentData);
+                
+                // Iniciar polling persistente para obtener el QR
+                console.log('🚀 Iniciando polling persistente para sincronizar con panel WAHA...');
+                setTimeout(() => {
+                  if (isMounted.current) {
+                    pollSessionStateAndQR();
+                  }
+                }, 2000);
+              }
+            } catch (err) {
+              console.error('❌ Error en verificación post-creación:', err);
+            }
+          }
+        }, 3000);
       } else {
-        const errorText = await response.text();
-        throw new Error(errorText);
+        const responseText = await response.text();
+        console.error('❌ Error completo:', {
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries()),
+          body: responseText
+        });
+        
+        let errorData;
+        try {
+          errorData = JSON.parse(responseText);
+        } catch {
+          errorData = { message: responseText };
+        }
+        
+        // ✅ Diagnóstico especial para errores comunes
+        if (response.status === 405) {
+          console.error('🚨 Error 405 - Method Not Allowed. Posibles causas:');
+          console.error('   1. Servidor WAHA no está corriendo');
+          console.error('   2. Endpoint incorrecto');
+          console.error('   3. Método HTTP no soportado');
+          console.error('   4. Headers incorrectos');
+          throw new Error('Método no permitido - Verifica que el servidor WAHA esté corriendo');
+        }
+        
+        if (response.status === 401) {
+          console.error('🚨 Error 401 - Unauthorized. API Key incorrecto o faltante');
+          console.error('   Current API Key:', headers['X-Api-Key']);
+          console.error('   Verifica que el API Key sea correcto en el servidor WAHA');
+          throw new Error('No autorizado - Verifica el API Key del servidor WAHA');
+        }
+        
+        throw new Error(errorData.message || `HTTP ${response.status}: ${responseText}`);
       }
     } catch (err) {
-      console.error('❌ Error creando sesión:', err);
+      console.error('❌ Error completo creando sesión:', err);
       if (isMounted.current) {
-        setError(`Error al crear sesión: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+        const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
+        setError(`Error al crear sesión: ${errorMsg}`);
       }
     } finally {
       if (isMounted.current) {
@@ -173,7 +333,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     try {
       console.log('🔄 Actualizando sesión:', sessionName);
       
-      const response = await fetch(`/api/waha/sessions/${sessionName}`, {
+      const response = await fetch(`/api/sessions/${sessionName}`, {
         method: 'PUT',
         headers,
         body: JSON.stringify({ name: sessionName })
@@ -189,7 +349,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
         
         setTimeout(() => {
           if (isMounted.current) checkSession();
-        }, 1000);
+        }, 10000);
       } else {
         const errorText = await response.text();
         throw new Error(errorText);
@@ -206,7 +366,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     }
   }, [sessionName, headers, checkSession]);
 
-  // ✅ INICIAR SESIÓN
+  // ✅ INICIAR SESIÓN - CORREGIDO SEGÚN DOCUMENTACIÓN WAHA
   const startSession = useCallback(async () => {
     if (!sessionName || !isMounted.current) return;
 
@@ -215,30 +375,40 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     setSuccess('');
 
     try {
-      console.log('▶️ Iniciando sesión:', sessionName);
+      console.log('▶️ Iniciando sesión WAHA:', sessionName);
       
-      const response = await fetch(`/api/waha/sessions/${sessionName}/start`, {
+      // ✅ Endpoint correcto: /api/sessions/{session}/start
+      const response = await fetch(`/api/sessions/${sessionName}/start`, {
         method: 'POST',
         headers
       });
 
+      console.log('📡 Response status para start:', response.status);
+
       if (!isMounted.current) return;
 
       if (response.ok) {
-        console.log('✅ Sesión iniciada');
+        const data = await response.json();
+        console.log('✅ Sesión iniciada:', data);
         setSuccess('✅ Sesión iniciada correctamente');
         
+        // Verificar estado después de iniciar
         setTimeout(() => {
-          if (isMounted.current) checkSession();
-        }, 2000);
+          if (isMounted.current) {
+            console.log('🔄 Verificando estado post-inicio...');
+            checkSession();
+          }
+        }, 10000); // Más tiempo para que se inicie completamente
       } else {
         const errorText = await response.text();
-        throw new Error(errorText);
+        console.error('❌ Error al iniciar:', response.status, errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
     } catch (err) {
       console.error('❌ Error iniciando sesión:', err);
       if (isMounted.current) {
-        setError(`Error al iniciar sesión: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+        const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
+        setError(`Error al iniciar sesión: ${errorMsg}`);
       }
     } finally {
       if (isMounted.current) {
@@ -258,7 +428,8 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     try {
       console.log('⏹️ Deteniendo sesión:', sessionName);
       
-      const response = await fetch(`/api/waha/sessions/${sessionName}/stop`, {
+      // ✅ Endpoint correcto: /api/sessions/{session}/stop
+      const response = await fetch(`/api/sessions/${sessionName}/stop`, {
         method: 'POST',
         headers
       });
@@ -300,7 +471,8 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     try {
       console.log('🔄 Reiniciando sesión:', sessionName);
       
-      const response = await fetch(`/api/waha/sessions/${sessionName}/restart`, {
+      // ✅ Endpoint correcto: /api/sessions/{session}/restart
+      const response = await fetch(`/api/sessions/${sessionName}/restart`, {
         method: 'POST',
         headers
       });
@@ -343,7 +515,8 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     try {
       console.log('🗑️ Eliminando sesión:', sessionName);
       
-      const response = await fetch(`/api/waha/sessions/${sessionName}`, {
+      // ✅ Endpoint correcto para eliminar: /api/sessions/{session}
+      const response = await fetch(`/api/sessions/${sessionName}`, {
         method: 'DELETE',
         headers
       });
@@ -371,31 +544,227 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     }
   }, [sessionName, headers]);
 
-  // ✅ OBTENER QR - MÚLTIPLES ENDPOINTS
-  const getQR = useCallback(async () => {
+  // ✅ POLLING PERSISTENTE PARA QR AUTOMÁTICO Y DETECCIÓN DE ESCANEO
+  const pollSessionStateAndQR = useCallback(async (attempt = 1, maxAttempts = 50, hasQR = false) => {
     if (!sessionName || !isMounted.current) return;
 
-    setIsLoading(true);
-    setError('');
+    // ✅ EVITAR MÚLTIPLES POLLINGS SIMULTÁNEOS
+    if (isPollingActive.current && attempt === 1) {
+      console.log('⚠️ Polling ya está activo, cancelando nuevo inicio');
+      return;
+    }
 
-    // Lista de endpoints a probar
+    if (attempt === 1) {
+      isPollingActive.current = true;
+      console.log('🚀 Iniciando nuevo ciclo de polling');
+    }
+
+    // ✅ VERIFICAR SI POLLING FUE DETENIDO
+    if (!isPollingActive.current) {
+      console.log('⏹️ Polling cancelado por control externo');
+      return;
+    }
+
+    const phase = hasQR ? 'monitoreo' : 'obtención QR';
+    console.log(`🔄 Polling ${phase} - Intento ${attempt}/${maxAttempts}`);
+    
+    try {
+      // Verificar estado actual
+      const response = await fetch(`/api/sessions/${sessionName}`, {
+        method: 'GET',
+        headers
+      });
+
+      if (!isMounted.current) return;
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`📊 Polling ${attempt}: Estado = ${data.status}`);
+        setSession(data);
+        setError('');
+        setLastCheck(new Date());
+        
+        // ✅ DETECTAR CONEXIÓN EXITOSA (QR ESCANEADO)
+        if (data.status === 'WORKING') {
+          console.log('🎉 ¡QR ESCANEADO! Sesión conectada exitosamente');
+          setSuccess('🎉 ¡Código QR escaneado exitosamente! WhatsApp conectado');
+          setQrCode(''); // Limpiar QR ya que no se necesita más
+          isPollingActive.current = false; // ✅ Detener polling
+          return; // ✅ Éxito total, terminar polling
+        }
+        
+        // ❌ DETECTAR FALLO DE SESIÓN
+        if (data.status === 'FAILED') {
+          console.log('❌ Sesión falló, deteniendo polling');
+          setError('🔄 Reconectando... Si el problema persiste, inicia una nueva sesión.');
+          setQrCode(''); // Limpiar QR
+          isPollingActive.current = false; // ✅ Detener polling
+          return; // ❌ Error, terminar polling
+        }
+        
+        // 📱 OBTENER QR AUTOMÁTICAMENTE
+        if (data.status === 'SCAN_QR_CODE' && !hasQR) {
+          console.log('✅ Estado SCAN_QR_CODE confirmado, obteniendo QR automáticamente...');
+          
+          try {
+            const qrResponse = await fetch(`/api/sessions/${sessionName}/auth/qr`, {
+              method: 'GET',
+              headers
+            });
+
+            if (qrResponse.ok) {
+              const contentType = qrResponse.headers.get('content-type');
+              
+              if (contentType?.includes('image/png')) {
+                const blob = await qrResponse.blob();
+                const reader = new FileReader();
+                reader.onload = () => {
+                  if (isMounted.current) {
+                    setQrCode(reader.result as string);
+                    setSuccess(`📱 Código QR listo para escanear`);
+                    console.log(`🎯 QR obtenido exitosamente, iniciando monitoreo de escaneo...`);
+                    
+                    // ✅ CONTINUAR POLLING PARA DETECTAR ESCANEO
+                    setTimeout(() => {
+                      if (isMounted.current) {
+                        pollSessionStateAndQR(1, 30, true); // Nuevo ciclo con más intentos para monitoreo
+                      }
+                    }, 3000);
+                  }
+                };
+                reader.readAsDataURL(blob);
+                return; // QR obtenido, nuevo ciclo iniciado
+              } else {
+                const qrData = await qrResponse.json();
+                if (qrData.qr) {
+                  if (isMounted.current) {
+                    setQrCode(qrData.qr);
+                    setSuccess(`📱 Código QR listo para escanear`);
+                    console.log(`🎯 QR obtenido exitosamente, iniciando monitoreo de escaneo...`);
+                    
+                    // ✅ CONTINUAR POLLING PARA DETECTAR ESCANEO
+                    setTimeout(() => {
+                      if (isMounted.current) {
+                        pollSessionStateAndQR(1, 30, true); // Nuevo ciclo con más intentos para monitoreo
+                      }
+                    }, 3000);
+                  }
+                  return; // QR obtenido, nuevo ciclo iniciado
+                }
+              }
+            }
+            
+            console.log(`⚠️ Intento ${attempt}: QR no disponible, status ${qrResponse.status}`);
+            
+          } catch (qrError) {
+            console.log(`⚠️ Intento ${attempt}: Error obteniendo QR:`, qrError);
+          }
+        }
+        
+        // 👀 MONITOREO CONTINUO POST-QR
+        if (data.status === 'SCAN_QR_CODE' && hasQR) {
+          console.log(`👀 Monitoreando escaneo de QR - ${attempt}/${maxAttempts}`);
+          setSuccess(`📱 Esperando que escanees el código QR... (${attempt}/${maxAttempts})`);
+        }
+        
+        // ⏳ ESTADO TRANSITORIO
+        if (data.status === 'STARTING') {
+          console.log(`⏳ Sesión iniciando - ${attempt}/${maxAttempts}`);
+          setSuccess(`⏳ Iniciando WhatsApp... (${attempt}/${maxAttempts})`);
+        }
+        
+        // 🔄 CONTINUAR POLLING
+        if (attempt < maxAttempts && isMounted.current && isPollingActive.current) {
+          setTimeout(() => {
+            if (isMounted.current && isPollingActive.current) {
+              pollSessionStateAndQR(attempt + 1, maxAttempts, hasQR);
+            }
+          }, 3000);
+        } else if (attempt >= maxAttempts) {
+          console.log(`⏰ Se agotaron los ${maxAttempts} intentos de polling`);
+          isPollingActive.current = false; // ✅ Detener polling
+          
+          if (hasQR) {
+            setError(`⏰ El código QR no fue escaneado en el tiempo esperado. El QR sigue siendo válido, puedes escanearlo cuando gustes.`);
+          } else {
+            setError(`⏰ No se pudo obtener el QR después de ${maxAttempts} intentos. Usa el botón "Verificar Estado" manualmente.`);
+          }
+        }
+        
+      } else {
+        console.log(`❌ Polling ${attempt}: Error HTTP ${response.status}`);
+        
+        // Continuar polling en caso de errores temporales
+        if (attempt < maxAttempts && isMounted.current && isPollingActive.current) {
+          setTimeout(() => {
+            if (isMounted.current && isPollingActive.current) {
+              pollSessionStateAndQR(attempt + 1, maxAttempts, hasQR);
+            }
+          }, 3000);
+        } else {
+          isPollingActive.current = false; // ✅ Detener polling
+          setError('🔄 Reintentando conexión... Usa el botón "Verificar Estado" si continúa.');
+        }
+      }
+      
+    } catch (error) {
+      console.error(`❌ Polling ${attempt} error:`, error);
+      
+      // Continuar polling en caso de errores de red
+      if (attempt < maxAttempts && isMounted.current && isPollingActive.current) {
+        setTimeout(() => {
+          if (isMounted.current && isPollingActive.current) {
+            pollSessionStateAndQR(attempt + 1, maxAttempts, hasQR);
+          }
+        }, 3000);
+      } else {
+        isPollingActive.current = false; // ✅ Detener polling
+        setError('🔄 Reintentando conexión... Usa el botón "Verificar Estado" si continúa.');
+      }
+    }
+  }, [sessionName, headers]);
+
+  // ✅ OBTENER QR CON REINTENTOS AUTOMÁTICOS PARA 404
+  const getQR = useCallback(async (retryCount = 0, maxRetries = 5) => {
+    if (!sessionName || !isMounted.current) return;
+
+    // ✅ ACCIÓN MANUAL - Detener polling automático
+    if (retryCount === 0) {
+      console.log('📱 Obteniendo QR manualmente - deteniendo polling automático');
+      isPollingActive.current = false; // Detener polling
+      setIsLoading(true);
+      setError('');
+    }
+
+    // Solo mostrar loading en el primer intento
+    if (retryCount === 0) {
+      setIsLoading(true);
+      setError('');
+    }
+
+    // ✅ Endpoint correcto según documentación WAHA: /api/sessions/{session}/auth/qr
     const qrEndpoints = [
-      `/api/waha/sessions/${sessionName}/auth/qr`,
-      `/api/waha/sessions/${sessionName}/qr`,
-      `/api/waha/${sessionName}/auth/qr`,
-      `/api/waha/${sessionName}/qr`
+      `/api/sessions/${sessionName}/auth/qr`, // ✅ Formato correcto según docs
+      `/api/${sessionName}/auth/qr`, // Fallback
+      `/api/${sessionName}/qr`, // Fallback adicional
     ];
 
     try {
-      console.log('📷 Obteniendo QR para sesión:', sessionName);
+      if (retryCount === 0) {
+        console.log('📷 Obteniendo QR para sesión:', sessionName);
+      } else {
+        console.log(`📷 Reintento ${retryCount}/${maxRetries} obteniendo QR para sesión:`, sessionName);
+        setSuccess(`🔄 Reintentando obtener QR (${retryCount}/${maxRetries})...`);
+      }
       
       let qrFound = false;
+      let lastError = null;
 
       for (const endpoint of qrEndpoints) {
         if (!isMounted.current || qrFound) break;
 
         try {
-          console.log(`🔍 Probando: ${endpoint}`);
+          console.log(`🔍 Probando: ${endpoint} ${retryCount > 0 ? `(reintento ${retryCount})` : ''}`);
           
           const response = await fetch(endpoint, {
             method: 'GET',
@@ -411,7 +780,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
               reader.onload = () => {
                 if (isMounted.current) {
                   setQrCode(reader.result as string);
-                  setSuccess(`✅ QR obtenido desde: ${endpoint}`);
+                  setSuccess(`✅ QR obtenido desde: ${endpoint}${retryCount > 0 ? ` (tras ${retryCount} reintentos)` : ''}`);
                   qrFound = true;
                 }
               };
@@ -422,22 +791,48 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
               if (data.qr) {
                 if (isMounted.current) {
                   setQrCode(data.qr);
-                  setSuccess(`✅ QR obtenido desde: ${endpoint}`);
+                  setSuccess(`✅ QR obtenido desde: ${endpoint}${retryCount > 0 ? ` (tras ${retryCount} reintentos)` : ''}`);
                   qrFound = true;
                 }
                 break;
               }
             }
+          } else if (response.status === 404) {
+            // ✅ Error 404 - puede ser temporal, guardar para reintentar
+            lastError = `QR no disponible aún (404)`;
+            console.log(`⚠️ ${endpoint}: 404 - QR no disponible aún`);
           } else {
+            // Otros errores HTTP
+            lastError = `HTTP ${response.status}`;
             console.log(`❌ ${endpoint}: ${response.status}`);
           }
         } catch (endpointErr) {
+          lastError = endpointErr instanceof Error ? endpointErr.message : 'Error de conexión';
           console.log(`❌ Error en ${endpoint}:`, endpointErr);
         }
       }
 
+      // ✅ Si no se encontró QR y es un 404, reintentar
       if (!qrFound && isMounted.current) {
-        throw new Error('No se pudo obtener el QR desde ningún endpoint. Verifica que la sesión esté en estado SCAN_QR_CODE.');
+        if (lastError?.includes('404') && retryCount < maxRetries) {
+          console.log(`🔄 QR no disponible, reintentando en 3 segundos... (${retryCount + 1}/${maxRetries})`);
+          
+          // Esperar 3 segundos antes del siguiente intento
+          setTimeout(() => {
+            if (isMounted.current) {
+              getQR(retryCount + 1, maxRetries);
+            }
+          }, 3000);
+          
+          return; // No finalizar la función aún
+        } else {
+          // Se agotaron los reintentos o es otro tipo de error
+          const errorMsg = lastError?.includes('404') 
+            ? `QR no disponible después de ${maxRetries} intentos. La sesión puede no estar lista para mostrar el QR aún.`
+            : `No se pudo obtener el QR: ${lastError || 'Error desconocido'}`;
+          
+          throw new Error(errorMsg);
+        }
       }
     } catch (err) {
       console.error('❌ Error obteniendo QR:', err);
@@ -445,7 +840,8 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
         setError(`Error al obtener QR: ${err instanceof Error ? err.message : 'Error desconocido'}`);
       }
     } finally {
-      if (isMounted.current) {
+      // Solo finalizar loading si no vamos a reintentar
+      if (isMounted.current && (retryCount >= maxRetries || retryCount === 0)) {
         setIsLoading(false);
       }
     }
@@ -462,8 +858,8 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
     try {
       console.log('🚀 Iniciando sesión y obteniendo QR');
       
-      // Iniciar sesión
-      const startResponse = await fetch(`/api/waha/sessions/${sessionName}/start`, {
+      // ✅ Iniciar sesión con endpoint correcto
+      const startResponse = await fetch(`/api/sessions/${sessionName}/start`, {
         method: 'POST',
         headers
       });
@@ -475,16 +871,28 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
 
       if (!isMounted.current) return;
 
-      // Esperar un momento
+      // Esperar un momento para que la sesión se inicialice
       await new Promise(resolve => setTimeout(resolve, 3000));
 
       if (!isMounted.current) return;
 
-      // Verificar estado
-      await checkSession();
+      // Verificar estado ACTUAL del servidor antes de obtener QR
+      const response = await fetch(`/api/sessions/${sessionName}`, {
+        method: 'GET',
+        headers
+      });
 
-      // Intentar obtener QR
-      await getQR();
+      if (response.ok) {
+        const currentData = await response.json();
+        console.log('📊 Estado actual después de iniciar:', currentData.status);
+        setSession(currentData);
+        
+        // Iniciar polling persistente independientemente del estado
+        console.log('🚀 Iniciando polling persistente desde startAndGetQR...');
+        pollSessionStateAndQR();
+      } else {
+        console.error('❌ Error verificando estado después de iniciar:', response.status);
+      }
       
     } catch (err) {
       console.error('❌ Error en startAndGetQR:', err);
@@ -525,7 +933,7 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
             if (!sessionName || !isMounted.current) return;
             
             try {
-              const response = await fetch(`/api/waha/sessions/${sessionName}`, {
+              const response = await fetch(`/api/sessions/${sessionName}`, {
                 method: 'GET',
                 headers
               });
@@ -628,252 +1036,234 @@ const WhatsAppWAHA = ({ clinic }: WhatsAppWAHAProps) => {
 
   return (
     <div className="space-y-6">
-      {/* INFORMACIÓN DE CLÍNICA */}
-      <Card className="bg-blue-50 border-blue-200">
-        <CardHeader>
-          <CardTitle className="text-lg">🏥 {clinic.name_clinic}</CardTitle>
-          <CardDescription>
-            Sesión: <code className="bg-blue-200 px-1 rounded">{sessionName}</code>
+      {/* HEADER SIMPLIFICADO */}
+      <Card className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 border-green-200 dark:border-green-700">
+        <CardHeader className="text-center">
+          <CardTitle className="text-xl flex items-center justify-center gap-2">
+            📱 WhatsApp Business
+            {session && (
+              <Badge className={`${getBadgeColor(session.status)} text-white ml-2`}>
+                {getStatusText(session.status)}
+              </Badge>
+            )}
+          </CardTitle>
+          <CardDescription className="text-lg">
+            {clinic.name_clinic}
           </CardDescription>
         </CardHeader>
       </Card>
 
-      {/* ESTADO DE SESIÓN */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>📱 WhatsApp Business</span>
-            <div className="flex items-center gap-2">
-              {autoRefresh && (
-                <div className="flex items-center gap-1 text-xs text-green-600">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span>Auto</span>
+      {/* MENSAJES IMPORTANTES */}
+      {error && (
+        <Alert className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
+          <AlertDescription className="text-red-700 dark:text-red-300 text-center font-medium">
+            ❌ {error}
+          </AlertDescription>
+        </Alert>
+      )}
+      
+      {success && (
+        <Alert className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20">
+          <AlertDescription className="text-green-700 dark:text-green-300 text-center font-medium">
+            {success}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* ESTADO ACTUAL Y ACCIONES PRINCIPALES */}
+      <Card className="bg-card dark:bg-card">
+        <CardContent className="py-6 bg-card dark:bg-card">
+          {!session ? (
+            <div className="text-center space-y-4">
+              <div className="text-gray-600 dark:text-gray-300 mb-4">
+                <p className="text-lg">🔗 No hay conexión con WhatsApp</p>
+                <p className="text-sm">Necesitas crear una nueva conexión</p>
+              </div>
+              <Button 
+                onClick={createSession} 
+                disabled={isLoading} 
+                className="bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white px-8 py-3 text-lg"
+                size="lg"
+              >
+                {isLoading ? '⏳ Creando...' : '🚀 Conectar WhatsApp'}
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* ESTADO WORKING - CONECTADO */}
+              {session.status === 'WORKING' && (
+                <div className="text-center space-y-4">
+                  <div className="text-green-600 dark:text-green-400 mb-4">
+                    <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <span className="text-2xl">✅</span>
+                    </div>
+                    <p className="text-xl font-semibold text-foreground">¡WhatsApp Conectado!</p>
+                    {session.me && (
+                      <p className="text-sm text-foreground">Conectado como: <strong>{session.me.pushName}</strong></p>
+                    )}
+                  </div>
+                  <Button 
+                    onClick={stopSession} 
+                    disabled={isLoading} 
+                    variant="outline"
+                    className="border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  >
+                    {isLoading ? '⏳ Desconectando...' : '🔌 Desconectar'}
+                  </Button>
                 </div>
               )}
-              {session && (
-                <Badge className={`${getBadgeColor(session.status)} text-white`}>
-                  {getStatusText(session.status)}
-                </Badge>
+
+              {/* ESTADO SCAN_QR_CODE - NECESITA ESCANEAR */}
+              {session.status === 'SCAN_QR_CODE' && (
+                <div className="text-center space-y-4">
+                  <div className="text-blue-600 dark:text-blue-400 mb-4">
+                    <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <span className="text-2xl">📱</span>
+                    </div>
+                    <p className="text-xl font-semibold text-foreground">Escanea el código QR</p>
+                    <p className="text-sm text-foreground">Abre WhatsApp en tu teléfono para conectar</p>
+                  </div>
+                  
+                  {!qrCode && (
+                    <Button 
+                      onClick={getQR} 
+                      disabled={isLoading} 
+                      className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white"
+                    >
+                      {isLoading ? '⏳ Generando...' : '📷 Mostrar código QR'}
+                    </Button>
+                  )}
+                </div>
               )}
-            </div>
-          </CardTitle>
-          <CardDescription>
-            {session ? `Estado: ${session.status}` : 'Sin sesión'}
-            {autoRefresh && lastCheck && (
-              <span className="text-green-600 ml-2">
-                • Próxima verificación: {new Date(lastCheck.getTime() + 3 * 60 * 1000).toLocaleTimeString()}
-              </span>
-            )}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* INFORMACIÓN */}
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="font-medium">Estado:</span>
-              <span className={`ml-2 ${session?.status === 'WORKING' ? 'text-green-600' : 'text-gray-600'}`}>
-                {session ? getStatusText(session.status) : 'Sin sesión'}
-              </span>
-            </div>
-            <div>
-              <span className="font-medium">Sesión:</span>
-              <span className="ml-2 font-mono text-xs">{sessionName}</span>
-            </div>
-            <div>
-              <span className="font-medium">Auto-refresh:</span>
-              <span className={`ml-2 text-xs ${autoRefresh ? 'text-green-600' : 'text-gray-600'}`}>
-                {autoRefresh ? '⏰ Cada 3 min' : '⏰ Desactivado'}
-              </span>
-            </div>
-            <div>
-              <span className="font-medium">Última verificación:</span>
-              <span className="ml-2 text-xs text-gray-600">
-                {lastCheck ? lastCheck.toLocaleTimeString() : 'Nunca'}
-              </span>
-            </div>
-            {session?.me && (
-              <div className="col-span-2">
-                <span className="font-medium">Conectado:</span>
-                <span className="ml-2 text-green-600">{session.me.pushName}</span>
+
+              {/* ESTADO STARTING - INICIANDO */}
+              {session.status === 'STARTING' && (
+                <div className="text-center space-y-4">
+                  <div className="text-yellow-600 dark:text-yellow-400 mb-4">
+                    <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <div className="w-8 h-8 border-4 border-yellow-600 dark:border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                    <p className="text-xl font-semibold text-foreground">Iniciando WhatsApp...</p>
+                    <p className="text-sm text-foreground">Esto puede tomar unos momentos</p>
+                  </div>
+                </div>
+              )}
+
+              {/* ESTADO STOPPED - DETENIDO */}
+              {session.status === 'STOPPED' && (
+                <div className="text-center space-y-4">
+                  <div className="text-gray-600 mb-4">
+                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <span className="text-2xl">⏸️</span>
+                    </div>
+                    <p className="text-xl font-semibold">WhatsApp Desconectado</p>
+                    <p className="text-sm">La conexión está pausada</p>
+                  </div>
+                  <div className="flex gap-3 justify-center">
+                    <Button 
+                      onClick={startAndGetQR} 
+                      disabled={isLoading} 
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      {isLoading ? '⏳ Iniciando...' : '🚀 Iniciar y Conectar'}
+                    </Button>
+                    <Button 
+                      onClick={deleteSession} 
+                      disabled={isLoading} 
+                      variant="outline"
+                      className="border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    >
+                      {isLoading ? '⏳ Eliminando...' : '🗑️ Eliminar'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* ESTADO FAILED - ERROR */}
+              {session.status === 'FAILED' && (
+                <div className="text-center space-y-4">
+                  <div className="text-red-600 mb-4">
+                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <span className="text-2xl">❌</span>
+                    </div>
+                    <p className="text-xl font-semibold">Error de Conexión</p>
+                    <p className="text-sm">Algo salió mal con la conexión</p>
+                  </div>
+                  <div className="flex gap-3 justify-center">
+                    <Button 
+                      onClick={restartSession} 
+                      disabled={isLoading} 
+                      className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white"
+                    >
+                      {isLoading ? '⏳ Reintentando...' : '🔄 Reintentar'}
+                    </Button>
+                    <Button 
+                      onClick={deleteSession} 
+                      disabled={isLoading} 
+                      variant="outline"
+                      className="border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    >
+                      {isLoading ? '⏳ Eliminando...' : '🗑️ Empezar de Nuevo'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* BOTONES AUXILIARES */}
+              <div className="flex justify-center pt-4">
+                <Button 
+                  onClick={() => checkSession()} 
+                  disabled={isLoading} 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                >
+                  {isLoading ? '🔄' : '🔍'} Verificar Estado
+                </Button>
               </div>
-            )}
-          </div>
-
-          {/* MENSAJES */}
-          {error && (
-            <Alert className="border-red-200 bg-red-50">
-              <AlertDescription className="text-red-700">{error}</AlertDescription>
-            </Alert>
+            </div>
           )}
-          
-          {success && (
-            <Alert className="border-green-200 bg-green-50">
-              <AlertDescription className="text-green-700">{success}</AlertDescription>
-            </Alert>
-          )}
-
-          {/* BOTONES */}
-          <div className="flex gap-2 flex-wrap">
-            <Button onClick={() => checkSession()} disabled={isLoading} variant="outline" size="sm">
-              {isLoading ? '🔄' : '🔍'} Verificar
-            </Button>
-
-            <Button 
-              onClick={toggleAutoRefresh} 
-              variant="outline" 
-              size="sm"
-              className={autoRefresh ? 'border-green-300 text-green-700 bg-green-50' : 'border-gray-300'}
-            >
-              {autoRefresh ? '⏰ Auto ON (3min)' : '⏰ Auto OFF'}
-            </Button>
-
-            {!session ? (
-              <>
-                <Button onClick={createSession} disabled={isLoading} className="bg-green-600" size="sm">
-                  {isLoading ? '➕' : '➕'} Crear
-                </Button>
-                <Button onClick={updateSession} disabled={isLoading} className="bg-blue-600" size="sm">
-                  {isLoading ? '🔄' : '🔄'} Actualizar
-                </Button>
-              </>
-            ) : (
-              <>
-                {session.status === 'STOPPED' && (
-                  <>
-                    <Button onClick={startSession} disabled={isLoading} className="bg-green-600" size="sm">
-                      {isLoading ? '▶️' : '▶️'} Iniciar
-                    </Button>
-                    <Button onClick={startAndGetQR} disabled={isLoading} className="bg-purple-600" size="sm">
-                      {isLoading ? '🚀' : '🚀'} Iniciar + QR
-                    </Button>
-                    <Button onClick={deleteSession} disabled={isLoading} variant="destructive" size="sm">
-                      {isLoading ? '🗑️' : '🗑️'} Eliminar
-                    </Button>
-                  </>
-                )}
-
-                {session.status === 'STARTING' && (
-                  <Button onClick={restartSession} disabled={isLoading} variant="outline" size="sm">
-                    {isLoading ? '🔄' : '🔄'} Reiniciar
-                  </Button>
-                )}
-
-                {session.status === 'WORKING' && (
-                  <Button onClick={stopSession} disabled={isLoading} variant="destructive" size="sm">
-                    {isLoading ? '⏹️' : '⏹️'} Detener
-                  </Button>
-                )}
-
-                {session.status === 'SCAN_QR_CODE' && (
-                  <>
-                    <Button onClick={getQR} disabled={isLoading} className="bg-blue-600" size="sm">
-                      {isLoading ? '📷' : '📷'} Obtener QR
-                    </Button>
-                    <Button onClick={restartSession} disabled={isLoading} variant="outline" size="sm">
-                      {isLoading ? '🔄' : '🔄'} Reiniciar
-                    </Button>
-                  </>
-                )}
-
-                {session.status === 'FAILED' && (
-                  <>
-                    <Button onClick={restartSession} disabled={isLoading} variant="outline" size="sm">
-                      {isLoading ? '🔄' : '🔄'} Reiniciar
-                    </Button>
-                    <Button onClick={deleteSession} disabled={isLoading} variant="destructive" size="sm">
-                      {isLoading ? '🗑️' : '🗑️'} Eliminar
-                    </Button>
-                  </>
-                )}
-
-                {/* BOTÓN UNIVERSAL PARA PROBAR QR */}
-                {session.status !== 'WORKING' && (
-                  <Button onClick={getQR} disabled={isLoading} variant="outline" size="sm">
-                    {isLoading ? '🔍' : '🔍'} Probar QR
-                  </Button>
-                )}
-              </>
-            )}
-          </div>
         </CardContent>
       </Card>
 
-      {/* QR CODE */}
+      {/* QR CODE - AUTO MOSTRADO */}
       {session?.status === 'SCAN_QR_CODE' && qrCode && (
-        <Card className="border-blue-200">
-          <CardHeader>
-            <CardTitle>📷 Código QR WhatsApp</CardTitle>
-            <CardDescription>Escanea con tu WhatsApp</CardDescription>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <img 
-              src={qrCode} 
-              alt="QR Code" 
-              className="w-64 h-64 mx-auto border rounded-lg bg-white p-2"
-              onError={() => setError('Error al cargar imagen QR')}
-            />
-            <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded">
-              <p><strong>Pasos:</strong></p>
-              <p>1. Abre WhatsApp en tu teléfono</p>
-              <p>2. Menú → Dispositivos vinculados</p>
-              <p>3. Vincular dispositivo</p>
-              <p>4. Escanea este código</p>
+        <Card className="border-blue-200 dark:border-blue-700 bg-card dark:bg-card">
+          <CardContent className="py-6">
+            <div className="text-center space-y-4">
+              <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200">📱 Escanear con WhatsApp</h3>
+              
+              <div className="bg-white dark:bg-gray-800 p-4 rounded-lg inline-block shadow-md">
+                <img 
+                  src={qrCode} 
+                  alt="Código QR de WhatsApp" 
+                  className="w-56 h-56 mx-auto"
+                  onError={() => setError('📷 Código QR no disponible. Usa el botón "Actualizar Código".')}
+                />
+              </div>
+
+              <div className="bg-blue-50 dark:bg-gray-700 p-4 rounded-lg text-sm text-gray-700 dark:text-gray-200 max-w-md mx-auto">
+                <p className="font-semibold mb-2 text-blue-800 dark:text-blue-200">📲 Pasos para conectar:</p>
+                <div className="text-left space-y-1">
+                  <p className="text-gray-700 dark:text-gray-200">1️⃣ Abre WhatsApp en tu teléfono</p>
+                  <p className="text-gray-700 dark:text-gray-200">2️⃣ Ve a Menú (⋮) → Dispositivos vinculados</p>
+                  <p className="text-gray-700 dark:text-gray-200">3️⃣ Toca "Vincular dispositivo"</p>
+                  <p className="text-gray-700 dark:text-gray-200">4️⃣ Escanea este código QR</p>
+                </div>
+              </div>
+
+              <Button 
+                onClick={getQR} 
+                variant="outline" 
+                size="sm"
+                className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+              >
+                🔄 Actualizar Código
+              </Button>
             </div>
-            <Button onClick={getQR} variant="outline" size="sm">
-              🔄 Actualizar QR
-            </Button>
           </CardContent>
         </Card>
       )}
-
-      {/* INFORMACIÓN TÉCNICA */}
-      <Card className="bg-gray-50">
-        <CardHeader>
-          <CardTitle className="text-base">⚙️ Información</CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm space-y-2">
-          <div><strong>Servidor:</strong> pampaservers.com:60513</div>
-          <div><strong>API Key:</strong> ✅ Configurado</div>
-          <div><strong>Sesión:</strong> {sessionName}</div>
-          <div><strong>Estado actual:</strong> {session?.status || 'No detectada'}</div>
-          
-          {/* Auto-refresh info */}
-          <div className="pt-2 border-t">
-            <div className="flex items-center gap-2">
-              <strong>Auto-refresh:</strong>
-              <span className={`px-2 py-1 text-xs rounded-full ${
-                autoRefresh 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-gray-100 text-gray-800'
-              }`}>
-                {autoRefresh ? '⏰ Activo (cada 3 min)' : '⏰ Inactivo'}
-              </span>
-            </div>
-            
-            {lastCheck && (
-              <div className="text-xs text-gray-600 mt-1">
-                <strong>Última verificación:</strong> {lastCheck.toLocaleTimeString()}
-                {autoRefresh && (
-                  <span className="block">
-                    <strong>Próxima verificación:</strong> {new Date(lastCheck.getTime() + 3 * 60 * 1000).toLocaleTimeString()}
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-          
-          {/* Info del auto-refresh */}
-          <div className="pt-2 border-t">
-            <div className="text-xs text-gray-600 space-y-1">
-              <div><strong>💡 Auto-refresh beneficios:</strong></div>
-              <div>• Detecta desconexiones automáticamente</div>
-              <div>• Actualiza estado si cambia desde el teléfono</div>
-              <div>• No interfiere con operaciones manuales</div>
-              <div>• Se ejecuta silenciosamente (sin errores molestos)</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };

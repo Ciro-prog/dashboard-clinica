@@ -8,11 +8,12 @@ import { loginClinic, saveClinicAuthData, type ClinicUser } from '@/lib/clinicAu
 
 interface LoginFormProps {
   onLogin: (clinic: ClinicUser) => void;
+  onBackToSelector?: () => void;
 }
 
-const LoginForm = ({ onLogin }: LoginFormProps) => {
-  const [email, setEmail] = useState('admin@admin.com');
-  const [password, setPassword] = useState('Admin123!');
+const LoginForm = ({ onLogin, onBackToSelector }: LoginFormProps) => {
+  const [email, setEmail] = useState('demo@clinica-dashboard.com');
+  const [password, setPassword] = useState('demo123');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -96,7 +97,7 @@ const LoginForm = ({ onLogin }: LoginFormProps) => {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@admin.com"
+                placeholder="demo@clinica-dashboard.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="transition-all focus:ring-2 focus:ring-medical-500"
@@ -131,11 +132,24 @@ const LoginForm = ({ onLogin }: LoginFormProps) => {
             </Button>
           </form>
           
+          {/* Botón para volver al selector (solo si está disponible) */}
+          {onBackToSelector && (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full mt-3 border-medical-300 text-medical-600 hover:bg-medical-50"
+              onClick={onBackToSelector}
+              disabled={isLoading}
+            >
+              ← Volver al Selector de Acceso
+            </Button>
+          )}
+          
           {/* Información de prueba */}
           <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
-            <p className="font-medium text-gray-700 mb-2">💡 Credenciales de prueba:</p>
-            <p><strong>Email:</strong> admin@admin.com</p>
-            <p><strong>Contraseña:</strong> Admin123!</p>
+            <p className="font-medium text-gray-700 mb-2">🏥 Credenciales de prueba:</p>
+            <p><strong>Email:</strong> demo@clinica-dashboard.com</p>
+            <p><strong>Contraseña:</strong> demo123</p>
           </div>
         </CardContent>
       </Card>

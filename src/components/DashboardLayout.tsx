@@ -2,11 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useRef } from 'react';
 
 
 // ✅ IMPORTACIONES CORREGIDAS
-import WhatsAppWAHA from './WhatsAppWAHA';
+import WhatsAppWAHA from './WhatsAppWAHASimplified';
+import EnhancedSchedule from './EnhancedSchedule';
+import MobileMenu from './MobileMenu';
+import ThemeToggle from './ThemeToggle';
 import { 
   clinicsApi, 
   patientsApi, 
@@ -20,6 +32,30 @@ import {
   type BasicStats
 } from '@/lib/clinicApi'; 
 import { logoutClinic, type ClinicUser } from '@/lib/clinicAuth';
+import { 
+  Home, 
+  ArrowRight, 
+  Stethoscope, 
+  Bell, 
+  User, 
+  Settings, 
+  LogOut, 
+  ChevronDown, 
+  MessageCircle, 
+  Bot, 
+  Calendar,
+  Users,
+  UserPlus,
+  Clock,
+  Search,
+  Menu as MenuIcon,
+  HelpCircle,
+  Phone,
+  Link as LinkIcon,
+  Activity,
+  QrCode,
+  RefreshCw
+} from 'lucide-react';
 
 interface DashboardStats {
   title: string;
@@ -453,11 +489,11 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
     console.log('📱 Verificando estado de WhatsApp para sesión:', sessionName);
 
     try {
-      const response = await fetch(`/api/waha/sessions/${sessionName}`, {
+      const response = await fetch(`/api/sessions/${sessionName}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'X-API-Key': WAHA_CONFIG.apiKey
+          'X-Api-Key': 'pampaserver2025enservermuA!'
         }
       });
 
@@ -589,8 +625,8 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
           value: '❌ Desconectado',
           description: n8nStatus.error?.includes('CORS') 
             ? `CORS limitado - ${folderName}` 
-            : (n8nStatus.error || 'Error de conexión'),
-          trend: 'Verificar servidor N8N'
+            : 'Comuníquese con el equipo de soporte',
+          trend: 'Contactar soporte técnico'
         };
       }
     };
@@ -628,7 +664,7 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
         trend: whatsappInfo.trend
       },
       {
-        title: "Bot N8N",
+        title: "Sistema de Automatización",
         value: n8nInfo.value,
         icon: "🤖",
         description: n8nInfo.description,
@@ -672,50 +708,361 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
 
   const dashboardStats = getDashboardStats();
 
+  // Función para mapear títulos de cards a tabs
+  const getTabForCard = (cardTitle: string): string | null => {
+    switch (cardTitle) {
+      case 'Pacientes Activos':
+        return 'patients';
+      case 'Turnos Hoy':
+        return 'schedule';
+      case 'Profesionales':
+        return 'professionals';
+      case 'WhatsApp Business':
+        return 'whatsapp';
+      case 'Sistema de Automatización':
+        return 'connections';
+      default:
+        return null;
+    }
+  };
+
+  // Función para manejar navegación desde cards
+  const handleCardNavigation = (cardTitle: string) => {
+    const targetTab = getTabForCard(cardTitle);
+    if (targetTab) {
+      setActiveTab(targetTab);
+    }
+  };
+
+  // Función para obtener información de breadcrumb
+  const getBreadcrumb = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return { title: 'Dashboard', icon: Home, description: 'Panel principal' };
+      case 'patients':
+        return { title: 'Pacientes', icon: Users, description: 'Gestión de pacientes' };
+      case 'schedule':
+        return { title: 'Agenda', icon: Calendar, description: 'Calendario médico' };
+      case 'professionals':
+        return { title: 'Profesionales', icon: UserPlus, description: 'Equipo médico' };
+      case 'whatsapp':
+        return { title: 'WhatsApp', icon: MessageCircle, description: 'Comunicación' };
+      case 'connections':
+        return { title: 'Conexiones', icon: Bot, description: 'Integraciones y automatización' };
+      default:
+        return { title: 'Dashboard', icon: Home, description: 'Panel principal' };
+    }
+  };
+
+  // Función para obtener notificaciones del sistema
+  const getSystemNotifications = () => {
+    const notifications = [];
+    
+    if (whatsappStatus.status === 'SCAN_QR_CODE') {
+      notifications.push({
+        type: 'warning',
+        message: 'WhatsApp requiere escanear código QR',
+        action: () => setActiveTab('whatsapp')
+      });
+    }
+    
+    if (whatsappStatus.status === 'FAILED') {
+      notifications.push({
+        type: 'error',
+        message: 'Error en conexión WhatsApp',
+        action: () => setActiveTab('whatsapp')
+      });
+    }
+    
+    if (!n8nStatus.connected && !n8nStatus.error?.includes('CORS')) {
+      notifications.push({
+        type: 'error',
+        message: 'Sistema de automatización desconectado',
+        action: () => setActiveTab('connections')
+      });
+    }
+    
+    return notifications;
+  };
+
+  const breadcrumb = getBreadcrumb();
+  const notifications = getSystemNotifications();
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Header con información de clínica */}
-      <div className="bg-white border-b border-slate-200 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 medical-gradient rounded-full flex items-center justify-center">
-                <span className="text-white text-lg font-bold">
-                  {clinic.name_clinic.charAt(0)}
-                </span>
+    <div className="min-h-screen bg-background relative">
+      {/* NUEVO HEADER PROFESIONAL */}
+      <div className="bg-card border-b border-border shadow-lg backdrop-blur-md relative z-50">
+        <div className="container mx-auto px-4 py-3 relative">
+          {/* MOBILE HEADER - Profesional */}
+          <div className="flex items-center justify-between sm:hidden">
+            {/* Logo profesional con icono médico */}
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="w-11 h-11 bg-gradient-to-br from-medical-500 to-medical-600 rounded-xl shadow-lg flex items-center justify-center">
+                  <Stethoscope className="h-5 w-5 text-white" strokeWidth={2} />
+                </div>
+                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-slate-900">{clinic.name_clinic}</h1>
-                <p className="text-sm text-slate-500">{clinic.suscriber} • {clinic.email}</p>
+              <div className="flex items-center gap-2">
+                <div>
+                  <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100">ClínicaAdmin</h1>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 truncate">{clinic.name_clinic}</p>
+                </div>
+                
+                {/* Breadcrumb móvil */}
+                {activeTab !== 'dashboard' && (
+                  <div className="flex items-center gap-1 ml-2">
+                    <Button
+                      onClick={() => setActiveTab('dashboard')}
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 hover:bg-medical-50"
+                    >
+                      <Home className="h-4 w-4 text-medical-600" strokeWidth={2} />
+                    </Button>
+                    <ChevronDown className="h-3 w-3 text-slate-400 rotate-[-90deg]" />
+                    <breadcrumb.icon className="h-4 w-4 text-slate-600" strokeWidth={2} />
+                  </div>
+                )}
               </div>
             </div>
             
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${
-                    clinic.status_clinic === 'active' ? 'bg-green-500' : 'bg-red-500'
-                  }`}></div>
-                  <span className="text-sm font-medium">
-                    {clinic.status_clinic === 'active' ? 'Activa' : 'Inactiva'}
-                  </span>
+            {/* Área derecha con notificaciones y menú */}
+            <div className="flex items-center gap-2">
+              {/* Badge de notificaciones */}
+              {notifications.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <div className="relative">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9 w-9 p-0 border-orange-200 bg-orange-50 hover:bg-orange-100"
+                      >
+                        <Bell className="h-4 w-4 text-orange-600" />
+                      </Button>
+                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                        <span className="text-[10px] text-white font-bold">{notifications.length}</span>
+                      </div>
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent 
+                    align="end" 
+                    side="bottom"
+                    className="w-72 z-[60] bg-white border border-slate-200 shadow-xl rounded-lg"
+                    sideOffset={8}
+                  >
+                    <DropdownMenuLabel className="text-slate-900 font-semibold">Notificaciones</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {notifications.map((notification, index) => (
+                      <DropdownMenuItem 
+                        key={index}
+                        onClick={notification.action}
+                        className="flex flex-col items-start gap-1 p-3 cursor-pointer hover:bg-slate-50 transition-colors"
+                      >
+                        <span className="font-medium text-sm text-slate-900">{notification.message}</span>
+                        <span className="text-xs text-slate-500">Toca para resolver</span>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              
+              {/* Menú hamburguesa profesional */}
+              <MobileMenu
+                clinic={clinic}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                onLogout={handleLogout}
+                whatsappConnected={whatsappStatus.connected}
+                n8nConnected={n8nStatus.connected}
+              />
+            </div>
+          </div>
+          
+          {/* DESKTOP HEADER - Profesional */}
+          <div className="hidden sm:flex items-center justify-between">
+            {/* Logo y área de navegación */}
+            <div className="flex items-center gap-6">
+              {/* Logo profesional */}
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-medical-500 to-medical-600 rounded-xl shadow-lg flex items-center justify-center">
+                    <Stethoscope className="h-6 w-6 text-white" strokeWidth={2} />
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${
-                    clinic.subcription ? 'bg-green-500' : 'bg-red-500'  
-                  }`}></div>
-                  <span className="text-sm">
-                    {clinic.subcription ? 'Suscripción activa' : 'Suscripción vencida'}
-                  </span>
+                <div>
+                  <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">ClínicaAdmin</h1>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">{clinic.name_clinic}</p>
                 </div>
               </div>
-              <Button
-                onClick={handleLogout}
-                variant="outline"
-                className="text-red-600 border-red-200 hover:bg-red-50"
-              >
-                Cerrar Sesión
-              </Button>
+
+              {/* Breadcrumb Navigation */}
+              <div className="flex items-center gap-3 px-4 py-2 bg-card/50 rounded-lg border border-border/50">
+                <Home className="h-4 w-4 text-slate-400" strokeWidth={2} />
+                <ChevronDown className="h-3 w-3 text-slate-300 rotate-[-90deg]" />
+                <breadcrumb.icon className="h-4 w-4 text-medical-600" strokeWidth={2} />
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{breadcrumb.title}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">• {breadcrumb.description}</span>
+              </div>
+            </div>
+            {/* Área derecha - Notificaciones, Tema y Usuario */}
+            <div className="flex items-center gap-4">
+              {/* Centro de Notificaciones */}
+              {notifications.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="relative p-2 border-orange-200 bg-orange-50 hover:bg-orange-100">
+                      <Bell className="h-4 w-4 text-orange-600" />
+                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                        <span className="text-[10px] text-white font-bold">{notifications.length}</span>
+                      </div>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent 
+                    align="end" 
+                    side="bottom"
+                    className="w-80 z-[60] bg-white border border-slate-200 shadow-xl rounded-lg"
+                    sideOffset={8}
+                  >
+                    <DropdownMenuLabel className="text-slate-900 font-semibold">Notificaciones del Sistema</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {notifications.map((notification, index) => (
+                      <DropdownMenuItem 
+                        key={index}
+                        onClick={notification.action}
+                        className="flex flex-col items-start gap-1 p-3 cursor-pointer hover:bg-slate-50 transition-colors"
+                      >
+                        <span className="font-medium text-sm text-slate-900">{notification.message}</span>
+                        <span className="text-xs text-slate-500">Clic para resolver</span>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+
+              {/* Botón de Tema - Solo desktop */}
+              <div className="hidden sm:block">
+                <ThemeToggle />
+              </div>
+
+              {/* Menú de Usuario Profesional */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-3 hover:bg-slate-300 dark:hover:bg-slate-700 px-3 py-2 h-auto rounded-lg transition-colors">
+                    <div className="text-right">
+                      <div className="text-sm font-medium text-slate-900 dark:text-slate-100">{clinic.suscriber}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 justify-end">
+                        <div className={`w-2 h-2 rounded-full ${clinic.subcription ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                        {clinic.subcription ? 'Suscripción Activa' : 'Suscripción Vencida'}
+                      </div>
+                    </div>
+                    <div className="w-9 h-9 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg flex items-center justify-center shadow-sm">
+                      <User className="h-4 w-4 text-slate-600" strokeWidth={2} />
+                    </div>
+                    <ChevronDown className="h-4 w-4 text-slate-400" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent 
+                  align="end" 
+                  side="bottom"
+                  className="w-72 z-[60] bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 shadow-xl rounded-lg"
+                  sideOffset={8}
+                >
+                  {/* Información de la clínica */}
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col">
+                      <span className="text-slate-900 dark:text-slate-100 font-semibold">{clinic.name_clinic}</span>
+                      <span className="font-normal text-slate-500 dark:text-slate-400 text-xs">{clinic.email}</span>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-600" />
+                  
+                  {/* Navegación principal */}
+                  <div className="py-1">
+                    <DropdownMenuItem 
+                      onClick={() => setActiveTab('dashboard')}
+                      className="cursor-pointer hover:bg-medical-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <Home className="h-4 w-4 mr-2 text-medical-600 dark:text-medical-400" />
+                      <span className="text-slate-900 dark:text-slate-100">Dashboard</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => setActiveTab('patients')}
+                      className="cursor-pointer hover:bg-medical-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <Users className="h-4 w-4 mr-2 text-medical-600 dark:text-medical-400" />
+                      <span className="text-slate-900 dark:text-slate-100">Pacientes</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => setActiveTab('schedule')}
+                      className="cursor-pointer hover:bg-medical-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <Calendar className="h-4 w-4 mr-2 text-medical-600 dark:text-medical-400" />
+                      <span className="text-slate-900 dark:text-slate-100">Agenda Médica</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => setActiveTab('professionals')}
+                      className="cursor-pointer hover:bg-medical-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <UserPlus className="h-4 w-4 mr-2 text-medical-600 dark:text-medical-400" />
+                      <span className="text-slate-900 dark:text-slate-100">Profesionales</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => setActiveTab('connections')}
+                      className="cursor-pointer hover:bg-medical-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <Bot className="h-4 w-4 mr-2 text-medical-600 dark:text-medical-400" />
+                      <span className="text-slate-900 dark:text-slate-100">Conexiones</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => setActiveTab('whatsapp')}
+                      className="cursor-pointer hover:bg-medical-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <MessageCircle className="h-4 w-4 mr-2 text-medical-600 dark:text-medical-400" />
+                      <span className="text-slate-900 dark:text-slate-100">WhatsApp Business</span>
+                    </DropdownMenuItem>
+                  </div>
+                  
+                  <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-600" />
+                  
+                  {/* Configuración y soporte */}
+                  <div className="py-1">
+                    <DropdownMenuItem className="cursor-pointer hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">
+                      <Settings className="h-4 w-4 mr-2 text-slate-600 dark:text-slate-400" />
+                      <span className="text-slate-900 dark:text-slate-100">Configuración</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="cursor-pointer hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">
+                      <User className="h-4 w-4 mr-2 text-slate-600 dark:text-slate-400" />
+                      <span className="text-slate-900 dark:text-slate-100">Perfil de Clínica</span>
+                    </DropdownMenuItem>
+                    
+                    {/* Contacto de soporte */}
+                    <DropdownMenuItem 
+                      onClick={() => window.open('https://wa.me/5492604843883', '_blank')}
+                      className="cursor-pointer hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors text-green-700 dark:text-green-400"
+                    >
+                      <HelpCircle className="h-4 w-4 mr-2 text-green-600 dark:text-green-400" />
+                      <span className="flex items-center gap-2 text-green-700 dark:text-green-400">
+                        Contactar Soporte
+                        <MessageCircle className="h-3 w-3" />
+                      </span>
+                    </DropdownMenuItem>
+                  </div>
+                  
+                  <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-600" />
+                  
+                  {/* Cerrar sesión */}
+                  <DropdownMenuItem 
+                    onClick={handleLogout} 
+                    className="cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-red-600 dark:text-red-400 focus:text-red-700 dark:focus:text-red-300"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    <span>Cerrar Sesión</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
@@ -723,496 +1070,196 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
 
       <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          {/* ✅ TABS LIST CON WHATSAPP */}
-          <TabsList className="grid w-full grid-cols-6 bg-white/80 backdrop-blur-sm border border-slate-200/50">
-            <TabsTrigger value="dashboard" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white">
-              📊 Dashboard
+          {/* ✅ TABS LIST CON WHATSAPP - Oculto en móvil */}
+          <TabsList className="hidden sm:grid w-full grid-cols-6 bg-card/80 dark:bg-card/80 backdrop-blur-sm border border-border/50 h-auto">
+            <TabsTrigger value="dashboard" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white text-xs sm:text-sm py-2 sm:py-3 text-slate-700 dark:text-slate-300">
+              <span className="block sm:hidden">📊</span>
+              <span className="hidden sm:block">📊 Dashboard</span>
             </TabsTrigger>
-            <TabsTrigger value="connections" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white">
-              🔗 Conexiones
+            <TabsTrigger value="connections" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white text-xs sm:text-sm py-2 sm:py-3 text-slate-700 dark:text-slate-300">
+              <span className="block sm:hidden">🔗</span>
+              <span className="hidden sm:block">🔗 Conexiones</span>
             </TabsTrigger>
-            <TabsTrigger value="patients" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white">
-              👥 Pacientes
+            <TabsTrigger value="patients" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white text-xs sm:text-sm py-2 sm:py-3 text-slate-700 dark:text-slate-300">
+              <span className="block sm:hidden">👥</span>
+              <span className="hidden sm:block">👥 Pacientes</span>
             </TabsTrigger>
-            <TabsTrigger value="schedule" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white">
-              📅 Agenda
+            <TabsTrigger value="schedule" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white text-xs sm:text-sm py-2 sm:py-3 text-slate-700 dark:text-slate-300">
+              <span className="block sm:hidden">📅</span>
+              <span className="hidden sm:block">📅 Agenda</span>
             </TabsTrigger>
-            <TabsTrigger value="professionals" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white">
-              👨‍⚕️ Profesionales
+            <TabsTrigger value="professionals" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white text-xs sm:text-sm py-2 sm:py-3 text-slate-700 dark:text-slate-300">
+              <span className="block sm:hidden">👨‍⚕️</span>
+              <span className="hidden sm:block">👨‍⚕️ Profesionales</span>
             </TabsTrigger>
-            <TabsTrigger value="whatsapp" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white">
-              📱 WhatsApp
+            <TabsTrigger value="whatsapp" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white text-xs sm:text-sm py-2 sm:py-3 text-slate-700 dark:text-slate-300">
+              <span className="block sm:hidden">📱</span>
+              <span className="hidden sm:block">📱 WhatsApp</span>
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
             {/* Stats Grid - Ahora con 6 cards incluyendo WhatsApp y N8N */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-6">
               {dashboardStats.map((stat, index) => (
-                <Card key={index} className={`bg-white/90 backdrop-blur-sm border border-slate-200/50 hover:shadow-lg transition-all duration-200 ${
+                <Card key={index} className={`bg-card backdrop-blur-sm border border-border hover:shadow-lg transition-all duration-200 ${
                   stat.title === 'WhatsApp Business' 
-                    ? whatsappStatus.connected 
-                      ? 'border-green-200 bg-green-50/50' 
-                      : 'border-red-200 bg-red-50/50'
-                    : stat.title === 'Bot N8N'
-                    ? n8nStatus.connected 
-                      ? 'border-blue-200 bg-blue-50/50' 
-                      : 'border-red-200 bg-red-50/50'
+                    ? whatsappStatus.status === 'WORKING' 
+                      ? 'border-green-500/30 dark:border-green-400/30 bg-green-50/50 dark:bg-green-900/20' 
+                      : whatsappStatus.status === 'SCAN_QR_CODE'
+                      ? 'border-orange-500/30 dark:border-orange-400/30 bg-orange-50/50 dark:bg-orange-900/20'
+                      : whatsappStatus.status === 'STARTING'
+                      ? 'border-yellow-500/30 dark:border-yellow-400/30 bg-yellow-50/50 dark:bg-yellow-900/20'
+                      : whatsappStatus.status === 'FAILED'
+                      ? 'border-red-500/30 dark:border-red-400/30 bg-red-50/50 dark:bg-red-900/20'
+                      : 'border-gray-500/30 dark:border-gray-400/30 bg-gray-50/50 dark:bg-gray-800/20'
+                    : stat.title === 'Sistema de Automatización'
+                    ? n8nStatus.connected && n8nStatus.activeWorkflows > 0
+                      ? 'border-blue-500/30 dark:border-blue-400/30 bg-blue-50/50 dark:bg-blue-900/20' 
+                      : n8nStatus.connected && n8nStatus.activeWorkflows === 0
+                      ? 'border-yellow-500/30 dark:border-yellow-400/30 bg-yellow-50/50 dark:bg-yellow-900/20'
+                      : 'border-red-500/30 dark:border-red-400/30 bg-red-50/50 dark:bg-red-900/20'
                     : ''
                 }`}>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-slate-600">
+                    <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-300">
                       {stat.title}
                     </CardTitle>
-                    <span className="text-2xl">{stat.icon}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{stat.icon}</span>
+                      {/* Botón de navegación rápida - solo móvil */}
+                      {getTabForCard(stat.title) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleCardNavigation(stat.title)}
+                          className="block sm:hidden p-1 h-8 w-8 opacity-60 hover:opacity-100"
+                        >
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <div className={`text-2xl font-bold ${
                       stat.title === 'WhatsApp Business'
-                        ? whatsappStatus.connected 
+                        ? whatsappStatus.status === 'WORKING' 
                           ? 'text-green-700' 
-                          : 'text-red-700'
-                        : stat.title === 'Bot N8N'
-                        ? n8nStatus.connected 
+                          : whatsappStatus.status === 'SCAN_QR_CODE'
+                          ? 'text-orange-700'
+                          : whatsappStatus.status === 'STARTING'
+                          ? 'text-yellow-700'
+                          : whatsappStatus.status === 'FAILED'
+                          ? 'text-red-700'
+                          : 'text-gray-700'
+                        : stat.title === 'Sistema de Automatización'
+                        ? n8nStatus.connected && n8nStatus.activeWorkflows > 0
                           ? 'text-blue-700' 
+                          : n8nStatus.connected && n8nStatus.activeWorkflows === 0
+                          ? 'text-yellow-700'
                           : 'text-red-700'
-                        : 'text-slate-900'
+                        : 'text-slate-900 dark:text-slate-100'
                     }`}>
                       {stat.value}
                     </div>
-                    <p className="text-xs text-slate-500 mt-1">{stat.description}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{stat.description}</p>
                     {stat.trend && (
                       <p className={`text-xs mt-1 ${
                         stat.title === 'WhatsApp Business'
-                          ? whatsappStatus.connected 
+                          ? whatsappStatus.status === 'WORKING' 
                             ? 'text-green-600' 
-                            : 'text-red-600'
-                          : stat.title === 'Bot N8N'
-                          ? n8nStatus.connected 
+                            : whatsappStatus.status === 'SCAN_QR_CODE'
+                            ? 'text-orange-600'
+                            : whatsappStatus.status === 'STARTING'
+                            ? 'text-yellow-600'
+                            : whatsappStatus.status === 'FAILED'
+                            ? 'text-red-600'
+                            : 'text-gray-600'
+                          : stat.title === 'Sistema de Automatización'
+                          ? n8nStatus.connected && n8nStatus.activeWorkflows > 0
                             ? 'text-blue-600' 
+                            : n8nStatus.connected && n8nStatus.activeWorkflows === 0
+                            ? 'text-yellow-600'
                             : 'text-red-600'
-                          : 'text-medical-600'
+                          : 'text-medical-600 dark:text-medical-400'
                       }`}>
                         {stat.trend}
                       </p>
                     )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {/* Información de la clínica actual */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="bg-white/90 backdrop-blur-sm border border-slate-200/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    🏥 {clinic.name_clinic}
-                  </CardTitle>
-                  <CardDescription>
-                    Información de tu clínica
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <p className="text-sm"><strong>Responsable:</strong> {clinic.suscriber}</p>
-                  <p className="text-sm"><strong>Dirección:</strong> {clinic.address}</p>
-                  <p className="text-sm"><strong>Email:</strong> {clinic.email}</p>
-                  <p className="text-sm"><strong>Teléfono:</strong> {clinic.cell_phone}</p>
-                  {clinic.whatsapp_number && (
-                    <p className="text-sm"><strong>WhatsApp:</strong> {clinic.whatsapp_number}</p>
-                  )}
-                  <div className="flex items-center gap-2 mt-4">
-                    <div className={`w-2 h-2 rounded-full ${
-                      clinic.status_clinic === 'active' ? 'bg-green-500' : 'bg-red-500'
-                    }`}></div>
-                    <span className="text-sm capitalize">{clinic.status_clinic}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${
-                      clinic.subcription ? 'bg-green-500' : 'bg-red-500'  
-                    }`}></div>
-                    <span className="text-sm">
-                      Suscripción: {clinic.subcription ? 'Activa' : 'Vencida'}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Card detallada de N8N */}
-              <Card className={`bg-white/90 backdrop-blur-sm border transition-all duration-200 ${
-                n8nStatus.connected 
-                  ? 'border-blue-200 bg-blue-50/30' 
-                  : 'border-red-200 bg-red-50/30'
-              }`}>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      🤖 Bot N8N
-                    </div>
-                    <div className={`px-2 py-1 text-xs rounded-full font-medium ${
-                      n8nStatus.connected 
-                        ? 'bg-blue-100 text-blue-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {n8nStatus.connected ? 'Conectado' : 'Desconectado'}
-                    </div>
-                  </CardTitle>
-                  <CardDescription>
-                    Workflows de la carpeta {clinic.suscriber} - Operativa
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${
-                        n8nStatus.connected ? 'bg-blue-500 animate-pulse' : 'bg-gray-400'
-                      }`}></div>
-                      <span className="text-sm">
-                        Workflows: <span className="font-medium">{n8nStatus.activeWorkflows}/{n8nStatus.totalWorkflows}</span>
-                      </span>
-                    </div>
                     
-                    <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${
-                        n8nStatus.activeWorkflows > 0 ? 'bg-green-500' : 'bg-gray-400'
-                      }`}></div>
-                      <span className="text-sm">
-                        Automatización: {n8nStatus.activeWorkflows > 0 ? 'Activa' : 'Inactiva'}
-                      </span>
-                    </div>
-
-                    {n8nStatus.error && (
-                      <div className="flex items-start gap-2 mt-1">
-                        <div className="w-3 h-3 rounded-full bg-yellow-500 mt-0.5"></div>
-                        <div className="text-sm">
-                          <span className="text-yellow-700 font-medium">
-                            Limitación: {n8nStatus.error}
-                          </span>
-                          {n8nStatus.error.includes('CORS') && (
-                            <div className="text-xs text-gray-600 mt-1 p-2 bg-yellow-50 rounded border">
-                              <p><strong>ℹ️ Esto es normal en desarrollo:</strong></p>
-                              <p>• Los navegadores bloquean CORS desde localhost</p>
-                              <p>• N8N funciona correctamente</p>
-                              <p>• En producción se verán datos reales</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="text-xs text-gray-500 mt-2">
-                      Última verificación: {n8nStatus.lastCheck.toLocaleTimeString()}
-                      <br />
-                      <span className="text-blue-600">Próxima verificación automática en 10 minutos</span>
-                    </div>
-                  </div>
-
-                  {/* Lista de workflows activos */}
-                  {n8nStatus.workflowList.length > 0 && (
-                    <div className="border-t pt-3">
-                      <p className="text-xs font-medium text-gray-600 mb-2">Workflows:</p>
-                      <div className="space-y-1 max-h-20 overflow-y-auto">
-                        {n8nStatus.workflowList.slice(0, 3).map((workflow, index) => (
-                          <div key={index} className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full ${
-                              workflow.active ? 'bg-green-500' : 'bg-gray-400'
-                            }`}></div>
-                            <span className="text-xs truncate">{workflow.name}</span>
-                          </div>
-                        ))}
-                        {n8nStatus.workflowList.length > 3 && (
-                          <p className="text-xs text-gray-500">
-                            +{n8nStatus.workflowList.length - 3} más...
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Acciones según el estado */}
-                  <div className="border-t pt-3">
-                    {n8nStatus.connected ? (
-                      <div className="space-y-2">
-                        <p className="text-sm text-blue-700 font-medium">
-                          {n8nStatus.activeWorkflows > 0 
-                            ? '✅ Automatización funcionando' 
-                            : '⚠️ Sin workflows activos'}
-                        </p>
-                        <div className="grid grid-cols-2 gap-2">
-                          <Button 
-                            onClick={() => window.open(`${N8N_CONFIG.baseURL}/v1/workflows`, '_blank')}
-                            size="sm" 
-                            variant="outline"
-                            className="border-blue-200 text-blue-700 hover:bg-blue-50"
-                          >
-                            🔧 Ver en N8N
-                          </Button>
-                          <Button 
-                            onClick={reloadN8nStatus}
-                            size="sm" 
-                            variant="outline"
-                          >
-                            🔄 Actualizar
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <p className="text-sm text-red-700 font-medium">
-                        ❌ {n8nStatus.error?.includes('CORS') 
-                          ? 'Error CORS - Acceso desde localhost bloqueado' 
-                          : `Error de conexión con N8N: ${n8nStatus.error}`}
-                      </p>
-                      <div className="text-xs text-gray-600 mt-1 p-2 bg-yellow-50 rounded border">
-                        <p><strong>💡 Solución CORS:</strong></p>
-                        <p>• Usar en producción (no localhost)</p>
-                        <p>• O configurar proxy en desarrollo</p>
-                        <p>• N8N funciona, solo CORS bloquea lectura</p>
-                      </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <Button 
-                            onClick={() => window.open(`${N8N_CONFIG.baseURL}`, '_blank')}
-                            size="sm" 
-                            className="bg-red-500 hover:bg-red-600"
-                          >
-                            🔧 Abrir N8N
-                          </Button>
-                          <Button 
-                            onClick={reloadN8nStatus}
-                            size="sm" 
-                            variant="outline"
-                          >
-                            🔄 Reintentar
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Card detallada de WhatsApp */}
-              <Card className={`bg-white/90 backdrop-blur-sm border transition-all duration-200 ${
-                whatsappStatus.connected 
-                  ? 'border-green-200 bg-green-50/30' 
-                  : 'border-red-200 bg-red-50/30'
-              }`}>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      📱 WhatsApp Business
-                    </div>
-                    <div className={`px-2 py-1 text-xs rounded-full font-medium ${
-                      whatsappStatus.connected 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {whatsappStatus.connected ? 'Conectado' : 'Desconectado'}
-                    </div>
-                  </CardTitle>
-                  <CardDescription>
-                    Estado de la conexión con WhatsApp Business API
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${
-                        whatsappStatus.status === 'WORKING' ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
-                      }`}></div>
-                      <span className="text-sm">
-                        Estado: <span className="font-medium">{whatsappStatus.status}</span>
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${
-                        whatsappStatus.sessionName ? 'bg-blue-500' : 'bg-gray-400'
-                      }`}></div>
-                      <span className="text-sm">
-                        Sesión: <code className="text-xs bg-gray-200 px-1 rounded">{whatsappStatus.sessionName || 'No configurada'}</code>
-                      </span>
-                    </div>
-
-                    {whatsappStatus.me && (
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                        <span className="text-sm">
-                          Conectado como: <span className="font-medium text-green-700">{whatsappStatus.me.pushName}</span>
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="text-xs text-gray-500 mt-2">
-                      Última verificación: {whatsappStatus.lastCheck.toLocaleTimeString()}
-                      <br />
-                      <span className="text-blue-600">Próxima verificación automática en 10 minutos</span>
-                    </div>
-                  </div>
-
-                  {/* Acciones según el estado */}
-                  <div className="border-t pt-3">
-                    {whatsappStatus.status === 'SCAN_QR_CODE' && (
-                      <div className="space-y-2">
-                        <p className="text-sm text-orange-700 font-medium">⚠️ Acción requerida: Escanear código QR</p>
-                        <div className="grid grid-cols-2 gap-2">
-                          <Button 
-                            onClick={() => setActiveTab('whatsapp')}
-                            size="sm" 
-                            className="bg-orange-500 hover:bg-orange-600"
-                          >
-                            📷 Ir a QR
-                          </Button>
-                          <Button 
-                            onClick={reloadWhatsAppStatus}
-                            size="sm" 
-                            variant="outline"
-                          >
-                            🔄 Recargar
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {whatsappStatus.status === 'STOPPED' && (
-                      <div className="space-y-2">
-                        <p className="text-sm text-red-700 font-medium">⏹️ Sesión detenida</p>
-                        <div className="grid grid-cols-2 gap-2">
-                          <Button 
-                            onClick={() => setActiveTab('whatsapp')}
-                            size="sm" 
-                            className="bg-medical-500 hover:bg-medical-600"
-                          >
-                            🔄 Configurar
-                          </Button>
-                          <Button 
-                            onClick={reloadWhatsAppStatus}
-                            size="sm" 
-                            variant="outline"
-                          >
-                            🔄 Recargar
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {whatsappStatus.status === 'FAILED' && (
-                      <div className="space-y-2">
-                        <p className="text-sm text-red-700 font-medium">❌ Error de conexión</p>
-                        <div className="grid grid-cols-2 gap-2">
-                          <Button 
-                            onClick={() => setActiveTab('whatsapp')}
-                            size="sm" 
-                            className="bg-red-500 hover:bg-red-600"
-                          >
-                            🔧 Reparar
-                          </Button>
-                          <Button 
-                            onClick={reloadWhatsAppStatus}
-                            size="sm" 
-                            variant="outline"
-                          >
-                            🔄 Recargar
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {whatsappStatus.status === 'WORKING' && (
-                      <div className="space-y-2">
-                        <p className="text-sm text-green-700 font-medium">✅ Todo funcionando correctamente</p>
-                        <div className="grid grid-cols-2 gap-2">
-                          <Button 
-                            onClick={() => setActiveTab('whatsapp')}
-                            size="sm" 
-                            variant="outline"
-                            className="border-green-200 text-green-700 hover:bg-green-50"
-                          >
-                            📱 Ver Detalles
-                          </Button>
-                          <Button 
-                            onClick={reloadWhatsAppStatus}
-                            size="sm" 
-                            variant="outline"
-                          >
-                            🔄 Actualizar
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-
-                    {(whatsappStatus.status === 'UNKNOWN' || whatsappStatus.status === 'STARTING') && (
-                      <div className="space-y-2">
-                        <p className="text-sm text-blue-700 font-medium">
-                          {whatsappStatus.status === 'STARTING' ? '🟡 Iniciando conexión...' : '❓ Verificando estado...'}
-                        </p>
-                        <Button 
-                          onClick={reloadWhatsAppStatus}
-                          size="sm" 
-                          className="w-full"
-                          disabled={loading}
+                    {/* Support contact button for Automation card */}
+                    {stat.title === 'Sistema de Automatización' && (
+                      <div className="mt-3 pt-2 border-t border-slate-200 dark:border-slate-600">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.open('https://wa.me/5492604843883', '_blank')}
+                          className="w-full text-xs h-7 gap-1 border-green-200 text-green-600 hover:bg-green-50"
                         >
-                          🔍 Verificar Ahora
+                          <MessageCircle className="h-3 w-3" />
+                          Contactar Soporte
                         </Button>
                       </div>
                     )}
-                  </div>
-                </CardContent>
-              </Card>
+                    
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </TabsContent>
 
           <TabsContent value="connections" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Información de la clínica */}
-              <Card className="bg-white/90 backdrop-blur-sm">
+              <Card className="bg-card dark:bg-card backdrop-blur-sm">
                 <CardHeader>
-                  <CardTitle>Información de la Clínica</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-foreground">Información de la Clínica</CardTitle>
+                  <CardDescription className="text-muted-foreground">
                     Detalles completos de tu clínica registrada
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 gap-4">
                     <div>
-                      <p className="text-sm font-medium text-slate-500">ID Clínica</p>
-                      <p className="text-sm text-slate-900">{clinic.clinic_id}</p>
+                      <p className="text-sm font-medium text-slate-600 dark:text-slate-300">ID Clínica</p>
+                      <p className="text-sm text-slate-900 dark:text-slate-100 font-medium">{clinic.clinic_id}</p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-slate-500">Nombre</p>
-                      <p className="text-sm text-slate-900">{clinic.name_clinic}</p>
+                      <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Nombre</p>
+                      <p className="text-sm text-slate-900 dark:text-slate-100 font-medium">{clinic.name_clinic}</p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-slate-500">Responsable</p>
-                      <p className="text-sm text-slate-900">{clinic.suscriber}</p>
+                      <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Responsable</p>
+                      <p className="text-sm text-slate-900 dark:text-slate-100 font-medium">{clinic.suscriber}</p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-slate-500">Email</p>
-                      <p className="text-sm text-slate-900">{clinic.email}</p>
+                      <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Email</p>
+                      <p className="text-sm text-slate-900 dark:text-slate-100 font-medium">{clinic.email}</p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-slate-500">Teléfono</p>
-                      <p className="text-sm text-slate-900">{clinic.cell_phone}</p>
+                      <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Teléfono</p>
+                      <p className="text-sm text-slate-900 dark:text-slate-100 font-medium">{clinic.cell_phone}</p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-slate-500">Estado</p>
+                      <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Estado</p>
                       <span className={`text-sm px-2 py-1 rounded-full ${
                         clinic.status_clinic === 'active' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' 
+                          : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                       }`}>
                         {clinic.status_clinic}
                       </span>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-slate-500">Dirección</p>
-                      <p className="text-sm text-slate-900">{clinic.address}</p>
+                      <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Dirección</p>
+                      <p className="text-sm text-slate-900 dark:text-slate-100 font-medium">{clinic.address}</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Estado de conexiones */}
-              <Card className="bg-white/90 backdrop-blur-sm">
+              <Card className="bg-card dark:bg-card backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle>Estado de Conexiones</CardTitle>
                   <CardDescription>
@@ -1223,27 +1270,27 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
                   {/* WhatsApp Status */}
                   <div className={`p-4 rounded-lg border ${
                     whatsappStatus.connected 
-                      ? 'border-green-200 bg-green-50' 
-                      : 'border-red-200 bg-red-50'
+                      ? 'border-green-200 dark:border-green-700 bg-green-50 dark:bg-green-900/20' 
+                      : 'border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-900/20'
                   }`}>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <span>📱</span>
-                        <span className="font-medium">WhatsApp Business</span>
+                        <span className="font-medium text-slate-900 dark:text-slate-100">WhatsApp Business</span>
                       </div>
                       <div className={`px-2 py-1 text-xs rounded-full font-medium ${
                         whatsappStatus.connected 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
+                          ? 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200' 
+                          : 'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200'
                       }`}>
                         {whatsappStatus.status}
                       </div>
                     </div>
-                    <p className="text-sm text-gray-600 mb-1">
-                      Sesión: <code className="bg-gray-200 px-1 rounded">{whatsappStatus.sessionName}</code>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">
+                      Sesión: <code className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-1 rounded">{whatsappStatus.sessionName}</code>
                     </p>
                     {whatsappStatus.me && (
-                      <p className="text-sm text-green-700">
+                      <p className="text-sm text-green-700 dark:text-green-300">
                         Conectado como: {whatsappStatus.me.pushName}
                       </p>
                     )}
@@ -1260,39 +1307,36 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
                   {/* N8N Status */}
                   <div className={`p-4 rounded-lg border ${
                     n8nStatus.connected 
-                      ? 'border-blue-200 bg-blue-50' 
-                      : 'border-red-200 bg-red-50'
+                      ? 'border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20' 
+                      : 'border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-900/20'
                   }`}>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <span>🤖</span>
-                        <span className="font-medium">Bot N8N</span>
+                        <span className="font-medium text-slate-900 dark:text-slate-100">Sistema de Automatización</span>
                       </div>
                       <div className={`px-2 py-1 text-xs rounded-full font-medium ${
                         n8nStatus.connected 
-                          ? 'bg-blue-100 text-blue-800' 
-                          : 'bg-red-100 text-red-800'
+                          ? 'bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200' 
+                          : 'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200'
                       }`}>
                         {n8nStatus.connected ? 'Conectado' : 'Error CORS'}
                       </div>
                     </div>
-                    <p className="text-sm text-gray-600 mb-1">
-                      Carpeta: <code className="bg-gray-200 px-1 rounded">{clinic.suscriber} - Operativa</code>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">
+                      Carpeta: <code className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-1 rounded">{clinic.suscriber} - Operativa</code>
                     </p>
-                    <p className="text-sm text-gray-600 mb-1">
-                      Carpeta: <code className="bg-gray-200 px-1 rounded">{clinic.suscriber} - Operativa</code>
-                    </p>
-                    <p className="text-sm text-gray-600 mb-1">
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">
                       Workflows: {n8nStatus.activeWorkflows}/{n8nStatus.totalWorkflows} activos
                     </p>
                     
                     {n8nStatus.error && (
-                      <div className="mt-2 p-2 bg-yellow-50 rounded border border-yellow-200">
-                        <p className="text-sm text-yellow-800 font-medium mb-1">
+                      <div className="mt-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-200 dark:border-yellow-700">
+                        <p className="text-sm text-yellow-800 dark:text-yellow-300 font-medium mb-1">
                           ⚠️ {n8nStatus.error}
                         </p>
                         {n8nStatus.error.includes('CORS') && (
-                          <div className="text-xs text-yellow-700">
+                          <div className="text-xs text-yellow-700 dark:text-yellow-400">
                             <p><strong>¿Por qué pasa esto?</strong></p>
                             <p>• Navegadores bloquean peticiones desde localhost a dominios externos</p>
                             <p>• Es una medida de seguridad estándar</p>
@@ -1309,23 +1353,23 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
                     
                     {n8nStatus.workflowList.length > 0 && (
                       <div className="mt-2">
-                        <p className="text-xs font-medium text-gray-600 mb-1">
+                        <p className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
                           {n8nStatus.connected ? 'Workflows detectados:' : 'Workflows estimados:'}
                         </p>
                         <div className="space-y-1">
                           {n8nStatus.workflowList.filter(wf => wf.active).slice(0, 4).map((workflow, index) => (
                             <div key={index} className="flex items-center gap-2">
-                              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                              <span className="text-xs">{workflow.name}</span>
+                              <div className="w-2 h-2 rounded-full bg-green-500 dark:bg-green-400"></div>
+                              <span className="text-xs text-gray-700 dark:text-gray-300">{workflow.name}</span>
                               {!n8nStatus.connected && (
-                                <span className="text-xs text-gray-500">(estimado)</span>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">(estimado)</span>
                               )}
                             </div>
                           ))}
                           {n8nStatus.workflowList.filter(wf => !wf.active).length > 0 && (
                             <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 rounded-full bg-gray-400"></div>
-                              <span className="text-xs text-gray-600">
+                              <div className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500"></div>
+                              <span className="text-xs text-gray-600 dark:text-gray-400">
                                 +{n8nStatus.workflowList.filter(wf => !wf.active).length} inactivos
                               </span>
                             </div>
@@ -1349,27 +1393,27 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
                   </div>
 
                   {/* Resumen general */}
-                  <div className="p-4 rounded-lg border border-slate-200 bg-slate-50">
+                  <div className="p-4 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/50">
                     <div className="flex items-center gap-2 mb-2">
                       <span>📊</span>
-                      <span className="font-medium">Resumen del Sistema</span>
+                      <span className="font-medium text-slate-900 dark:text-slate-100">Resumen del Sistema</span>
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <p className="text-gray-600">WhatsApp:</p>
-                        <p className={whatsappStatus.connected ? 'text-green-700' : 'text-red-700'}>
+                        <p className="text-gray-600 dark:text-gray-300">WhatsApp:</p>
+                        <p className={whatsappStatus.connected ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}>
                           {whatsappStatus.connected ? '✅ Funcionando' : '❌ Desconectado'}
                         </p>
                       </div>
                       <div>
-                        <p className="text-gray-600">Automatización:</p>
-                        <p className={n8nStatus.connected && n8nStatus.activeWorkflows > 0 ? 'text-green-700' : 'text-red-700'}>
+                        <p className="text-gray-600 dark:text-gray-300">Automatización:</p>
+                        <p className={n8nStatus.connected && n8nStatus.activeWorkflows > 0 ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}>
                           {n8nStatus.connected && n8nStatus.activeWorkflows > 0 ? '✅ Activa' : '❌ Inactiva'}
                         </p>
                       </div>
                     </div>
-                    <div className="mt-3 p-2 rounded border-l-4 border-blue-500 bg-blue-50">
-                      <p className="text-xs text-blue-700">
+                    <div className="mt-3 p-2 rounded border-l-4 border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20">
+                      <p className="text-xs text-blue-700 dark:text-blue-300">
                         <strong>Sistema completo:</strong> {
                           whatsappStatus.connected && n8nStatus.connected && n8nStatus.activeWorkflows > 0
                             ? '✅ Funcionando correctamente - Bot listo para recibir consultas'
@@ -1379,7 +1423,7 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
                         }
                       </p>
                       {n8nStatus.error?.includes('CORS') && whatsappStatus.connected && (
-                        <p className="text-xs text-blue-600 mt-1">
+                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                           <strong>✅ Tu bot está funcionando:</strong> CORS solo limita la visualización en localhost, 
                           pero N8N procesa mensajes de WhatsApp normalmente.
                         </p>
@@ -1392,7 +1436,7 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
           </TabsContent>
 
           <TabsContent value="patients" className="space-y-6">
-            <Card className="bg-white/90 backdrop-blur-sm">
+            <Card className="bg-card/90 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle>Lista de Pacientes</CardTitle>
                 <CardDescription>
@@ -1443,57 +1487,12 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
           </TabsContent>
 
           <TabsContent value="schedule" className="space-y-6">
-            <Card className="bg-white/90 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle>Agenda de Citas</CardTitle>
-                <CardDescription>
-                  Total: {appointments.length} citas programadas
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {appointments.length === 0 ? (
-                  <div className="text-center py-8 text-slate-500">
-                    <p>No hay citas programadas.</p>
-                    <p className="text-sm">Las citas aparecerán aquí cuando se agenden.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {appointments.slice(0, 10).map((appointment) => (
-                      <div key={appointment.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <h4 className="font-medium">
-                            {new Date(appointment.attributes.datetime).toLocaleDateString()} - {new Date(appointment.attributes.datetime).toLocaleTimeString()}
-                          </h4>
-                          <p className="text-sm text-slate-500">
-                            {appointment.attributes.type} • {appointment.attributes.duration} min
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            appointment.attributes.status_appointment === 'confirmed' ? 'bg-green-100 text-green-800' :
-                            appointment.attributes.status_appointment === 'scheduled' ? 'bg-blue-100 text-blue-800' :
-                            appointment.attributes.status_appointment === 'completed' ? 'bg-gray-100 text-gray-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
-                            {appointment.attributes.status_appointment}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                    {appointments.length > 10 && (
-                      <p className="text-center text-sm text-slate-500">
-                        Mostrando 10 de {appointments.length} citas
-                      </p>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <EnhancedSchedule />
           </TabsContent>
 
           {/* ✅ TAB DE PROFESIONALES (que estaba en whatsapp por error) */}
           <TabsContent value="professionals" className="space-y-6">
-            <Card className="bg-white/90 backdrop-blur-sm">
+            <Card className="bg-card/90 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle>Equipo Profesional</CardTitle>
                 <CardDescription>
@@ -1540,8 +1539,8 @@ export default function DashboardLayout({ clinic, onLogout }: DashboardLayoutPro
 
           {/* ✅ TAB DE WHATSAPP CORREGIDO */}
           <TabsContent value="whatsapp" className="space-y-6">
-            <div className="bg-white rounded-lg p-6 shadow-lg">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <div className="bg-card dark:bg-card rounded-lg p-6 shadow-lg">
+              <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
                 📱 WhatsApp Business
               </h2>
               <WhatsAppWAHA clinic={clinic} />
