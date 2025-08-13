@@ -253,7 +253,7 @@ export default function AdminDashboard({ adminUser, onLogout }: AdminDashboardPr
         throw new Error('Token de administrador no encontrado');
       }
 
-      const response = await fetch(`/api/admin/clinics/${clinic.clinic_id}`, {
+      const response = await fetch(`/api/clinics/${clinic.clinic_id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
