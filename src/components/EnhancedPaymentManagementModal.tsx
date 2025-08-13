@@ -400,6 +400,7 @@ export default function EnhancedPaymentManagementModal({
                       id="update-subscription"
                       checked={updateSubscription}
                       onCheckedChange={setUpdateSubscription}
+                      className="data-[state=checked]:bg-medical-500 data-[state=unchecked]:bg-slate-600 border-slate-500"
                     />
                     <Label htmlFor="update-subscription" className="font-medium text-medical-100 flex items-center gap-2">
                       <TrendingUp className="h-4 w-4 text-medical-400" />
