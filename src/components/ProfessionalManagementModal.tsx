@@ -90,13 +90,15 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
   };
 
   const loadProfessionals = async () => {
-    if (!isMountedRef.current) return;
+    if (!isMountedRef.current) {
+      console.log('⚠️ Componente no montado, cancelando carga de profesionales');
+      return;
+    }
     
     try {
+      console.log(`👨‍⚕️ Iniciando carga de profesionales para clínica ${clinic.clinic_id}...`);
       setLoading(true);
       setError(null);
-      
-      console.log(`👨‍⚕️ Cargando profesionales para clínica ${clinic.clinic_id}...`);
       
       const token = localStorage.getItem('admin_token');
       if (!token) {
@@ -110,28 +112,40 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
         }
       });
 
+      console.log(`📡 Respuesta de la API: ${response.status} ${response.statusText}`);
+
       if (!response.ok) {
         if (response.status === 404) {
+          console.log('ℹ️ No hay profesionales, inicializando con array vacío');
           // No hay profesionales, inicializar con array vacío
-          setProfessionals([]);
+          if (isMountedRef.current) {
+            setProfessionals([]);
+          }
           return;
         }
         throw new Error(`Error obteniendo profesionales: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log(`✅ Datos recibidos:`, data);
+      
       if (isMountedRef.current) {
-        setProfessionals(Array.isArray(data) ? data : []);
+        const professionalsList = Array.isArray(data) ? data : [];
+        setProfessionals(professionalsList);
+        console.log(`✅ Lista de profesionales actualizada: ${professionalsList.length} profesionales`);
       }
       
     } catch (err) {
       console.error('❌ Error cargando profesionales:', err);
       if (isMountedRef.current) {
-        setError(err instanceof Error ? err.message : 'Error desconocido');
+        setError(err instanceof Error ? err.message : 'Error desconocido al cargar profesionales');
+        // En caso de error, mantener la lista actual en lugar de dejarla vacía
+        console.log('⚠️ Manteniendo lista actual de profesionales debido al error');
       }
     } finally {
       if (isMountedRef.current) {
         setLoading(false);
+        console.log('🏁 Finalizada carga de profesionales');
       }
     }
   };
@@ -141,17 +155,37 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
     
     if (!isMountedRef.current) return;
     
+    console.log('🔍 Form submission triggered, current formData:', formData);
+    
     try {
       setCreating(true);
       setError(null);
       
+      // Validate required fields before sending
+      if (!formData.first_name || !formData.last_name || !formData.speciality || !formData.phone || !formData.password) {
+        throw new Error('Todos los campos obligatorios deben estar completados');
+      }
+      
+      // Validate phone length
+      if (formData.phone.length < 8) {
+        throw new Error('El teléfono debe tener al menos 8 caracteres');
+      }
+      
       const professionalData = {
-        ...formData,
-        clinic_id: clinic.clinic_id,
-        consultation_fee: formData.consultation_fee ? parseFloat(formData.consultation_fee) : undefined
+        first_name: formData.first_name.trim(),
+        last_name: formData.last_name.trim(),
+        speciality: formData.speciality.trim(),
+        license_number: formData.license_number.trim() || undefined,
+        phone: formData.phone.trim(),
+        password: formData.password,
+        bio: formData.bio.trim() || undefined,
+        working_hours: formData.working_hours.trim() || undefined,
+        consultation_fee: formData.consultation_fee ? parseFloat(formData.consultation_fee) : undefined,
+        clinic_id: clinic.clinic_id
       };
       
-      console.log('👨‍⚕️ Creando nuevo profesional:', professionalData);
+      console.log('👨‍⚕️ Datos del formulario antes de enviar:', formData);
+      console.log('👨‍⚕️ Creando nuevo profesional (datos procesados):', professionalData);
       
       const token = localStorage.getItem('admin_token');
       if (!token) {
@@ -170,26 +204,72 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
       if (!response.ok) {
         const errorData = await response.text();
         console.error('❌ Error creando profesional:', response.status, errorData);
+        
+        try {
+          const errorJson = JSON.parse(errorData);
+          
+          // Handle Pydantic validation errors
+          if (response.status === 422 && errorJson.detail && Array.isArray(errorJson.detail)) {
+            const validationErrors = errorJson.detail.map(error => {
+              const field = error.loc ? error.loc[error.loc.length - 1] : 'campo';
+              const fieldNames = {
+                'first_name': 'Nombre',
+                'last_name': 'Apellido', 
+                'speciality': 'Especialidad',
+                'phone': 'Teléfono',
+                'password': 'Contraseña',
+                'license_number': 'Número de matrícula'
+              };
+              const fieldName = fieldNames[field] || field;
+              return `${fieldName}: ${error.msg}`;
+            });
+            throw new Error(`Errores de validación:\n${validationErrors.join('\n')}`);
+          }
+          
+          // Handle duplicate license_number error specifically
+          if (errorData.includes('E11000') && errorData.includes('license_number')) {
+            throw new Error('El número de matrícula ya está registrado. Usa un número diferente.');
+          }
+          
+          // Handle other specific errors
+          if (errorJson.detail) {
+            throw new Error(errorJson.detail);
+          }
+        } catch (parseError) {
+          // If JSON parsing fails, fall back to generic error
+        }
+        
         throw new Error(`Error del servidor: ${response.status}`);
       }
 
       const newProfessional = await response.json();
       console.log('✅ Profesional creado exitosamente:', newProfessional);
       
-      // Resetear formulario y recargar lista
+      // Resetear formulario y recargar lista de forma más robusta
       if (isMountedRef.current) {
+        console.log('✅ Profesional creado exitosamente, procediendo con actualización...');
+        
+        // Simple success flow - avoid complex setTimeout patterns
+        setCreating(false);
         resetForm();
         setShowCreateForm(false);
-        await loadProfessionals();
+        
+        // Reload professionals without setTimeout to prevent reconciliation issues
+        try {
+          console.log('🔄 Recargando lista de profesionales...');
+          await loadProfessionals();
+          console.log('✅ Lista de profesionales actualizada correctamente');
+        } catch (reloadError) {
+          console.error('❌ Error recargando profesionales:', reloadError);
+          setError('El profesional se creó exitosamente, pero hubo un error al actualizar la lista. Cierra y vuelve a abrir para ver los cambios.');
+        }
       }
       
     } catch (err) {
       console.error('❌ Error en creación de profesional:', err);
       if (isMountedRef.current) {
+        // Simple error handling without setTimeout
         setError(err instanceof Error ? err.message : 'Error desconocido');
-      }
-    } finally {
-      if (isMountedRef.current) {
         setCreating(false);
       }
     }
@@ -274,21 +354,32 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
       const updatedProfessional = await response.json();
       console.log('✅ Profesional actualizado exitosamente:', updatedProfessional);
       
-      // Resetear formulario y recargar lista
+      // Resetear formulario y recargar lista de forma más robusta
       if (isMountedRef.current) {
+        console.log('✅ Profesional actualizado exitosamente, procediendo con actualización...');
+        
+        // Simple success flow - avoid complex setTimeout patterns
+        setCreating(false);
         setEditingProfessional(null);
         resetForm();
         setShowCreateForm(false);
-        await loadProfessionals();
+        
+        // Reload professionals without setTimeout to prevent reconciliation issues
+        try {
+          console.log('🔄 Recargando lista de profesionales...');
+          await loadProfessionals();
+          console.log('✅ Lista de profesionales actualizada correctamente');
+        } catch (reloadError) {
+          console.error('❌ Error recargando profesionales:', reloadError);
+          setError('El profesional se actualizó exitosamente, pero hubo un error al actualizar la lista. Cierra y vuelve a abrir para ver los cambios.');
+        }
       }
       
     } catch (err) {
       console.error('❌ Error en actualización de profesional:', err);
       if (isMountedRef.current) {
+        // Simple error handling without setTimeout
         setError(err instanceof Error ? err.message : 'Error desconocido');
-      }
-    } finally {
-      if (isMountedRef.current) {
         setCreating(false);
       }
     }
@@ -385,15 +476,13 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
           <Button
             onClick={() => {
               if (!creating && !loading) {
-                // Reset state in next tick to prevent DOM manipulation conflicts
-                setTimeout(() => {
-                  if (isMountedRef.current) {
-                    setError(null);
-                    setShowCreateForm(false);
-                    setEditingProfessional(null);
-                    setManagingServices(null);
-                  }
-                }, 0);
+                // Simple cleanup without setTimeout
+                if (isMountedRef.current) {
+                  setError(null);
+                  setShowCreateForm(false);
+                  setEditingProfessional(null);
+                  setManagingServices(null);
+                }
                 onClose();
               }
             }}
@@ -458,12 +547,14 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
                       <Label htmlFor="first_name" className="text-slate-200">Nombre *</Label>
                       <Input
                         id="first_name"
+                        name="first_name"
                         value={formData.first_name}
                         onChange={(e) => handleInputChange('first_name', e.target.value)}
                         placeholder="Juan"
                         className="bg-slate-600 border-slate-500 text-slate-100 placeholder:text-slate-400"
                         required
                         disabled={creating}
+                        autoComplete="given-name"
                       />
                     </div>
 
@@ -471,12 +562,14 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
                       <Label htmlFor="last_name" className="text-slate-200">Apellido *</Label>
                       <Input
                         id="last_name"
+                        name="last_name"
                         value={formData.last_name}
                         onChange={(e) => handleInputChange('last_name', e.target.value)}
                         placeholder="Pérez"
                         className="bg-slate-600 border-slate-500 text-slate-100 placeholder:text-slate-400"
                         required
                         disabled={creating}
+                        autoComplete="family-name"
                       />
                     </div>
 
@@ -510,12 +603,15 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
                       <Label htmlFor="phone" className="text-slate-200">Teléfono *</Label>
                       <Input
                         id="phone"
+                        name="phone"
+                        type="tel"
                         value={formData.phone}
                         onChange={(e) => handleInputChange('phone', e.target.value)}
                         placeholder="+54911234567"
                         className="bg-slate-600 border-slate-500 text-slate-100 placeholder:text-slate-400"
                         required
                         disabled={creating}
+                        autoComplete="tel"
                       />
                     </div>
 
@@ -525,6 +621,7 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
                       </Label>
                       <Input
                         id="password"
+                        name="password"
                         type="password"
                         value={formData.password}
                         onChange={(e) => handleInputChange('password', e.target.value)}
@@ -533,6 +630,7 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
                         required={!editingProfessional}
                         minLength={8}
                         disabled={creating}
+                        autoComplete="new-password"
                       />
                       <p className="text-xs text-slate-500">
                         {editingProfessional 
@@ -611,15 +709,14 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           {editingProfessional ? 'Actualizando...' : 'Creando...'}
                         </>
-                      ) : editingProfessional ? (
-                        <>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Actualizar Profesional
-                        </>
                       ) : (
                         <>
-                          <UserPlus className="mr-2 h-4 w-4" />
-                          Crear Profesional
+                          {editingProfessional ? (
+                            <Edit className="mr-2 h-4 w-4" />
+                          ) : (
+                            <UserPlus className="mr-2 h-4 w-4" />
+                          )}
+                          {editingProfessional ? 'Actualizar Profesional' : 'Crear Profesional'}
                         </>
                       )}
                     </Button>
@@ -736,9 +833,10 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
                         className="border-red-600 bg-red-900/30 text-red-300 hover:bg-red-900/50"
                         disabled={creating || deleting === professional.id}
                       >
-                        {deleting === professional.id ? (
+                        {deleting === professional.id && (
                           <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                        ) : (
+                        )}
+                        {deleting !== professional.id && (
                           <Trash2 className="h-3 w-3 mr-1" />
                         )}
                         Eliminar
@@ -756,15 +854,13 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
           <Button
             onClick={() => {
               if (!creating && !loading) {
-                // Reset state in next tick to prevent DOM manipulation conflicts
-                setTimeout(() => {
-                  if (isMountedRef.current) {
-                    setError(null);
-                    setShowCreateForm(false);
-                    setEditingProfessional(null);
-                    setManagingServices(null);
-                  }
-                }, 0);
+                // Simple cleanup without setTimeout
+                if (isMountedRef.current) {
+                  setError(null);
+                  setShowCreateForm(false);
+                  setEditingProfessional(null);
+                  setManagingServices(null);
+                }
                 onClose();
               }
             }}

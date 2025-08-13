@@ -143,10 +143,10 @@ async def create_professional(professional: ProfessionalCreate, current_admin: A
             detail="Professional with this email already exists in the clinic"
         )
     
-    # Check if license number already exists (if provided)
-    if professional.license_number:
+    # Check if license number already exists (if provided and not empty)
+    if professional.license_number and professional.license_number.strip():
         existing_license = await professionals_collection.find_one({
-            "license_number": professional.license_number
+            "license_number": professional.license_number.strip()
         })
         
         if existing_license:
@@ -157,6 +157,13 @@ async def create_professional(professional: ProfessionalCreate, current_admin: A
     
     # Create professional
     professional_data = professional.model_dump()
+    
+    # Remove license_number field completely if empty to avoid unique constraint issues
+    if not professional_data.get("license_number") or not professional_data["license_number"].strip():
+        professional_data.pop("license_number", None)  # Remove field completely
+    else:
+        professional_data["license_number"] = professional_data["license_number"].strip()
+    
     professional_data["created_at"] = datetime.utcnow()
     professional_data["updated_at"] = datetime.utcnow()
     
@@ -206,10 +213,10 @@ async def update_professional(
                 detail="Professional with this email already exists in the clinic"
             )
     
-    # Check if license number is being updated and doesn't conflict
-    if "license_number" in update_data and update_data["license_number"]:
+    # Check if license number is being updated and doesn't conflict (only for non-empty values)
+    if "license_number" in update_data and update_data["license_number"] and update_data["license_number"].strip():
         existing_license = await professionals_collection.find_one({
-            "license_number": update_data["license_number"],
+            "license_number": update_data["license_number"].strip(),
             "_id": {"$ne": ObjectId(professional_id)}
         })
         
@@ -219,12 +226,27 @@ async def update_professional(
                 detail="Professional with this license number already exists"
             )
     
+    # Handle license_number field properly to avoid unique constraint issues
+    unset_data = None
+    if "license_number" in update_data:
+        if not update_data["license_number"] or not update_data["license_number"].strip():
+            # Remove the field completely if empty, and unset it in the database
+            update_data.pop("license_number", None)
+            unset_data = {"license_number": ""}
+        else:
+            update_data["license_number"] = update_data["license_number"].strip()
+    
     update_data["updated_at"] = datetime.utcnow()
+    
+    # Build update operation
+    update_operation = {"$set": update_data}
+    if unset_data:
+        update_operation["$unset"] = unset_data
     
     # Update professional
     await professionals_collection.update_one(
         {"_id": ObjectId(professional_id)},
-        {"$set": update_data}
+        update_operation
     )
     
     # Get updated professional

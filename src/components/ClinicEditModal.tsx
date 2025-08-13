@@ -633,11 +633,11 @@ export default function ClinicEditModal({ clinic, open, onClose, onClinicUpdated
               disabled={loading}
               className="bg-medical-500 hover:bg-medical-600"
             >
+              {loading && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Actualizando...
-                </>
+                'Actualizando...'
               ) : (
                 <>
                   <Edit className="mr-2 h-4 w-4" />

@@ -685,11 +685,11 @@ export default function BillingConfigurationModal({
                 disabled={loading}
                 className="bg-medical-500 hover:bg-medical-600"
               >
+                {loading && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Guardando...
-                  </>
+                  'Guardando...'
                 ) : (
                   <>
                     <Save className="mr-2 h-4 w-4" />
