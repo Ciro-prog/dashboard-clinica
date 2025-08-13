@@ -250,11 +250,9 @@ export default function AdminConfigModal({ open, onClose }: AdminConfigModalProp
   return (
     <Dialog open={open} onOpenChange={(newOpen) => {
       if (!newOpen && !loading && !saving) {
-        // Reset state in next tick to prevent DOM manipulation conflicts
-        setTimeout(() => {
-          setError(null);
-          setSuccess(null);
-        }, 0);
+        // Simple cleanup without setTimeout
+        setError(null);
+        setSuccess(null);
         onClose();
       }
     }}>

@@ -238,10 +238,8 @@ export default function BillingConfigurationModal({
   return (
     <Dialog open={open} onOpenChange={(newOpen) => {
       if (!newOpen && !loading) {
-        // Reset state in next tick to prevent DOM manipulation conflicts
-        setTimeout(() => {
-          resetModalState();
-        }, 0);
+        // Simple cleanup without setTimeout
+        resetModalState();
         onClose();
       }
     }}>

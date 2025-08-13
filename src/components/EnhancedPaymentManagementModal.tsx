@@ -204,10 +204,8 @@ export default function EnhancedPaymentManagementModal({
         // Notificar actualización
         onPaymentProcessed();
         
-        // Cerrar modal después de 2 segundos
-        setTimeout(() => {
-          onClose();
-        }, 2000);
+        // Cerrar modal inmediatamente
+        onClose();
       } else {
         const errorData = await response.text();
         console.error('❌ Error recording payment:', response.status, errorData);

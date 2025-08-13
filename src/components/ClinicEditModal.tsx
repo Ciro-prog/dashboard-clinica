@@ -241,12 +241,10 @@ export default function ClinicEditModal({ clinic, open, onClose, onClinicUpdated
   return (
     <Dialog open={open} onOpenChange={(newOpen) => {
       if (!newOpen && !loading) {
+        // Simple cleanup without setTimeout
+        setActiveTab('basic');
+        resetForm();
         onClose();
-        // Reset tab first, then form data in next tick
-        setTimeout(() => {
-          setActiveTab('basic');
-          resetForm();
-        }, 0);
       }
     }}>
       <DialogContent 
