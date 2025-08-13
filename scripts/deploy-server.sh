@@ -48,7 +48,7 @@ step() {
 PROJECT_DIR="/opt/dashboard-clinica"
 BACKUP_DIR="/opt/backups/dashboard-clinica"
 LOG_FILE="/var/log/dashboard-clinica-deploy.log"
-GITHUB_REPO="git@github.com:TU_USUARIO/dashboard-clinica.git"
+GITHUB_REPO="https://github.com/Ciro-prog/dashboard-clinica.git"
 
 # Detectar modo de operación
 MODE=${1:-update}
@@ -166,12 +166,8 @@ manage_repository() {
             sudo chown $USER:$USER $PROJECT_DIR
         fi
         
-        # Intentar clonar con SSH primero, luego HTTPS
-        if ! git clone $GITHUB_REPO $PROJECT_DIR; then
-            warning "Clonado SSH falló, intentando HTTPS..."
-            HTTPS_REPO=$(echo $GITHUB_REPO | sed 's/git@github.com:/https:\/\/github.com\//')
-            git clone $HTTPS_REPO $PROJECT_DIR
-        fi
+        # Clonar usando HTTPS
+        git clone $GITHUB_REPO $PROJECT_DIR
     else
         log "Actualizando repositorio existente..."
         cd $PROJECT_DIR
@@ -239,17 +235,15 @@ configure_environment() {
         fi
     fi
     
-    # Detectar IP del servidor
-    SERVER_IP=$(curl -s ifconfig.me || curl -s ipinfo.io/ip || hostname -I | awk '{print $1}')
+    # Configurar para pampaservers.com
+    log "Configurando para servidor pampaservers.com"
     
-    if [ ! -z "$SERVER_IP" ]; then
-        log "IP del servidor detectada: $SERVER_IP"
-        
-        # Actualizar VITE_API_URL si contiene localhost
-        if grep -q "localhost" .env; then
-            warning "Actualizando URLs de localhost a IP del servidor..."
-            sed -i "s/localhost/$SERVER_IP/g" .env
-        fi
+    # Actualizar URLs para pampaservers.com si contiene variables genéricas
+    if grep -q "TU-SERVIDOR-IP\|IP_DEL_SERVIDOR\|localhost" .env; then
+        warning "Actualizando URLs para pampaservers.com..."
+        sed -i "s/TU-SERVIDOR-IP/pampaservers.com/g" .env
+        sed -i "s/IP_DEL_SERVIDOR/pampaservers.com/g" .env
+        sed -i "s/localhost/pampaservers.com/g" .env
     fi
     
     # Verificar configuración crítica
@@ -261,29 +255,29 @@ configure_environment() {
     log "✅ Variables de entorno configuradas"
 }
 
-# Función para verificar MongoDB
+# Función para verificar MongoDB pampaservers.com
 check_mongodb() {
-    step "Verificando MongoDB"
+    step "Verificando MongoDB pampaservers.com"
     
-    if docker ps | grep -q "60516.*mongo"; then
-        log "✅ MongoDB encontrado en puerto 60516"
+    log "Verificando conexión a MongoDB en pampaservers.com:60516..."
+    
+    # Probar conexión a MongoDB de pampaservers.com
+    if timeout 10 bash -c "</dev/tcp/pampaservers.com/60516" 2>/dev/null; then
+        log "✅ MongoDB pampaservers.com:60516 está accesible"
+        log "✅ Usando MongoDB existente con credenciales: root/servermuenpampa2025A!"
     else
-        warning "MongoDB no encontrado en puerto 60516"
-        info "¿Deseas crear un contenedor MongoDB? (y/N):"
+        warning "❌ No se puede conectar a MongoDB en pampaservers.com:60516"
+        warning "Verifica que el servidor esté accesible y el puerto 60516 esté abierto"
+        info "¿Continuar de todos modos? (y/N):"
         read -n 1 -r
         echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            log "Creando contenedor MongoDB..."
-            docker run -d \
-                --name mongodb-clinic \
-                -p 60516:27017 \
-                -v mongodb_clinic_data:/data/db \
-                --restart unless-stopped \
-                mongo:7.0
-            sleep 5
-            log "✅ MongoDB creado y ejecutándose"
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            exit 1
         fi
     fi
+    
+    # NO crear contenedor MongoDB local - usar el de pampaservers.com
+    log "ℹ️ Se usará el MongoDB existente en pampaservers.com:60516"
 }
 
 # Función para hacer deploy
@@ -429,17 +423,15 @@ final_verification() {
         fi
     fi
     
-    # Mostrar URLs de acceso
-    SERVER_IP=$(curl -s ifconfig.me || curl -s ipinfo.io/ip || hostname -I | awk '{print $1}')
-    
+    # Mostrar URLs de acceso para pampaservers.com
     echo -e "\n${GREEN}🎉 ¡Despliegue completado exitosamente!${NC}"
-    echo -e "${BLUE}📱 URLs de acceso:${NC}"
-    echo -e "  Frontend Cliente:   http://$SERVER_IP:60521"
-    echo -e "  Backend API:        http://$SERVER_IP:60522"
-    echo -e "  API Docs:           http://$SERVER_IP:60522/docs"
+    echo -e "${BLUE}📱 URLs de acceso en pampaservers.com:${NC}"
+    echo -e "  Frontend Cliente:   http://pampaservers.com:60521"
+    echo -e "  Backend API:        http://pampaservers.com:60522"
+    echo -e "  API Docs:           http://pampaservers.com:60522/docs"
     
     if docker-compose ps | grep -q admin-frontend; then
-        echo -e "  Admin Frontend:     http://$SERVER_IP:60523"
+        echo -e "  Admin Frontend:     http://pampaservers.com:60523"
     fi
     
     echo -e "\n${YELLOW}📝 Notas importantes:${NC}"
