@@ -1,0 +1,59 @@
+{
+  "name": "Informacion del Profesional Mcp",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "32b9ee6e-1b55-4c1c-8ebc-d617dd66df0b"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        -120
+      ],
+      "id": "158515b3-082e-4bfb-ab59-43a8fe345146",
+      "name": "MCP Server Trigger",
+      "webhookId": "32b9ee6e-1b55-4c1c-8ebc-d617dd66df0b"
+    },
+    {
+      "parameters": {
+        "description": "# Herramienta: Consultorio Médico\n\n**Descripción:**\nProporciona información completa sobre un consultorio médico, incluyendo precios de servicios, horarios de atención, servicios disponibles, datos de contacto y especialidades médicas.\n\n**Cuándo usar:**\n- Cuando el usuario pregunte sobre costos o tarifas médicas\n- Para consultar horarios de atención del consultorio\n- Para conocer qué servicios médicos se ofrecen\n- Para obtener información de contacto (teléfono, dirección, email)\n- Para saber qué especialidades médicas están disponibles\n\n**Formato de entrada:**\n```json\n{\n  \"consulta\": \"texto de la consulta del usuario\"\n}\n```\n\n**Ejemplos de consultas que maneja:**\n- `{\"consulta\": \"precios\"}` → Tarifas de todos los servicios\n- `{\"consulta\": \"horarios\"}` → Horarios de atención\n- `{\"consulta\": \"servicios\"}` → Lista completa de servicios\n- `{\"consulta\": \"contacto\"}` → Información de contacto\n- `{\"consulta\": \"especialidades\"}` → Especialidades médicas disponibles\n- `{\"consulta\": \"cuánto cuesta una consulta\"}` → Precios específicos\n- `{\"consulta\": \"a qué hora abren\"}` → Horarios de atención\n\n**Respuesta:**\nRetorna un JSON estructurado con la información solicitada, incluyendo timestamp y categorización automática de la consulta.\n\n**Categorías detectadas automáticamente:**\n- **Precios**: palabras como \"precio\", \"costo\", \"tarifa\", \"cuánto\"\n- **Horarios**: palabras como \"horario\", \"hora\", \"tiempo\", \"abren\", \"cierran\"\n- **Servicios**: palabras como \"servicio\", \"qué hacen\", \"ofertas\"\n- **Contacto**: palabras como \"contacto\", \"teléfono\", \"dirección\"\n- **Especialidades**: palabras como \"especialidad\", \"especialista\", \"doctor\"",
+        "jsCode": "// ============ DATOS DEL CONSULTORIO ============\nconst CONSULTORIO_DATA = {\n  precios: {\n    consulta_general: 50000,\n    consulta_especializada: 75000,\n    cirugia_menor: 150000,\n    cirugia_mayor: 300000,\n    urgencias: 80000,\n    domicilio: 120000\n  },\n  horarios: {\n    lunes_viernes: \"8:00 AM - 7:00 PM\",\n    sabados: \"8:00 AM - 1:00 PM\",\n    domingos: \"Solo urgencias\",\n    urgencias_24h: \"Disponible\"\n  },\n  servicios: [\n    \"Consulta médica general\",\n    \"Especialidades médicas\",\n    \"Cirugías menores y mayores\", \n    \"Atención de urgencias\",\n    \"Consultas a domicilio\",\n    \"Laboratorio clínico\",\n    \"Imagenología\"\n  ],\n  contacto: {\n    telefono: \"+57 123 456 7890\",\n    whatsapp: \"+57 123 456 7890\",\n    email: \"info@consultorio.com\",\n    direccion: \"Calle 123 #45-67, Bogotá\"\n  },\n  especialidades: [\n    \"Medicina General\",\n    \"Cardiología\", \n    \"Dermatología\",\n    \"Ginecología\",\n    \"Pediatría\",\n    \"Ortopedia\",\n    \"Oftalmología\"\n  ]\n};\n\n// ============ FUNCIÓN PARA PROCESAR PARÁMETROS ============\nfunction procesarParametros(consulta) {\n  console.log('🔍 Procesando consulta:', consulta);\n  \n  if (!consulta || typeof consulta !== 'string') {\n    return {\n      categoria: 'servicios',\n      formato: 'lista'\n    };\n  }\n  \n  const consultaLower = consulta.toLowerCase().trim();\n  \n  // Determinar categoría basada en palabras clave\n  let categoria = 'servicios'; // Por defecto\n  \n  if (consultaLower.includes('precio') || consultaLower.includes('costo') || consultaLower.includes('tarifa')) {\n    categoria = 'precios';\n  } else if (consultaLower.includes('horario') || consultaLower.includes('hora') || consultaLower.includes('tiempo')) {\n    categoria = 'horarios';\n  } else if (consultaLower.includes('contacto') || consultaLower.includes('telefono') || consultaLower.includes('direccion')) {\n    categoria = 'contacto';\n  } else if (consultaLower.includes('especialidad') || consultaLower.includes('especialista')) {\n    categoria = 'especialidades';\n  } else if (consultaLower.includes('servicio') || consultaLower.includes('que hacen') || consultaLower.includes('ofertas')) {\n    categoria = 'servicios';\n  }\n  \n  // Determinar formato\n  const formato = categoria === 'precios' ? 'detallado' : 'lista';\n  \n  console.log('✅ Parámetros determinados:', { categoria, formato });\n  \n  return { categoria, formato };\n}\n\n// ============ FUNCIÓN PARA FORMATEAR RESPUESTA ============\nfunction formatearRespuesta(datos, formato, categoria) {\n  console.log('📝 Formateando respuesta para:', categoria);\n  \n  const respuesta = {\n    error: false,\n    categoria: categoria,\n    timestamp: new Date().toISOString()\n  };\n  \n  switch (categoria) {\n    case 'precios':\n      respuesta.mensaje = \"💰 Tarifas del Consultorio\";\n      respuesta.datos = {};\n      for (const [servicio, precio] of Object.entries(datos)) {\n        respuesta.datos[servicio] = `$${precio.toLocaleString('es-CO')} COP`;\n      }\n      break;\n      \n    case 'horarios':\n      respuesta.mensaje = \"🕒 Horarios de Atención\";\n      respuesta.datos = datos;\n      break;\n      \n    case 'servicios':\n      respuesta.mensaje = \"🏥 Servicios Disponibles\";\n      respuesta.datos = datos;\n      break;\n      \n    case 'contacto':\n      respuesta.mensaje = \"📞 Información de Contacto\";\n      respuesta.datos = datos;\n      break;\n      \n    case 'especialidades':\n      respuesta.mensaje = \"👨‍⚕️ Especialidades Médicas\";\n      respuesta.datos = datos;\n      break;\n      \n    default:\n      respuesta.mensaje = \"ℹ️ Información General\";\n      respuesta.datos = datos;\n  }\n  \n  return respuesta;\n}\n\n// ============ FUNCIÓN PRINCIPAL PARA MCP ============\ntry {\n  console.log('🚀 Iniciando herramienta MCP consultorio');\n  \n  // Obtener la consulta del parámetro query\n  let consultaValue;\n  \n  console.log('📥 Query recibido:', query);\n  console.log('📥 Tipo de query:', typeof query);\n  \n  // Parsear el JSON string que llega en query\n  if (typeof query === 'string') {\n    try {\n      const parsed = JSON.parse(query);\n      consultaValue = parsed.consulta || query;\n      console.log('✅ JSON parseado exitosamente');\n      console.log('✅ Consulta extraída:', consultaValue);\n    } catch (parseError) {\n      console.log('⚠️ Error parseando JSON, usando query directo:', parseError.message);\n      consultaValue = query;\n    }\n  } else if (typeof query === 'object' && query.consulta) {\n    consultaValue = query.consulta;\n  } else {\n    consultaValue = query || 'servicios';\n  }\n  \n  console.log('🎯 Consulta final a procesar:', consultaValue);\n  \n  // 1. Procesar parámetros\n  const params = procesarParametros(consultaValue);\n  console.log('🎯 Parámetros procesados:', params);\n  \n  // 2. Validar categoría\n  if (!CONSULTORIO_DATA[params.categoria]) {\n    const error = {\n      error: true,\n      mensaje: `Categoría '${params.categoria}' no encontrada`,\n      categorias_disponibles: Object.keys(CONSULTORIO_DATA),\n      consulta_recibida: consultaValue,\n      timestamp: new Date().toISOString()\n    };\n    \n    console.log('❌ Error categoría:', error);\n    return JSON.stringify(error);\n  }\n  \n  // 3. Obtener datos\n  const datos = CONSULTORIO_DATA[params.categoria];\n  console.log('📊 Datos obtenidos para categoria:', params.categoria);\n  \n  // 4. Formatear respuesta\n  const resultado = formatearRespuesta(datos, params.formato, params.categoria);\n  console.log('✅ Resultado formateado');\n  \n  // Retornar como string JSON\n  return JSON.stringify(resultado);\n  \n} catch (error) {\n  console.error('❌ Error general:', error);\n  \n  const errorResponse = {\n    error: true,\n    mensaje: \"Error procesando consulta\",\n    detalle: error.message,\n    timestamp: new Date().toISOString(),\n    debug_info: {\n      error_stack: error.stack,\n      input_received: typeof query !== 'undefined' ? query : 'undefined'\n    }\n  };\n  \n  return JSON.stringify(errorResponse);\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        100
+      ],
+      "id": "7385f693-39a0-442a-8cce-4f59b56e86ce",
+      "name": "info_consultorio_tool"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "info_consultorio_tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Argentina/Buenos_Aires",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "81790306-2647-4571-a195-ed9c68df6457",
+  "meta": {
+    "instanceId": "b18105836edfcad81c12a54f0db8e5674265d02aede82c32c986c199a9b2234c"
+  },
+  "id": "MEo7lSLVOB4rO9BX",
+  "tags": []
+}

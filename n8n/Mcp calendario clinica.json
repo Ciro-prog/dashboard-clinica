@@ -1,0 +1,215 @@
+{
+  "name": "Mcp calendario clinica",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "dde3c86b-fc11-4a83-88d3-95be7124ae23"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "868101ce-3dd1-4aae-bab4-b3f79cfcda23",
+      "name": "MCP Server Trigger2",
+      "webhookId": "dde3c86b-fc11-4a83-88d3-95be7124ae23"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "9c0df6f0e07cb8b116acd371fd75819eeca3a712dc4a7e87ba18203e22ded69f@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "Clinica"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', `Fecha y hora de inicio de la reunión.`, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', `Fecha y hora de fin de la reunión.`, 'string') }}",
+        "additionalFields": {
+          "attendees": [
+            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('attendees0_Attendees', `sino no tiene correo no lo llenes utiliza test@tesstt.com`, 'string') }}"
+          ],
+          "description": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Description', `Descripción de la reunión.`, 'string') }}",
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', `Título de la reunión`, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        -180,
+        320
+      ],
+      "id": "8bb67ef0-add9-4558-b9c7-df441aa20ce3",
+      "name": "Crear evento2",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "k2MCgOGcQuashjG2",
+          "name": "Google Calendar hugo"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "calendar": {
+          "__rl": true,
+          "value": "9c0df6f0e07cb8b116acd371fd75819eeca3a712dc4a7e87ba18203e22ded69f@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "Clinica"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        20,
+        320
+      ],
+      "id": "888cdd6d-90c5-4e80-a8d0-3829a17d60a2",
+      "name": "Eliminar Evento2",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "k2MCgOGcQuashjG2",
+          "name": "Google Calendar hugo"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "9c0df6f0e07cb8b116acd371fd75819eeca3a712dc4a7e87ba18203e22ded69f@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "Clinica"
+        },
+        "limit": 10,
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Before', ``, 'string') }}",
+        "options": {
+          "timeZone": {
+            "__rl": true,
+            "value": "America/Argentina/Buenos_Aires",
+            "mode": "id",
+            "__regex": "([-+/_a-zA-Z0-9]*)"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        200,
+        320
+      ],
+      "id": "1801b044-45e0-45bf-a305-7a7ec985ed95",
+      "name": "Obtener Eventos2",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "k2MCgOGcQuashjG2",
+          "name": "Google Calendar hugo"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "calendar": {
+          "__rl": true,
+          "value": "9c0df6f0e07cb8b116acd371fd75819eeca3a712dc4a7e87ba18203e22ded69f@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "Clinica"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "updateFields": {
+          "attendeesUi": {
+            "values": {
+              "mode": "replace",
+              "attendees": [
+                "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Attendees', ``, 'string') }}"
+              ]
+            }
+          },
+          "description": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Description', ``, 'string') }}",
+          "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+          "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        380,
+        320
+      ],
+      "id": "a69e0733-ea32-4ef7-8590-a86f098c91ca",
+      "name": "Actualizar Evento2",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "k2MCgOGcQuashjG2",
+          "name": "Google Calendar hugo"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Crear evento2": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Eliminar Evento2": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Eventos2": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar Evento2": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Argentina/Buenos_Aires",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "35672d5a-932b-4acc-a5d2-5d0cbc16f237",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b18105836edfcad81c12a54f0db8e5674265d02aede82c32c986c199a9b2234c"
+  },
+  "id": "DDRlzspeKwBgKJBO",
+  "tags": []
+}

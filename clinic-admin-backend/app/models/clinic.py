@@ -39,6 +39,51 @@ class PatientFieldConfig(BaseModel):
     model_config = {"populate_by_name": True, "arbitrary_types_allowed": True}
 
 
+class ClinicService(BaseModel):
+    service_id: str = Field(default="", max_length=100)
+    service_type: str = Field(..., min_length=1, max_length=200)
+    description: Optional[str] = Field(None, max_length=500)
+    base_price: float = Field(..., ge=0)
+    currency: str = Field(default="COP", max_length=3)
+    duration_minutes: Optional[int] = Field(None, ge=15, le=480)
+    is_active: bool = Field(default=True)
+    requires_appointment: bool = Field(default=True)
+    category: Optional[str] = Field(None, max_length=100)
+    
+    model_config = {"populate_by_name": True, "arbitrary_types_allowed": True}
+
+
+class WorkingHours(BaseModel):
+    day_of_week: str = Field(..., pattern="^(monday|tuesday|wednesday|thursday|friday|saturday|sunday)$")
+    start_time: str = Field(..., pattern="^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$")  # HH:MM format
+    end_time: str = Field(..., pattern="^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$")    # HH:MM format
+    is_available: bool = Field(default=True)
+    
+    model_config = {"populate_by_name": True, "arbitrary_types_allowed": True}
+
+
+class ClinicSchedule(BaseModel):
+    timezone: str = Field(default="America/Bogota", max_length=50)
+    working_hours: List[WorkingHours] = Field(default=[])
+    break_start: Optional[str] = Field(None, pattern="^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$")
+    break_end: Optional[str] = Field(None, pattern="^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$")
+    holiday_dates: List[str] = Field(default=[])  # ISO format dates
+    special_hours: Dict[str, Dict[str, str]] = Field(default={})  # Date -> {start, end}
+    
+    model_config = {"populate_by_name": True, "arbitrary_types_allowed": True}
+
+
+class ClinicContactInfo(BaseModel):
+    phone: str = Field(..., min_length=8, max_length=20)
+    whatsapp: Optional[str] = Field(None, min_length=8, max_length=20)
+    email: str = Field(..., min_length=5, max_length=200)
+    address: str = Field(..., min_length=10, max_length=500)
+    website: Optional[str] = Field(None, max_length=200)
+    maps_url: Optional[str] = Field(None, max_length=500)
+    
+    model_config = {"populate_by_name": True, "arbitrary_types_allowed": True}
+
+
 
 class ClinicBase(BaseModel):
     clinic_id: str = Field(default="", max_length=100)  # Optional - will be auto-generated if empty
@@ -80,6 +125,12 @@ class ClinicBase(BaseModel):
     professionals_count: int = Field(default=0, ge=0)
     max_professionals_allowed: int = Field(default=5, ge=1, le=100)  # Based on subscription plan
     
+    # Services and schedule
+    services: List[ClinicService] = Field(default=[])
+    schedule: Optional[ClinicSchedule] = Field(default=None)
+    contact_info: Optional[ClinicContactInfo] = Field(default=None)
+    specialties: List[str] = Field(default=["Medicina General"])
+    
     model_config = {"populate_by_name": True, "arbitrary_types_allowed": True}
     
     @classmethod
@@ -115,6 +166,10 @@ class ClinicUpdate(BaseModel):
     n8n_folder_id: Optional[str] = None
     n8n_folder_name: Optional[str] = None
     custom_patient_fields: Optional[List[dict]] = None
+    services: Optional[List[ClinicService]] = None
+    schedule: Optional[ClinicSchedule] = None
+    contact_info: Optional[ClinicContactInfo] = None
+    specialties: Optional[List[str]] = None
     password: Optional[str] = Field(None, min_length=8)
 
 

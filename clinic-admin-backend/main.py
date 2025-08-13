@@ -36,7 +36,8 @@ app = FastAPI(
         {"name": "health", "description": "Health check endpoints"},
         {"name": "auth", "description": "Authentication operations"},
         {"name": "admin", "description": "Admin operations"},
-        {"name": "clinics", "description": "Clinic management"},
+        {"name": "Clinics Management", "description": "Clinic management and administration"},
+        {"name": "Clinic Services", "description": "Clinic services, schedules, and N8N integration"},
         {"name": "debug", "description": "Debug endpoints for testing"},
     ]
 )

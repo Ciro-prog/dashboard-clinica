@@ -1,0 +1,617 @@
+# DIAGRAMA DE FLUJO COMPLETO - SISTEMA CLÍNICA MÉDICA
+# Análisis Arquitectónico Frontend + Backend + Integraciones
+
+## 🏗️ ARQUITECTURA GENERAL DEL SISTEMA
+
+### COMPONENTES PRINCIPALES
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    SISTEMA CLÍNICA MÉDICA                      │
+├─────────────────────────────────────────────────────────────────┤
+│  Frontend (React/Vite)  │  Backend (FastAPI)  │  Integraciones  │
+│  ├─ Dashboard Clínica   │  ├─ MongoDB Backend  │  ├─ WhatsApp    │
+│  ├─ Admin Panel        │  ├─ API REST         │  ├─ Google Cal   │
+│  ├─ Professional UI    │  ├─ Auth System      │  ├─ N8N Flows    │
+│  └─ Mobile Support     │  └─ Data Models      │  └─ Email SMTP   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## 📱 FRONTEND ARCHITECTURE (React + TypeScript)
+
+### ESTRUCTURA DE COMPONENTES
+```
+src/
+├── App.tsx (Router Principal)
+│   ├── /                 → Index.tsx (Clinic Dashboard)
+│   ├── /admin           → AdminApp.tsx (Admin Panel)
+│   └── /*               → NotFound.tsx
+├── components/
+│   ├── business/        → Lógica de negocio
+│   │   ├── AdminDashboard.tsx
+│   │   ├── DashboardLayout.tsx
+│   │   ├── PatientList.tsx
+│   │   ├── ProfessionalManagementModal.tsx
+│   │   ├── WhatsAppWAHA.tsx
+│   │   ├── MedicalCalendar.tsx
+│   │   └── LoginForm.tsx
+│   ├── ui/              → shadcn/ui components
+│   │   ├── button.tsx, card.tsx, dialog.tsx
+│   │   ├── table.tsx, form.tsx, input.tsx
+│   │   └── [50+ UI components]
+│   └── modals/          → Gestión de modales
+│       ├── ClinicCreateModal.tsx
+│       ├── SubscriptionEditModal.tsx
+│       └── PaymentManagementModal.tsx
+├── pages/
+│   ├── Index.tsx        → Dashboard principal clínica
+│   ├── AdminApp.tsx     → Panel administrador
+│   └── NotFound.tsx     → Página 404
+├── lib/
+│   ├── clinicApi.ts     → API client + tipos TypeScript
+│   ├── clinicAuth.ts    → Sistema autenticación
+│   ├── persistentAuth.ts → Gestión tokens persistentes
+│   └── utils.ts         → Utilidades generales
+├── hooks/
+│   ├── useWAHAService.ts → WhatsApp Business Integration
+│   ├── use-toast.ts     → Sistema notificaciones
+│   └── use-mobile.tsx   → Responsive design
+└── contexts/
+    └── ThemeContext.tsx → Gestión temas dark/light
+```
+
+### FLUJO DE AUTENTICACIÓN FRONTEND
+```
+1. Usuario Accede → LoginForm.tsx
+2. Credenciales → clinicAuth.ts → POST /api/auth/login
+3. Token JWT ← Backend Response
+4. localStorage ← saveClinicAuthData() 
+5. App Router → Redirige según rol:
+   - Clinic → Index.tsx (Dashboard)
+   - Admin → AdminApp.tsx (Admin Panel)
+   - Professional → ProfessionalDashboard.tsx
+6. Headers Request ← persistentAuth.ts (Auto-inject token)
+```
+
+### GESTIÓN DE ESTADO
+```
+- Local State: React useState/useEffect
+- Server State: TanStack Query (React Query)
+- Auth State: localStorage + persistentAuth
+- Global State: React Context (Theme)
+- Form State: React Hook Form + Zod validation
+```
+
+## 🖥️ BACKEND ARCHITECTURE (FastAPI + MongoDB)
+
+### ESTRUCTURA DEL BACKEND
+```
+clinic-admin-backend/
+├── main.py              → FastAPI app principal
+├── app/
+│   ├── api/             → Endpoints REST
+│   │   ├── auth.py      → Autenticación (login/token)
+│   │   ├── clinics.py   → CRUD clínicas
+│   │   ├── patients.py  → CRUD pacientes  
+│   │   ├── professionals.py → CRUD profesionales
+│   │   ├── subscription_plans.py → Planes suscripción
+│   │   └── admin_dashboard.py → Panel admin
+│   ├── models/          → Modelos MongoDB
+│   │   ├── clinic.py    → Modelo clínica
+│   │   ├── patient.py   → Modelo paciente
+│   │   ├── professional.py → Modelo profesional
+│   │   ├── admin.py     → Modelo administrador
+│   │   └── subscription_plan.py → Planes
+│   ├── core/            → Configuración
+│   │   ├── config.py    → Variables entorno
+│   │   ├── database.py  → Conexión MongoDB
+│   │   └── uuid_generator.py → IDs únicos
+│   └── auth/            → Sistema autenticación
+│       ├── security.py  → Hashing passwords
+│       └── dependencies.py → Middleware auth
+└── scripts/             → Utilidades
+    ├── init_db.py       → Inicializar DB
+    └── create_admin.py  → Crear admin
+```
+
+### MODELOS DE DATOS (MongoDB)
+```
+Clinic {
+  id: ObjectId
+  clinic_id: string (único)
+  name_clinic: string
+  suscriber: string (WhatsApp session)
+  email: string
+  subscription_status: enum
+  subscription_plan: enum
+  max_professionals: number
+  max_patients: number
+  whatsapp_session_name: string
+}
+
+Patient {
+  id: ObjectId
+  clinic_id: string (FK)
+  first_name: string
+  last_name: string
+  dni: string (único por clínica)
+  cell_phone: string
+  status_patient: enum
+  medical_notes: string
+  visit_history: array
+}
+
+Professional {
+  id: ObjectId
+  clinic_id: string (FK)
+  first_name: string
+  last_name: string
+  speciality: string
+  email: string
+  status_professional: enum
+  services: array[ServiceType]
+  can_login: boolean
+}
+
+Appointment {
+  id: ObjectId
+  clinic_id: string (FK)
+  patient_id: string (FK)
+  professional_id: string (FK)
+  datetime: DateTime
+  status_appointment: enum
+  whatsapp_conversation_id: string
+}
+```
+
+### API ENDPOINTS ESTRUCTURA
+```
+/api/auth/
+├── POST /login          → Login universal (clinic/admin/professional)
+├── POST /clinic-login   → Login específico clínica
+└── POST /token          → OAuth2 compatible
+
+/api/clinics/
+├── GET /                → Listar clínicas
+├── POST /               → Crear clínica
+├── GET /{id}           → Obtener clínica
+├── PUT /{id}           → Actualizar clínica
+├── DELETE /{id}        → Eliminar clínica
+├── PATCH /{id}/subscription → Actualizar suscripción
+└── PATCH /{id}/status  → Cambiar estado
+
+/api/patients/
+├── GET /                → Listar pacientes
+├── POST /               → Crear paciente
+├── GET /search/by-dni   → Buscar por DNI
+├── GET /{id}           → Obtener paciente
+├── PUT /{id}           → Actualizar paciente
+├── POST /{id}/visit    → Agregar visita
+├── GET /{id}/history   → Historial médico
+└── PATCH /{id}/share   → Compartir con profesional
+
+/api/professionals/
+├── GET /                → Listar profesionales
+├── POST /               → Crear profesional
+├── GET /{id}           → Obtener profesional
+├── PUT /{id}           → Actualizar profesional
+├── PATCH /{id}/status  → Cambiar estado
+└── GET /clinic/{id}/stats → Estadísticas
+
+/api/admin/
+├── GET /dashboard/stats → Estadísticas admin
+├── GET /clinics        → Todas las clínicas
+├── POST /clinics       → Crear con permisos admin
+└── GET /subscription-plans → Planes disponibles
+```
+
+## 🔄 CONEXIONES FRONTEND-BACKEND
+
+### FLUJO DE DATOS PRINCIPAL
+```
+1. AUTENTICACIÓN
+Frontend Login Form → POST /api/auth/login → Backend Auth
+↓
+JWT Token ← Response ← Password Hash Verification
+↓
+localStorage Store ← persistentAuth.ts ← Token Management
+↓
+API Headers ← Auto-inject Bearer Token ← Subsequent Requests
+
+2. OPERACIONES CRUD
+React Component → clinicApi.ts → apiRequest() 
+↓
+Vite Proxy (dev) / Vercel Rewrite (prod) → Backend Endpoint
+↓
+MongoDB Query ← FastAPI Route ← Request Processing
+↓
+JSON Response → TypeScript Interface → Component State
+
+3. INTEGRACIÓN WHATSAPP
+WhatsAppWAHA.tsx → useWAHAService.ts → WAHA API (pampaservers.com:60513)
+↓
+QR Code / Session Status ← WhatsApp Business ← Session Management
+↓
+Auto-refresh System ← 3-minute intervals ← Connection Monitoring
+```
+
+### PROXY CONFIGURATION
+```
+DESARROLLO (vite.config.ts):
+- /api/sessions/* → pampaservers.com:60513 (WAHA)
+- /api/* → localhost:8000 (FastAPI Backend)
+- Auto-inject API Keys: X-Api-Key headers
+
+PRODUCCIÓN (vercel.json):
+- /api/waha/* → pampaservers.com:60513 (WAHA)
+- /api/proxy/* → pampaservers.com:60520 (Strapi legacy)
+- /api/n8n/* → dev-n8n.pampaservers.com (N8N)
+- CORS Headers automáticos
+```
+
+## 🔌 INTEGRACIONES EXTERNAS
+
+### WHATSAPP BUSINESS (WAHA)
+```
+PROPÓSITO: Comunicación automática con pacientes
+SERVIDOR: pampaservers.com:60513
+API KEY: pampaserver2025enservermuA!
+
+FLUJO:
+1. Clinic Login → Generate Session Name (clinic.suscriber)
+2. Start Session → POST /api/sessions/{session}/start
+3. QR Code → GET /api/sessions/{session}/auth/qr
+4. Status Check → GET /api/sessions/{session}
+5. Send Messages → POST /api/sessions/{session}/messages
+
+COMPONENTES:
+- WhatsAppWAHA.tsx (UI principal)
+- useWAHAService.ts (lógica negocio)
+- wahaConfig.ts (configuración)
+- Auto-refresh cada 3 minutos
+```
+
+### GOOGLE CALENDAR
+```
+PROPÓSITO: Sincronización calendario médico
+API: Google Calendar API v3
+
+FLUJO:
+1. OAuth2 Authorization → Google Auth
+2. Calendar Access → Read/Write permissions
+3. Event Sync → Appointments ↔ Google Events
+4. Conflict Detection → Prevent double booking
+
+COMPONENTES:
+- GoogleCalendarAuth.tsx
+- GoogleCalendarScheduler.tsx
+- MedicalCalendar.tsx
+- EventForm.tsx
+```
+
+### N8N AUTOMATION
+```
+PROPÓSITO: Workflows automatización
+SERVIDOR: dev-n8n.pampaservers.com
+LIMITACIÓN: CORS en desarrollo
+
+FLUJO:
+1. Workflow Trigger → Patient events
+2. Process Automation → Email/SMS/WhatsApp
+3. Data Sync → Multiple systems
+4. Status Monitoring → Workflow health
+
+ESTADO: Parcialmente implementado (CORS issues)
+```
+
+## 🚧 ETAPAS FALTANTES Y MEJORAS IDENTIFICADAS
+
+### 1. AUTENTICACIÓN Y SEGURIDAD
+```
+❌ FALTANTES:
+- Refresh token mechanism
+- Role-based access control (RBAC)
+- Password reset workflow
+- Two-factor authentication (2FA)
+- Session timeout management
+- API rate limiting
+- Input sanitization
+
+✅ MEJORAS SUGERIDAS:
+- Implementar refresh tokens
+- JWT blacklist para logout
+- Encriptación de datos sensibles
+- Audit logs para acciones admin
+- Brute force protection
+```
+
+### 2. GESTIÓN DE PACIENTES
+```
+❌ FALTANTES:
+- Upload y gestión documentos médicos
+- Historial médico detallado
+- Alergias y medicamentos
+- Consentimientos informados
+- Fotografías médicas
+- Resultados de laboratorio
+- Comunicación familiar
+
+✅ MEJORAS SUGERIDAS:
+- Document storage system (AWS S3/CloudFlare)
+- Medical timeline view
+- Family access portal
+- Mobile app para pacientes
+- Appointment reminders via WhatsApp
+```
+
+### 3. PROFESIONALES Y SERVICIOS
+```
+❌ FALTANTES:
+- Calendario individual por profesional
+- Gestión de servicios y precios
+- Horarios de trabajo flexibles
+- Gestión de ausencias
+- Performance analytics
+- Commission tracking
+- Professional mobile app
+
+✅ MEJORAS SUGERIDAS:
+- Professional dashboard
+- Service type management (IMPLEMENTADO)
+- Revenue tracking per professional
+- Patient satisfaction surveys
+- Professional ratings system
+```
+
+### 4. SISTEMA DE CITAS
+```
+❌ FALTANTES:
+- Booking online para pacientes
+- Confirmación automática citas
+- Recordatorios automáticos
+- Gestión lista de espera
+- Reprogramación automática
+- Integración con Google Calendar (PARCIAL)
+- Payment integration
+
+✅ MEJORAS SUGERIDAS:
+- Patient self-booking portal
+- SMS/WhatsApp reminders
+- Cancellation policies
+- Waitlist management
+- Multi-location support
+```
+
+### 5. COMUNICACIÓN Y NOTIFICACIONES
+```
+❌ FALTANTES:
+- Email templates sistema
+- SMS notifications
+- Push notifications móvil
+- Newsletter management
+- Patient surveys
+- Marketing campaigns
+- Multi-language support
+
+✅ MEJORAS SUGERIDAS:
+- Email service integration (SendGrid/Mailgun)
+- Template management system
+- Patient communication preferences
+- Automated follow-up sequences
+```
+
+### 6. REPORTES Y ANALYTICS
+```
+❌ FALTANTES:
+- Dashboard analytics avanzado
+- Financial reports
+- Patient demographics
+- Professional performance
+- Appointment statistics
+- Revenue tracking
+- Export capabilities (PDF/Excel)
+
+✅ MEJORAS SUGERIDAS:
+- Business intelligence dashboard
+- Automated reporting
+- KPI tracking
+- Trend analysis
+- Comparative analytics
+```
+
+### 7. FACTURACIÓN Y PAGOS
+```
+❌ FALTANTES:
+- Invoice generation
+- Payment processing
+- Insurance handling
+- Payment plans
+- Refund management
+- Tax compliance
+- Accounting integration
+
+✅ MEJORAS SUGERIDAS:
+- Payment gateway integration (Stripe/PayPal)
+- Automated invoicing
+- Insurance claim processing
+- Financial dashboard
+```
+
+### 8. MOBILE EXPERIENCE
+```
+❌ FALTANTES:
+- Progressive Web App (PWA)
+- Native mobile apps
+- Offline functionality
+- Mobile-specific UI/UX
+- Push notifications
+- Biometric authentication
+
+✅ MEJORAS SUGERIDAS:
+- React Native apps
+- PWA optimization
+- Mobile-first design
+- Touch gestures
+```
+
+### 9. INTEGRACIONES AVANZADAS
+```
+❌ FALTANTES:
+- Laboratory systems integration
+- Imaging systems (DICOM)
+- Electronic Health Records (EHR)
+- Insurance verification
+- Pharmacy integration
+- Telehealth platform
+- AI-powered diagnostics
+
+✅ MEJORAS SUGERIDAS:
+- HL7 FHIR compliance
+- DICOM viewer integration
+- Telemedicine capabilities
+- AI chatbot for basic consultations
+```
+
+### 10. ESCALABILIDAD Y PERFORMANCE
+```
+❌ FALTANTES:
+- Database optimization
+- Caching strategy (Redis)
+- CDN implementation
+- Load balancing
+- Database sharding
+- Backup automation
+- Disaster recovery
+
+✅ MEJORAS SUGERIDAS:
+- MongoDB indexing optimization
+- Redis for session storage
+- CloudFlare CDN
+- Automated backups
+- Multi-region deployment
+```
+
+## 🎯 ROADMAP DE IMPLEMENTACIÓN
+
+### FASE 1: CORE IMPROVEMENTS (1-2 meses)
+```
+1. Implementar gestión de servicios profesionales ✅
+2. Mejorar autenticación con refresh tokens
+3. Sistema de documentos médicos básico
+4. Optimización performance frontend
+5. Mobile responsiveness completo
+```
+
+### FASE 2: ADVANCED FEATURES (2-3 meses)
+```
+1. Sistema completo de citas online
+2. Integración completa Google Calendar
+3. Notificaciones WhatsApp automáticas
+4. Dashboard analytics básico
+5. Sistema de facturación simple
+```
+
+### FASE 3: SCALE & INTEGRATE (3-4 meses)
+```
+1. PWA implementation
+2. Advanced reporting system
+3. Multi-location support
+4. Payment gateway integration
+5. Advanced security features
+```
+
+### FASE 4: ENTERPRISE FEATURES (4-6 meses)
+```
+1. AI-powered features
+2. Telehealth integration
+3. EHR compliance
+4. Multi-language support
+5. Advanced analytics & BI
+```
+
+## 📊 MÉTRICAS DE CALIDAD ACTUAL
+
+### FRONTEND
+```
+✅ Strengths:
+- TypeScript implementation (100%)
+- Modern React patterns
+- Component reusability (shadcn/ui)
+- Responsive design
+- Error handling
+
+⚠️ Areas for Improvement:
+- Test coverage (0% - necesita implementación)
+- Performance optimization
+- Accessibility compliance
+- SEO optimization
+- Bundle size optimization
+```
+
+### BACKEND
+```
+✅ Strengths:
+- FastAPI modern framework
+- MongoDB flexibility
+- Type annotations
+- API documentation (OpenAPI)
+- Authentication system
+
+⚠️ Areas for Improvement:
+- Test coverage (básica)
+- Error handling consistency
+- Data validation enhancement
+- Performance optimization
+- Security hardening
+```
+
+### INTEGRACIONES
+```
+✅ Strengths:
+- WhatsApp Business functional
+- Google Calendar basic integration
+- Proxy configuration working
+
+⚠️ Areas for Improvement:
+- Error handling robustness
+- Integration monitoring
+- Fallback mechanisms
+- Rate limiting
+- Integration testing
+```
+
+## 🔧 TECNOLOGÍAS Y DEPENDENCIAS
+
+### FRONTEND STACK
+```
+Core: React 18 + TypeScript + Vite
+UI: shadcn/ui + Tailwind CSS + Radix UI
+State: TanStack Query + React Context
+Forms: React Hook Form + Zod validation
+Router: React Router v6
+Charts: Recharts
+Calendar: React Day Picker
+HTTP: Fetch API + Proxy
+Build: Vite + SWC
+Deploy: Vercel
+```
+
+### BACKEND STACK
+```
+Core: FastAPI + Python 3.9+
+Database: MongoDB + Motor (async)
+Auth: JWT + bcrypt
+Validation: Pydantic v2
+API Docs: OpenAPI/Swagger
+CORS: FastAPI-CORS
+Deploy: Uvicorn + potential Docker
+```
+
+### EXTERNAL SERVICES
+```
+WhatsApp: WAHA (pampaservers.com:60513)
+Calendar: Google Calendar API v3
+Automation: N8N (dev-n8n.pampaservers.com)
+Legacy: Strapi (pampaservers.com:60520)
+```
+
+Este diagrama de flujo proporciona una visión completa del sistema actual y las mejoras necesarias para convertirlo en una plataforma médica robusta y escalable.

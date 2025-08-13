@@ -1,0 +1,304 @@
+# API ENDPOINTS DOCUMENTATION FOR FLOWCHART
+# Clinic Admin Backend API v1.0.0
+# Base URL: http://localhost:8000
+
+## AUTHENTICATION ENDPOINTS
+### POST /api/auth/login
+- Description: Login for admins, clinics, and professionals
+- Input: LoginRequest (email, password, user_type)
+- Output: Token (access_token, token_type)
+- Security: API Key or Bearer Token
+
+### POST /api/auth/clinic-login
+- Description: Simple clinic login endpoint for frontend compatibility
+- Input: ClinicLoginRequest (email, password)
+- Output: Clinic data object
+- Security: API Key or Bearer Token
+
+### POST /api/auth/token
+- Description: OAuth2 compatible login endpoint
+- Input: Form data (username, password)
+- Output: Token (access_token, token_type)
+- Security: API Key or Bearer Token
+
+## CLINIC MANAGEMENT ENDPOINTS
+### GET /api/clinics/stats
+- Description: Get clinic statistics
+- Input: None
+- Output: ClinicStatsResponse
+- Security: API Key or Bearer Token
+
+### GET /api/clinics/public
+- Description: List active clinics (public endpoint - limited info)
+- Input: limit (optional, max 50, default 10)
+- Output: Array of ClinicResponse
+- Security: API Key or Bearer Token
+
+### GET /api/clinics/
+- Description: List clinics with filters
+- Input: skip, limit, status, subscription_status, search (all optional)
+- Output: Array of ClinicResponse
+- Security: API Key or Bearer Token
+
+### POST /api/clinics/
+- Description: Create new clinic with automatic unique ID generation
+- Input: ClinicCreate object
+- Output: ClinicResponse
+- Security: API Key or Bearer Token
+
+### GET /api/clinics/{clinic_id}
+- Description: Get clinic by ID
+- Input: clinic_id (path parameter)
+- Output: ClinicResponse
+- Security: API Key or Bearer Token
+
+### PUT /api/clinics/{clinic_id}
+- Description: Update clinic
+- Input: clinic_id (path), ClinicUpdate object
+- Output: ClinicResponse
+- Security: API Key or Bearer Token
+
+### DELETE /api/clinics/{clinic_id}
+- Description: Delete clinic (soft delete - mark as inactive)
+- Input: clinic_id (path parameter)
+- Output: Success response
+- Security: API Key or Bearer Token
+
+### PATCH /api/clinics/{clinic_id}/subscription
+- Description: Update clinic subscription
+- Input: clinic_id (path), SubscriptionUpdate object
+- Output: ClinicResponse
+- Security: API Key or Bearer Token
+
+### PATCH /api/clinics/{clinic_id}/status
+- Description: Activate/deactivate clinic
+- Input: clinic_id (path), status_clinic (query: active|inactive|suspended)
+- Output: Success response
+- Security: API Key or Bearer Token
+
+## PATIENT MANAGEMENT ENDPOINTS
+### GET /api/patients/
+- Description: List patients with filters
+- Input: skip, limit, clinic_id, status, search (all optional)
+- Output: Array of PatientResponse
+- Security: API Key or Bearer Token
+
+### POST /api/patients/
+- Description: Create new patient
+- Input: PatientCreate object
+- Output: PatientResponse
+- Security: API Key or Bearer Token
+
+### GET /api/patients/search/by-dni
+- Description: Search patient by DNI in specific clinic
+- Input: clinic_id (required), dni (required)
+- Output: PatientResponse
+- Security: API Key or Bearer Token
+
+### GET /api/patients/{patient_id}
+- Description: Get patient by ID
+- Input: patient_id (path parameter)
+- Output: PatientResponse
+- Security: API Key or Bearer Token
+
+### PUT /api/patients/{patient_id}
+- Description: Update patient
+- Input: patient_id (path), PatientUpdate object
+- Output: PatientResponse
+- Security: API Key or Bearer Token
+
+### DELETE /api/patients/{patient_id}
+- Description: Delete patient (soft delete - mark as archived)
+- Input: patient_id (path parameter)
+- Output: Success response
+- Security: API Key or Bearer Token
+
+### GET /api/patients/clinic/{clinic_id}
+- Description: Get patients by clinic ID
+- Input: clinic_id (path), skip, limit, status (optional)
+- Output: Array of PatientResponse
+- Security: API Key or Bearer Token
+
+### POST /api/patients/{patient_id}/visit
+- Description: Add visit to patient history
+- Input: patient_id (path), visit data object
+- Output: PatientResponse
+- Security: API Key or Bearer Token
+
+### POST /api/patients/{patient_id}/documents
+- Description: Upload document for patient
+- Input: patient_id (path), multipart/form-data file
+- Output: Success response
+- Security: API Key or Bearer Token
+
+### GET /api/patients/{patient_id}/documents
+- Description: Get patient documents
+- Input: patient_id (path parameter)
+- Output: Documents list
+- Security: API Key or Bearer Token
+
+### GET /api/patients/{patient_id}/history
+- Description: Get patient visit history
+- Input: patient_id (path parameter)
+- Output: Array of visit objects
+- Security: API Key or Bearer Token
+
+### PATCH /api/patients/{patient_id}/share
+- Description: Share patient information with a specific professional
+- Input: patient_id (path), professional_id (query), notes (optional query)
+- Output: PatientResponse
+- Security: API Key or Bearer Token
+
+### POST /api/patients/clinic/{clinic_id}/appointment
+- Description: Create appointment and add visit to patient history
+- Input: clinic_id (path), patient_id, professional_id, appointment_date (required queries), diagnosis, treatment, notes (optional queries)
+- Output: PatientResponse
+- Security: API Key or Bearer Token
+
+## PROFESSIONAL MANAGEMENT ENDPOINTS
+### GET /api/professionals/
+- Description: List professionals with filters
+- Input: skip, limit, clinic_id, status, speciality, search (all optional)
+- Output: Array of ProfessionalResponse
+- Security: API Key or Bearer Token
+
+### POST /api/professionals/
+- Description: Create new professional
+- Input: ProfessionalCreate object
+- Output: ProfessionalResponse
+- Security: API Key or Bearer Token
+
+### GET /api/professionals/{professional_id}
+- Description: Get professional by ID
+- Input: professional_id (path parameter)
+- Output: ProfessionalResponse
+- Security: API Key or Bearer Token
+
+### PUT /api/professionals/{professional_id}
+- Description: Update professional
+- Input: professional_id (path), ProfessionalUpdate object
+- Output: ProfessionalResponse
+- Security: API Key or Bearer Token
+
+### DELETE /api/professionals/{professional_id}
+- Description: Delete professional (soft delete - mark as inactive)
+- Input: professional_id (path parameter)
+- Output: Success response
+- Security: API Key or Bearer Token
+
+### GET /api/professionals/clinic/{clinic_id}
+- Description: Get professionals by clinic ID
+- Input: clinic_id (path), skip, limit, status, speciality (optional)
+- Output: Array of ProfessionalResponse
+- Security: API Key or Bearer Token
+
+### PATCH /api/professionals/{professional_id}/status
+- Description: Change professional status
+- Input: professional_id (path), status_professional (query: active|inactive|vacation)
+- Output: Success response
+- Security: API Key or Bearer Token
+
+### GET /api/professionals/clinic/{clinic_id}/stats
+- Description: Get professionals statistics for a clinic
+- Input: clinic_id (path parameter)
+- Output: Statistics object
+- Security: API Key or Bearer Token
+
+## ADMIN DASHBOARD ENDPOINTS
+### GET /api/admin/test
+- Description: Test endpoint to verify admin API is working
+- Input: None
+- Output: Success response
+- Security: API Key or Bearer Token
+
+### GET /api/admin/dashboard/stats
+- Description: Get admin dashboard statistics
+- Input: None
+- Output: Statistics object
+- Security: API Key or Bearer Token
+
+### GET /api/admin/subscription-plans
+- Description: Get available subscription plans
+- Input: None
+- Output: Subscription plans list
+- Security: API Key or Bearer Token
+
+### GET /api/admin/clinics
+- Description: Get list of all clinics
+- Input: None
+- Output: Clinics list
+- Security: API Key or Bearer Token
+
+### POST /api/admin/clinics
+- Description: Create new clinic with full admin capabilities
+- Input: Clinic data object
+- Output: ClinicResponse
+- Security: API Key or Bearer Token
+
+### GET /admin/
+- Description: Serve the admin frontend application
+- Input: None
+- Output: Admin HTML page
+- Security: API Key or Bearer Token
+
+## FLOWCHART WORKFLOW SUGGESTIONS
+
+### AUTHENTICATION FLOW
+1. START → Login Request → POST /api/auth/login or /api/auth/clinic-login
+2. Validate Credentials → Return Token → Store Token for subsequent requests
+3. Use Token in Authorization header for all subsequent API calls
+
+### CLINIC MANAGEMENT FLOW
+1. List Clinics → GET /api/clinics/ (with filters)
+2. View Clinic Details → GET /api/clinics/{clinic_id}
+3. Create New Clinic → POST /api/clinics/
+4. Update Clinic → PUT /api/clinics/{clinic_id}
+5. Update Subscription → PATCH /api/clinics/{clinic_id}/subscription
+6. Change Status → PATCH /api/clinics/{clinic_id}/status
+7. Delete Clinic → DELETE /api/clinics/{clinic_id}
+
+### PATIENT MANAGEMENT FLOW
+1. List Patients by Clinic → GET /api/patients/clinic/{clinic_id}
+2. Search Patient by DNI → GET /api/patients/search/by-dni
+3. View Patient Details → GET /api/patients/{patient_id}
+4. Create New Patient → POST /api/patients/
+5. Update Patient → PUT /api/patients/{patient_id}
+6. Add Visit to History → POST /api/patients/{patient_id}/visit
+7. Upload Documents → POST /api/patients/{patient_id}/documents
+8. View History → GET /api/patients/{patient_id}/history
+9. Share with Professional → PATCH /api/patients/{patient_id}/share
+10. Create Appointment → POST /api/patients/clinic/{clinic_id}/appointment
+
+### PROFESSIONAL MANAGEMENT FLOW
+1. List Professionals by Clinic → GET /api/professionals/clinic/{clinic_id}
+2. View Professional Details → GET /api/professionals/{professional_id}
+3. Create New Professional → POST /api/professionals/
+4. Update Professional → PUT /api/professionals/{professional_id}
+5. Change Status → PATCH /api/professionals/{professional_id}/status
+6. View Statistics → GET /api/professionals/clinic/{clinic_id}/stats
+7. Delete Professional → DELETE /api/professionals/{professional_id}
+
+### ADMIN DASHBOARD FLOW
+1. Access Admin Panel → GET /admin/
+2. View Dashboard Stats → GET /api/admin/dashboard/stats
+3. Manage All Clinics → GET /api/admin/clinics
+4. Create Clinic with Admin Rights → POST /api/admin/clinics
+5. View Subscription Plans → GET /api/admin/subscription-plans
+
+## DATA MODELS REFERENCE
+- ClinicResponse: clinic data with subscription info
+- PatientResponse: patient data with history and documents
+- ProfessionalResponse: professional data with specialties and status
+- Token: authentication token with expiry
+- LoginRequest: email, password, user_type
+- ClinicCreate/Update: clinic creation and update data
+- PatientCreate/Update: patient creation and update data
+- ProfessionalCreate/Update: professional creation and update data
+
+## STATUS CODES
+- 200: Success
+- 201: Created
+- 422: Validation Error
+- 401: Unauthorized
+- 404: Not Found
+- 500: Internal Server Error

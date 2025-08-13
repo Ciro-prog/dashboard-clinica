@@ -1,0 +1,2545 @@
+{
+  "name": "Clinica Estructurado",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "to_field",
+              "name": "to",
+              "value": "={{ $json.me.id }}",
+              "type": "string"
+            },
+            {
+              "id": "session_field",
+              "name": "session",
+              "value": "={{ $json.session }}",
+              "type": "string"
+            },
+            {
+              "id": "message_field",
+              "name": "message",
+              "value": "={{ $json.payload }}",
+              "type": "object"
+            },
+            {
+              "id": "chat_id_field",
+              "name": "chat_id",
+              "value": "={{ $json.payload.id }}",
+              "type": "string"
+            },
+            {
+              "id": "start_time_field",
+              "name": "start_time",
+              "value": "={{ $now.toMillis() }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2540,
+        -420
+      ],
+      "id": "ecdbe33b-878c-406d-bf69-75f0d7b06725",
+      "name": "Edit Fields Initial"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        4700,
+        -460
+      ],
+      "id": "59596a46-ed92-4401-9dce-541623b29aa4",
+      "name": "Message Filtered Out"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ✅ Message Aggregator v2.1 - Buffer Compatible\n// Adaptado para procesar salida del Information Extractor del workflow de buffer\n\nconst inputData = $input.first().json;\n\n// ✅ NUEVO: Detectar si viene del buffer workflow\nlet consolidatedMessage = '';\nlet isFromBuffer = false;\nlet messageCount = 1;\n\n// Verificar si viene del Information Extractor (buffer)\nif (inputData.output && inputData.output.consolidated_message) {\n  consolidatedMessage = inputData.output.consolidated_message;\n  isFromBuffer = true;\n  // Estimar cantidad de mensajes basado en contenido\n  messageCount = Math.max(1, Math.floor(consolidatedMessage.split(/[.!?]+/).length / 2));\n} \n// Fallback: mensaje individual directo\nelse {\n  consolidatedMessage = inputData.chat_input || inputData.normalized?.text || inputData.message || '';\n  isFromBuffer = false;\n  messageCount = 1;\n}\n\n// Si no hay texto, usar fallback\nif (!consolidatedMessage || consolidatedMessage.trim() === '') {\n  consolidatedMessage = inputData.user_message || inputData.text || 'Mensaje sin contenido';\n}\n\n// Extraer entidades básicas del mensaje consolidado\nconst text = consolidatedMessage.toLowerCase();\nconst combinedEntities = {\n  dni: extractDNI(consolidatedMessage),\n  fecha: extractFecha(consolidatedMessage),\n  horario: extractHorario(consolidatedMessage),\n  isInfoQuery: /información|info|consulta|pregunta|duda/.test(text),\n  isTurnoQuery: /turno|cita|consulta|agendar|reservar|hora/.test(text),\n  isModificationQuery: /cambiar|modificar|cancelar|mover|reprogramar/.test(text),\n  isGreeting: /hola|buenos|buenas|saludos/.test(text),\n  isFarewell: /chau|adiós|hasta|gracias/.test(text)\n};\n\n// Determinar tipo de query\nlet finalQueryType = 'general';\nif (combinedEntities.isModificationQuery) finalQueryType = 'modification';\nelse if (combinedEntities.isTurnoQuery) finalQueryType = 'turno';\nelse if (combinedEntities.isInfoQuery) finalQueryType = 'info';\nelse if (combinedEntities.isGreeting) finalQueryType = 'greeting';\nelse if (combinedEntities.isFarewell) finalQueryType = 'farewell';\n\n// Determinar complejidad\nconst finalComplexity = (combinedEntities.dni || combinedEntities.fecha || combinedEntities.horario) ? 'complex' : 'simple';\nconst requiresVerification = combinedEntities.dni || combinedEntities.isModificationQuery;\n\n// ✅ RESULTADO ADAPTADO: Compatible con tu AI Agent\nconst result = {\n  // Input principal para AI (texto consolidado del buffer)\n  chat_input: consolidatedMessage,\n  from: inputData.from || inputData.chat_id || 'unknown',\n  \n  // Contexto agregado\n  aggregated_context: {\n    queryType: finalQueryType,\n    complexity: finalComplexity,\n    requiresVerification: requiresVerification,\n    isCacheable: finalQueryType === 'info' && !combinedEntities.dni,\n    messageCount: messageCount,\n    wasBuffered: isFromBuffer  // ✅ NUEVO: Indica si pasó por buffer\n  },\n  \n  // Entidades combinadas del mensaje consolidado\n  combined_entities: combinedEntities,\n  \n  // Métricas de agregación\n  aggregation_metrics: {\n    messages_processed: messageCount,\n    total_text_length: consolidatedMessage.length,\n    processing_time_span: isFromBuffer ? (messageCount * 5000) : 0, // Estimado\n    aggregation_timestamp: Date.now(),\n    buffer_processed: isFromBuffer\n  },\n  \n  // Para debugging\n  debug_info: {\n    input_structure: isFromBuffer ? 'buffer_output' : 'direct_message',\n    consolidated_text: consolidatedMessage.substring(0, 100) + '...',\n    detected_entities: Object.keys(combinedEntities).filter(k => combinedEntities[k]),\n    original_input: inputData\n  },\n  \n  // Pasar datos necesarios para siguientes pasos\n  session: inputData.session || 'default',\n  chat_id: inputData.chat_id || inputData.context_id || inputData.from,\n  start_time: inputData.start_time || Date.now(),\n  ready_for_ai: true\n};\n\nreturn result;\n\n// ✅ FUNCIONES HELPER\nfunction extractDNI(text) {\n  const dniMatch = text.match(/\\b\\d{7,8}\\b/);\n  return dniMatch ? dniMatch[0] : null;\n}\n\nfunction extractFecha(text) {\n  const fechaMatch = text.match(/\\b\\d{1,2}\\/\\d{1,2}\\/\\d{4}\\b|\\b\\d{1,2}-\\d{1,2}-\\d{4}\\b/);\n  return fechaMatch ? fechaMatch[0] : null;\n}\n\nfunction extractHorario(text) {\n  const horarioMatch = text.match(/\\b\\d{1,2}:\\d{2}\\b|\\b\\d{1,2}\\s*(am|pm|hs|horas)\\b/i);\n  return horarioMatch ? horarioMatch[0] : null;\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7760,
+        -740
+      ],
+      "id": "0c8c3554-6dfa-4846-803f-9f497d6641d3",
+      "name": "Message Aggregator"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ✅ OPTIMIZED: Security Filter v2.1 (con métricas) - FIXED\n// Filtro de seguridad mejorado con logging detallado\n\nconst inputData = $input.first().json;  // ✅ CORREGIDO: Sin .body\nconst userMessage = inputData.chat_input || '';\nconst startTime = Date.now();\n\n// ===============================\n// VALIDACIÓN BÁSICA\n// ===============================\nif (!userMessage || userMessage.length === 0) {\n  return {\n    securityStatus: 'EMPTY_MESSAGE',\n    blocked: false,\n    message: userMessage,\n    reason: 'Mensaje vacío',\n    allowProcessing: false,\n    agentResponse: 'Por favor, escribe tu consulta.',\n    metrics: {\n      security_check_time: Date.now() - startTime,\n      message_length: 0,\n      risk_level: 'none',\n      patterns_detected: {}\n    },\n    // Pasar datos del flujo anterior\n    originalData: inputData\n  };\n}\n\n// ===============================\n// NORMALIZACIÓN PARA ANÁLISIS\n// ===============================\nconst normalizedMessage = userMessage.toLowerCase()\n  .replace(/\\s+/g, ' ')\n  .trim();\n\n// ===============================\n// PATRONES DE SEGURIDAD (igual que original)\n// ===============================\nconst securityPatterns = {\n  informacion_privada: [\n    'quién tiene turno', 'quien tiene turno', 'turno de ', 'turnos de ',\n    'paciente de las', 'pacientes de las', 'lista de pacientes',\n    'todos los turnos', 'después de mí', 'antes de mí', 'otros pacientes',\n    'el turno de las', 'información de otros', 'datos de otros',\n    'teléfono de ', 'dirección de ', 'dni de otros', 'dame la lista', 'a nombre de'\n  ],\n  \n  consultas_agenda_indirectas: [\n    'qué turnos hay', 'que turnos hay', 'cuántos turnos', 'cuantos turnos',\n    'hay turnos', 'otros turnos', 'turnos del día', 'turnos antes',\n    'turnos después', 'antes que el mío', 'después que el mío'\n  ],\n  \n  consultas_ocupacion: [\n    'está lleno', 'esta lleno', 'muy ocupado', 'muchos pacientes',\n    'cuántos pacientes', 'cuantos pacientes', 'hay mucha gente',\n    'está muy lleno', 'esta muy lleno', 'día completo', 'agenda llena'\n  ],\n  \n  nombres_comunes: [\n    'juan', 'maría', 'ana', 'carlos', 'pedro', 'luis', 'jorge',\n    'laura', 'sofia', 'diego', 'patricia', 'gonzalez', 'martinez'\n  ],\n  \n  contextos_sospechosos: [\n    'turno de', 'paciente', 'tiene turno', 'información de',\n    'datos de', 'teléfono de', 'dirección de', 'dni de'\n  ],\n  \n  consulta_personal: [\n    'mi turno', 'mi nombre', 'me llamo', 'soy ', 'mi dni',\n    'mi teléfono', 'quiero', 'necesito', 'quisiera', 'busco',\n    'hola', 'buenos', 'buenas', 'gracias', 'por favor'\n  ]\n};\n\n// ===============================\n// ANÁLISIS DE SEGURIDAD\n// ===============================\nconst tieneInformacionPrivada = securityPatterns.informacion_privada.some(pattern => \n  normalizedMessage.includes(pattern)\n);\n\nconst tieneConsultaAgendaIndirecta = securityPatterns.consultas_agenda_indirectas.some(pattern => \n  normalizedMessage.includes(pattern)\n);\n\nconst tieneConsultaOcupacion = securityPatterns.consultas_ocupacion.some(pattern => \n  normalizedMessage.includes(pattern)\n);\n\nconst tieneNombre = securityPatterns.nombres_comunes.some(nombre => \n  normalizedMessage.includes(nombre)\n);\n\nconst tieneContextoSospechoso = securityPatterns.contextos_sospechosos.some(contexto => \n  normalizedMessage.includes(contexto)\n);\n\nconst nombreEnContextoSospechoso = tieneNombre && tieneContextoSospechoso;\n\nconst esConsultaPersonal = securityPatterns.consulta_personal.some(palabra => \n  normalizedMessage.includes(palabra)\n);\n\nconst dniPattern = /\\b\\d{7,8}\\b/g;\nconst tieneDNI = dniPattern.test(normalizedMessage);\nconst dniEnContextoTerceros = tieneDNI && (\n  normalizedMessage.includes('es de') ||\n  normalizedMessage.includes('pertenece') ||\n  normalizedMessage.includes('corresponde') ||\n  nombreEnContextoSospechoso\n);\n\nconst esCasoMixto = esConsultaPersonal && (tieneConsultaAgendaIndirecta || tieneConsultaOcupacion);\n\n// ===============================\n// DECISIÓN DE SEGURIDAD\n// ===============================\nlet securityStatus = 'SAFE';\nlet blocked = false;\nlet reason = '';\nlet agentResponse = '';\nlet riskLevel = 'low';\n\nif (tieneInformacionPrivada) {\n  securityStatus = 'BLOCKED_PRIVATE_INFO';\n  blocked = true;\n  reason = 'Solicitud de información privada de otros pacientes';\n  agentResponse = 'Por políticas de privacidad, no puedo proporcionar información sobre otros pacientes. ¿En qué puedo ayudarte con tu consulta personal?';\n  riskLevel = 'high';\n} else if (tieneConsultaAgendaIndirecta) {\n  securityStatus = 'BLOCKED_AGENDA_QUERY';\n  blocked = true;\n  reason = 'Consulta indirecta sobre agenda/horarios de otros pacientes';\n  agentResponse = 'Por políticas de privacidad, no puedo proporcionar información sobre horarios de otros pacientes. Solo puedo ayudarte con tu propia consulta.';\n  riskLevel = 'medium';\n} else if (tieneConsultaOcupacion) {\n  securityStatus = 'BLOCKED_OCUPACION_QUERY';\n  blocked = true;\n  reason = 'Consulta sobre ocupación/cantidad de pacientes';\n  agentResponse = 'Por políticas de privacidad, no puedo proporcionar información sobre la cantidad de pacientes o ocupación del día. ¿En qué puedo ayudarte con tu consulta personal?';\n  riskLevel = 'medium';\n} else if (esCasoMixto) {\n  securityStatus = 'BLOCKED_MIXED_SUSPICIOUS';\n  blocked = true;\n  reason = 'Caso mixto: consulta personal con solicitud de información de terceros';\n  agentResponse = 'Por políticas de privacidad, no puedo proporcionar información sobre otros pacientes o la agenda general. ¿Hay algo específico sobre tu consulta personal en lo que pueda ayudarte?';\n  riskLevel = 'medium';\n} else if (nombreEnContextoSospechoso && !esConsultaPersonal) {\n  securityStatus = 'BLOCKED_THIRD_PARTY';\n  blocked = true;\n  reason = 'Consulta sobre información de terceros detectada';\n  agentResponse = 'Por políticas de privacidad, no puedo proporcionar información sobre otros pacientes. ¿Hay algo en lo que pueda ayudarte personalmente?';\n  riskLevel = 'high';\n} else if (dniEnContextoTerceros) {\n  securityStatus = 'BLOCKED_THIRD_PARTY_DNI';\n  blocked = true;\n  reason = 'DNI de terceros en contexto sospechoso';\n  agentResponse = 'Por políticas de privacidad, no puedo acceder a información de otros pacientes. ¿Necesitas ayuda con tu propia consulta?';\n  riskLevel = 'high';\n} else {\n  securityStatus = 'SAFE';\n  blocked = false;\n  reason = 'Mensaje aprobado para procesamiento';\n  riskLevel = 'low';\n}\n\n// ===============================\n// RESULTADO CON MÉTRICAS\n// ===============================\nconst result = {\n  // Status principal\n  securityStatus: securityStatus,\n  blocked: blocked,\n  allowProcessing: !blocked,\n  \n  // Mensaje para AI Agent\n  message: userMessage,\n  normalizedMessage: normalizedMessage,\n  \n  // Análisis de seguridad\n  analysis: {\n    reason: reason,\n    tieneInformacionPrivada: tieneInformacionPrivada,\n    tieneConsultaAgendaIndirecta: tieneConsultaAgendaIndirecta,\n    tieneConsultaOcupacion: tieneConsultaOcupacion,\n    nombreEnContextoSospechoso: nombreEnContextoSospechoso,\n    esConsultaPersonal: esConsultaPersonal,\n    dniEnContextoTerceros: dniEnContextoTerceros,\n    esCasoMixto: esCasoMixto\n  },\n  \n  // Respuesta para agente (solo si está bloqueado)\n  agentResponse: blocked ? agentResponse : null,\n  \n  // ✅ MÉTRICAS MEJORADAS\n  metrics: {\n    security_check_time: Date.now() - startTime,\n    message_length: userMessage.length,\n    normalized_length: normalizedMessage.length,\n    risk_level: riskLevel,\n    patterns_detected: {\n      informacion_privada: tieneInformacionPrivada,\n      agenda_indirecta: tieneConsultaAgendaIndirecta,\n      ocupacion: tieneConsultaOcupacion,\n      nombre_sospechoso: nombreEnContextoSospechoso,\n      dni_terceros: dniEnContextoTerceros,\n      caso_mixto: esCasoMixto\n    }\n  },\n  \n  // ✅ CORREGIDO: Pasar datos del flujo anterior con verificaciones defensivas\n  originalData: inputData,\n  from: inputData.from || null,\n  session: inputData.session || null,\n  chat_id: inputData.chat_id || null,\n  \n  // ✅ NUEVO: Pasar datos específicos de la entrada actual\n  aggregated_context: inputData.aggregated_context || null,\n  combined_entities: inputData.combined_entities || null,\n  aggregation_metrics: inputData.aggregation_metrics || null,\n  debug_info: inputData.debug_info || null,\n  ready_for_ai: inputData.ready_for_ai || false,\n  \n  // Metadata\n  timestamp: new Date().toISOString(),\n  securityVersion: '2.1_OPTIMIZED_FIXED'\n};\n\nreturn result;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7960,
+        -740
+      ],
+      "id": "26bf3124-cd30-4fa5-b766-cee53bde2bf2",
+      "name": "Optimized Security Filter"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "security_check",
+              "leftValue": "={{ $json.blocked }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        8180,
+        -740
+      ],
+      "id": "5175322b-6a2a-45c5-9648-f7990a715028",
+      "name": "If Security Passed"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.from }}_session_v2",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        8560,
+        -500
+      ],
+      "id": "028b9cf0-3f16-4157-8282-421bdaf9e458",
+      "name": "Optimized Memory"
+    },
+    {
+      "parameters": {
+        "sseEndpoint": "https://n8n.pampaservers.com/mcp/dde3c86b-fc11-4a83-88d3-95be7124ae23/sse",
+        "include": "selected",
+        "includeTools": [
+          "Actualizar_Evento2",
+          "Obtener_Eventos2",
+          "Eliminar_Evento2",
+          "Crear_evento2"
+        ]
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        8800,
+        -500
+      ],
+      "id": "9ca9405f-2142-4783-9523-424b796f1053",
+      "name": "MCP Calendario"
+    },
+    {
+      "parameters": {
+        "sseEndpoint": "https://n8n.pampaservers.com/mcp/3c43cbf8-665f-48d6-9526-274d0c79a6c9/sse",
+        "include": "selected",
+        "includeTools": [
+          "Agregar_contactos",
+          "Actualizar",
+          "Verificacion_de_datos",
+          "Leer_Contactos"
+        ]
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        8940,
+        -500
+      ],
+      "id": "2d685610-61ad-4896-98ae-e975fe104c24",
+      "name": "MCP Contacto"
+    },
+    {
+      "parameters": {
+        "sseEndpoint": "https://n8n.pampaservers.com/mcp/32b9ee6e-1b55-4c1c-8ebc-d617dd66df0b/sse",
+        "include": "selected",
+        "includeTools": [
+          "info_consultorio_tool"
+        ]
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        9080,
+        -500
+      ],
+      "id": "ffdbe058-848c-4d01-aaf4-15bc8f551147",
+      "name": "Info Profesional"
+    },
+    {
+      "parameters": {
+        "description": "Herramienta inteligente que procesa consultas sobre disponibilidad de turnos. Recibe el mensaje completo del usuario y la envia al workflow Disponibilidad",
+        "workflowId": {
+          "__rl": true,
+          "value": "uetTtboKUdTv35LI",
+          "mode": "list",
+          "cachedResultName": "Disponibilidad"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [
+            "mensaje_completo"
+          ],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        9200,
+        -500
+      ],
+      "id": "6b59fd74-4d26-42f3-826d-f51d7e58a82b",
+      "name": "Disponibilidad Horaria"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ai_output",
+              "name": "ai_response",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "response_blocked",
+              "name": "was_blocked",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "response_source",
+              "name": "source",
+              "value": "ai_agent",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        9360,
+        -900
+      ],
+      "id": "9e992eb8-eefc-4946-8384-c2f8aeded7be",
+      "name": "Prepare AI Response"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "security_response",
+              "name": "ai_response",
+              "value": "={{ $json.agentResponse }}",
+              "type": "string"
+            },
+            {
+              "id": "was_blocked",
+              "name": "was_blocked",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "block_source",
+              "name": "source",
+              "value": "security_filter",
+              "type": "string"
+            },
+            {
+              "id": "block_reason",
+              "name": "block_reason",
+              "value": "={{ $json.reason }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        9360,
+        -740
+      ],
+      "id": "ae2b2c67-980e-4b6d-8ea4-9c94c0e194fb",
+      "name": "Prepare Security Response"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        4800,
+        -80
+      ],
+      "id": "442449ff-62cb-4115-8c89-fa05fcac581b",
+      "name": "Wait",
+      "webhookId": "073c9b85-1c21-43a3-923a-4fd69fcb6adf"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        8400,
+        -500
+      ],
+      "id": "8f4ac90c-804e-4f7b-b517-e9f5a549f81e",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "6dvy7Q0YoRJ42lQs",
+          "name": "Google Gemini(PaLM) Api account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        10740,
+        -480
+      ],
+      "id": "ee83dd15-5258-49e5-b1f6-78a299cb31c4",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "chatId": "={{ $json.message.from }}",
+        "text": "={{ $json.ai_response }}",
+        "requestOptions": {}
+      },
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "typeVersion": 202502,
+      "position": [
+        11200,
+        -480
+      ],
+      "id": "dcdf2061-09df-4165-a15c-c381f15d836b",
+      "name": "Send WhatsApp Response",
+      "credentials": {
+        "wahaApi": {
+          "id": "nj810UVmmHigTbrI",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "=# 🧠 THINK PROCESS - MOTOR DE DECISIONES OPTIMIZADO v3.0\n\n## **FLUJO DE PENSAMIENTO SIMPLIFICADO**\n\n```\nINICIO → Analizar intención del usuario\n\n1. DETECCIÓN RÁPIDA DE TIPO\n   ├─ ¿Es mensaje del sistema exacto? → REENVIAR TAL CUAL + TERMINAR\n   ├─ ¿Es saludo? → BLOQUE_SALUDO\n   ├─ ¿Es información? → BLOQUE_INFORMACIÓN  \n   ├─ ¿Es turno nuevo? → BLOQUE_TURNOS\n   ├─ ¿Es modificación/cancelación? → BLOQUE_MODIFICACIÓN\n   └─ ¿Es despedida? → BLOQUE_DESPEDIDA\n\n2. BLOQUE_SALUDO\n   ├─ Responder cálidamente\n   ├─ ¿También pide información? → Ofrecer opciones específicas\n   ├─ ¿También pide turno? → Ir directo a disponibilidad\n   └─ Solo saludo → Preguntar \"¿En qué puedo ayudarle?\"\n\n3. BLOQUE_INFORMACIÓN\n   ├─ Identificar tipo: precios/horarios/ubicacion/obras_sociales/politicas\n   ├─ Usar `informacion_profesional` con parámetro correcto\n   └─ Preguntar si necesita algo más\n\n4. BLOQUE_TURNOS 🗓️\n   ├─ PASO 1: **EJECUTAR INMEDIATAMENTE** `Disponibilidad_horaria` (sin preguntar fechas primero)\n   ├─ PASO 2: ¿Confirma fecha/hora? \n   │  ├─ NO → Ofrecer nuevas opciones o usar `Obtener_Eventos2`\n   │  └─ SÍ → Continuar\n   ├─ PASO 3: ¿Tiene tipo de consulta definido?\n   │  ├─ NO → Usar `informacion_profesional` tipo \"tipos_consulta\"\n   │  └─ SÍ → Continuar  \n   ├─ PASO 4: Solicitar DNI → `Leer_Contactos`\n   ├─ PASO 5: ¿Es paciente existente?\n   │  ├─ SÍ → Confirmar datos + ir a CREAR_EVENTO\n   │  └─ NO → Solicitar datos completos\n   │         ├─ Nombre, Apellido, Obra Social, Dirección, Teléfono\n   │         ├─ NORMALIZAR datos (minúsculas + sin acentos)\n   │         ├─ `Agregar_contactos` con datos normalizados\n   │         └─ Ir a CREAR_EVENTO\n   └─ CREAR_EVENTO: \n      ├─ Confirmar: fecha + hora + tipo de consulta\n      ├─ **CRÍTICO**: Usar `Crear_evento2` con formato JSON EXACTO:\n      │   {\n      │   \"Comenzar\": \"[FECHA Y HORA INICIO]\",\n      │   \"Fin\": \"[FECHA Y HORA FIN]\", \n      │   \"asistentes0_Asistentes\": \"prueba@tesstt.com\",\n      │   \"Descripción\": \"[TIPO DE CONSULTA]\",\n      │   \"Resumen\": \"DNI: [DNI] - [NOMBRE COMPLETO]\"\n      │   }\n      └─ Confirmar turno creado con ejemplo de cierre\n\n5. BLOQUE_MODIFICACIÓN 🔒\n   ├─ **SEGURIDAD OBLIGATORIA**:\n   │  ├─ Solicitar DNI + dirección\n   │  ├─ NORMALIZAR datos (minúsculas + sin acentos)\n   │  ├─ `Verificacion_de_datos` con datos normalizados\n   │  └─ **EVALUAR {{ $json.securityStatus }}**:\n   │     ├─ SI NO es \"seguro\" → DETENER + derivar a teléfono\n   │     └─ SI es \"seguro\" → Proceder\n   ├─ ¿Modificar? → `Actualizar_evento2` o `Actualizar`\n   ├─ ¿Cancelar? → `Eliminar_Evento2` + políticas cancelación\n   └─ ¿Falla verificación? → Máximo 2 intentos → derivar teléfono\n\n6. BLOQUE_DESPEDIDA\n   ├─ ¿Se completó alguna acción? → Confirmar + datos contacto\n   ├─ Usar ejemplos de cierre del system prompt\n   ├─ `Simple_Memory` para contexto relevante\n   └─ Mensaje profesional y cálido\n\n7. MANEJO DE ERRORES\n   ├─ ¿Herramienta falló? → \"Dificultades técnicas, contactar +54 11 5555-7890\"\n   ├─ ¿Error verificación repetido? → Derivar a teléfono consultorio\n   └─ ¿No entiendo? → Pedir aclaración con opciones específicas\n\nFIN → Esperar nueva interacción\n```\n\n## **🔑 REGLAS CRÍTICAS**\n\n### **📅 FORMATO CALENDARIO (CRÍTICO)**\n**SIEMPRE usar este formato EXACTO para `Crear_evento2`:**\n```json\n{\n\"Comenzar\": \"[YYYY-MM-DD HH:MM]\",\n\"Fin\": \"[YYYY-MM-DD HH:MM]\",\n\"asistentes0_Asistentes\": \"prueba@tesstt.com\",\n\"Descripción\": \"[Tipo específico de consulta]\",\n\"Resumen\": \"DNI: [número] - [Nombre Apellido]\"\n}\n```\n\n### **🔒 SEGURIDAD (OBLIGATORIO)**\n- **NUNCA** modificar/cancelar sin `Verificacion_de_datos`\n- **SIEMPRE** evaluar `{{ $json.securityStatus }}`\n- **SI NO es \"seguro\"** → DETENER inmediatamente\n- **PROTEGER** información de otros pacientes\n\n### **🔤 NORMALIZACIÓN (INTERNO)**\n- **ANTES** de `Agregar_contactos` o `Verificacion_de_datos`\n- **Convertir**: minúsculas + sin acentos (á→a, ñ→n)\n- **Aplicar a**: Nombre, Apellido, Dirección (NO DNI/teléfono)\n- **Cliente NO sabe** de esta normalización\n\n### **💬 COMUNICACIÓN**\n- **Tono**: profesional, empático, cálido\n- **Ejemplos de cierre**: usar los del system prompt\n- **Claridad**: confirmar detalles importantes\n- **Flexibilidad**: entender diferentes formas de expresarse\n\n## **⚠️ ALERTAS CRÍTICAS**\n- **FORMATO JSON**: Sin esto, calendario falla\n- **SEGURIDAD PRIMERO**: Verificar identidad para cambios\n- **2 INTENTOS MÁXIMO**: Después derivar a teléfono\n- **NO PROCESAR**: Mensajes del sistema → reenviar tal cual"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        8680,
+        -500
+      ],
+      "id": "ba1965e2-4552-4ae9-8e02-309a7bb73849",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Start Typing",
+        "chatId": "={{ $json.message.from }}",
+        "requestOptions": {}
+      },
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "typeVersion": 202502,
+      "position": [
+        5020,
+        -80
+      ],
+      "id": "903f8f30-11c2-46d2-a7c5-56034682501d",
+      "name": "WAHA",
+      "credentials": {
+        "wahaApi": {
+          "id": "nj810UVmmHigTbrI",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "chatId": "={{ $json.from }}",
+        "text": "={{ $json.text }}",
+        "requestOptions": {}
+      },
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "typeVersion": 202502,
+      "position": [
+        5080,
+        -440
+      ],
+      "id": "cca09e44-60c7-42a9-a63c-a58e05d5cfff",
+      "name": "Send WhatsApp Response1",
+      "credentials": {
+        "wahaApi": {
+          "id": "nj810UVmmHigTbrI",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "chat_id",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        4900,
+        -440
+      ],
+      "id": "c0d60e0c-64f2-48f5-b3b9-a0575606f1cd",
+      "name": "Merge2",
+      "notes": "Espera exactamente 2 entradas antes de procesar"
+    },
+    {
+      "parameters": {
+        "content": "📱 NOTA: ENTRADA Y FILTRADO",
+        "height": 1060,
+        "width": 1800,
+        "color": 6
+      },
+      "id": "0c461ffd-5004-49ab-9220-508cee442e17",
+      "name": "Sticky Note25",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2240,
+        -1220
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "TRIGGER: WAHA WEBHOOK",
+        "height": 1420,
+        "width": 300,
+        "color": 4
+      },
+      "id": "d77815e6-083d-434d-b8df-545bf1806840",
+      "name": "Sticky Note22",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1880,
+        -1220
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 2360,
+        "width": 10060
+      },
+      "id": "873c160b-7da2-4a0c-8ca9-09d6c9e4c5a6",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1860,
+        -1240
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "🔧 NOTA: PROCESAMIENTO DE DATOS",
+        "height": 700,
+        "width": 3820,
+        "color": 5
+      },
+      "id": "44480f96-edec-428b-b303-5e18454b537c",
+      "name": "Sticky Note26",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        4080,
+        -1220
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "📱 RESPUESTA AUTOMÁTICA DIRECTA\n🔧 NODOS Y FUNCIONES:\nMerge2\n\nCombina datos del mensaje original con respuesta automática usando chat_id\n\n\nSend WhatsApp Response1\n\nEnvía respuesta automática directa via WAHA (bypass del workflow principal)\n\n🎯 FUNCIÓN:\nRespuestas instantáneas para media bloqueada sin procesamiento de IA.\n📊 CASOS:\nAudio/Imagen/Documento → \"No puedo procesar X formato\"",
+        "height": 340,
+        "width": 1260,
+        "color": 4
+      },
+      "id": "be2e9923-d1db-46ce-9d72-62238860a7c0",
+      "name": "Sticky Note27",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        4080,
+        -500
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "💬 MEJORA DE EXPERIENCIA DE USUARIO\n🔧 NODOS Y FUNCIONES:\nWait\n\nPausa breve (~1-2 segundos) para simular tiempo de \"pensamiento\" humano\nEvita respuestas instantáneas que parecen robóticas\n\nWAHA - Start Typing\n\nEnvía indicador \"escribiendo...\" a WhatsApp\nMuestra los tres puntos típicos de \"el usuario está escribiendo\"\nMejora percepción de naturalidad en la conversación\n\n🎯 FUNCIÓN PRINCIPAL:\nHumanización de la experiencia - hace que el bot parezca más natural y menos automático.",
+        "height": 340,
+        "width": 1260,
+        "color": 7
+      },
+      "id": "532cb47c-f0c8-4409-9819-9036add63e28",
+      "name": "Sticky Note28",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        4080,
+        -140
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "🔒 NOTA: SEGURIDAD Y VERIFICACIÓN",
+        "height": 700,
+        "width": 400,
+        "color": 2
+      },
+      "id": "8c3b7213-d45a-4da8-bb67-111f0382f426",
+      "name": "Sticky Note29",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        7920,
+        -1220
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "🤖 NOTA: MOTOR DE IA Y HERRAMIENTAS",
+        "height": 900,
+        "width": 980,
+        "color": 3
+      },
+      "id": "5d7946b0-ccdb-416a-be01-56bdeaf42a20",
+      "name": "Sticky Note30",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        8340,
+        -1220
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 180,
+        "width": 940,
+        "color": 7
+      },
+      "id": "b7db1b3d-769b-4283-8fe7-fddce0c33d8e",
+      "name": "Sticky Note31",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        8360,
+        -540
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "📱 SEND WHATSAPP RESPONSE",
+        "height": 220,
+        "width": 220,
+        "color": 4
+      },
+      "id": "b432ee9f-be92-4987-bd05-72305e58577d",
+      "name": "Sticky Note32",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        11140,
+        -540
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "📊 NOTA: RESPUESTA Y MÉTRICAS",
+        "height": 900,
+        "width": 2480,
+        "color": 5
+      },
+      "id": "00720e66-80c6-4967-adb3-9ebcfad3ead2",
+      "name": "Sticky Note33",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        9340,
+        -1220
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": " 📱 NOTA: ENTRADA Y FILTRADO\n🔧 NODOS Y FUNCIONES:\n•If Not Own Message\n\nBloquea mensajes del bot mismo para evitar loops infinitos\n\n• Edit Fields Initial\n\nEstructura datos: to, session, chat_id, start_time para todo el workflow\n\n• Enhanced Message Filter\n\nFiltra E2E notifications, duplicados y mensajes vacíos\nOutput: shouldProcess (true/false) + tipo de mensaje\n\n• Media Type Detection Switch\n\nRutea según contenido: Text/Audio/Image/Document/Video/Unknown\n\n• Text Handler\n\nPrepara mensajes de texto para procesamiento completo\n\n• Audio/Image/Document/Video/Unknown Handlers\n\nGeneran respuestas automáticas: \"No puedo procesar X formato\"\nEnvían respuesta directa sin pasar por workflow principal\n\n• If Should Process\n\nDecisión final: continúa a NOTA 2 o envía respuesta automática\n\n🎯 FUNCIÓN PRINCIPAL:\nPrimera barrera de defensa - filtra, valida y rutea mensajes. Solo deja pasar texto válido al workflow principal, responde automáticamente a media bloqueada.\n📊 RESULTADO:\n\n~50% mensajes de texto → continúan al workflow\n~30% media → respuesta automática directa\n~20% E2E/duplicados → bloqueados",
+        "height": 840,
+        "width": 1840,
+        "color": 6
+      },
+      "id": "888fe980-e1a8-4717-913e-2a3003aa0617",
+      "name": "Sticky Note34",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2200,
+        240
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": " TRIGGER: WAHA WEBHOOK\n🔧 NODO Y FUNCIÓN:\nWAHA Trigger\n\nWebhook que recibe eventos en tiempo real de WhatsApp Business API\nCaptura: mensajes, notificaciones E2E, cambios de estado, confirmaciones\nEstructura datos crudos del mensaje con metadata completa\nEndpoints configurados para eventos específicos de WhatsApp\n\n🎯 FUNCIÓN PRINCIPAL:\nPunto de entrada único del sistema - convierte eventos de WhatsApp en datos estructurados para n8n.",
+        "height": 840,
+        "width": 300,
+        "color": 4
+      },
+      "id": "19cf1526-2cc9-4b59-b492-5b13c64e2231",
+      "name": "Sticky Note23",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1880,
+        240
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "🔧 NOTA: PROCESAMIENTO DE DATOS\n NODOS Y FUNCIONES:\n\n• Data Normalizer\n\nNormaliza texto (minúsculas, sin acentos) y detecta entidades (DNI, fecha, horario)\nClasifica tipo de consulta: info/turno/modificación/saludo/despedida\nDetermina complejidad: simple/complex según entidades detectadas\n\n• Prepare Output\n\nEstructura datos normalizados para el buffer de Redis\nPrepara campos: chat_input, context, entities, metrics\n\n• Enhanced Push Buffer\n\nGuarda mensaje procesado en Redis con key {chat_id}_buffer_v2\nPermite agregación de múltiples mensajes relacionados\n\n• Get Buffer Messages1\n\nRecupera mensajes existentes del buffer de Redis\nInput para decisión de timing inteligente\n\n• Smart Timing Decision\n\nDecide si procesar inmediatamente o esperar más mensajes\nReglas: >15s procesar, urgentes >5s, buffer lleno >5 mensajes\nOutput: should_wait + wait_time adaptativo\n\n",
+        "height": 840,
+        "width": 3820,
+        "color": 5
+      },
+      "id": "4cf7853e-0a79-442f-839f-e7aa3cb70348",
+      "name": "Sticky Note35",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        4060,
+        240
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "🔒 NOTA: SEGURIDAD Y VERIFICACIÓN\n🔧 NODOS Y FUNCIONES:\n• Optimized Security Filter\n\nAnaliza texto con patrones de riesgo para proteger información de pacientes\nDetecta 6 tipos de amenazas:\n\nInformación privada: \"quién tiene turno\", \"lista de pacientes\"\nConsultas agenda indirectas: \"qué turnos hay\", \"cuántos turnos\"\nConsultas ocupación: \"está lleno\", \"muchos pacientes\"\nNombres + contexto sospechoso: \"turno de Juan\"\nDNI de terceros: \"DNI 12345678 es de...\"\nCasos mixtos: consulta personal + info de terceros\n\n\nOutput: securityStatus, blocked, agentResponse automática\n\n• If Security Passed\n\nDecisión final: blocked=false continúa a IA, blocked=true envía respuesta automática\nRutas: seguro → AI Agent, bloqueado → respuesta de privacidad\n\n🎯 FUNCIÓN PRINCIPAL:\nBarrera de seguridad crítica - protege datos de pacientes mediante análisis de patrones y bloqueo automático de consultas no autorizadas.\n📊 PATRONES BLOQUEADOS:\n\nSolicitudes de info de otros pacientes (~5% mensajes)\nConsultas sobre agenda general (~3% mensajes)\nIntentos de acceso no autorizado (~2% mensajes)\n\n🛡️ RESPUESTAS AUTOMÁTICAS:\n\"Por políticas de privacidad, no puedo proporcionar información sobre otros pacientes.\"",
+        "height": 840,
+        "width": 420,
+        "color": 2
+      },
+      "id": "d936c14a-89a1-49a3-8cfe-30a64e9e0a03",
+      "name": "Sticky Note37",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        7900,
+        240
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "🤖 NOTA: MOTOR DE IA Y HERRAMIENTAS\n\n🔧 NODOS Y FUNCIONES:\n\n• AI Agent (Optimized)\n\nMotor principal con Gemini 2.5 Flash y system prompt completo del consultorio\nManeja flujos: saludo, información, turnos, modificaciones, despedidas\nProtocolo de seguridad obligatorio para modificaciones con securityStatus\nNormalización automática de datos antes de MCP tools\n\n• Google Gemini Chat Model\nModelo de IA: gemini-2.5-flash-preview-04-17\nProcesamiento de lenguaje natural y generación de respuestas\n\n• Optimized Memory\nBuffer de memoria por sesión: {from}_session_v2\nContexto de 10 mensajes para conversaciones fluidas\n• Think\nMotor de decisiones interno con flujo de pensamiento estructurado\nDetecta mensajes del sistema, clasifica intenciones, maneja casos especiales\n\n• 🛠️ HERRAMIENTAS MCP:\nMCP Calendario: Crear_evento2, Actualizar_evento2, Eliminar_Evento2, Obtener_Eventos2\n\nMCP Contacto: Leer_Contactos, Agregar_contactos, Actualizar, Verificacion_de_datos\n\nInfo Profesional: info_consultorio_tool para precios, horarios, ubicación, obras sociales\n\nDisponibilidad Horaria: Workflow externo que consulta agenda en tiempo real\n\n🎯 FUNCIÓN PRINCIPAL:\nMotor conversacional inteligente con herramientas especializadas - procesa consultas complejas, gestiona turnos de forma segura y mantiene conversaciones naturales.\n📊 CAPACIDADES:\n\nGestión completa de turnos con verificación de identidad\nInformación del consultorio en tiempo real\nProtección automática de datos de pacientes\nConversaciones contextuales con memoria persistente ",
+        "height": 840,
+        "width": 980,
+        "color": 3
+      },
+      "id": "964beb39-0195-4ea5-9115-20846356f8fb",
+      "name": "Sticky Note38",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        8340,
+        240
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "📊 NOTA: RESPUESTA Y MÉTRICAS\n🔧 NODOS Y FUNCIONES:\n\n• Prepare AI Response: (Estructura respuesta exitosa de IA): ai_response, was_blocked: false, source: ai_agent\n\n• Prepare Security Response: (Estructura respuesta bloqueada): agentResponse, was_blocked: true, block_reason\n\n• Comprehensive Metrics Collector:\n\nMotor principal de métricas completas con 6 categorías\nPerformance, seguridad, contenido, negocio, técnicas, debug\nCalcula tiempos totales y breakdown porcentual\n\n• Should Send Response: Decisión final de envío: tiene 2 caminos\n\n••• should_send=true continúa al flujo de envío\n••• should_send=false va a No-Response Logger\n\nCAMINO 1 (Envío exitoso):\n\n• Save Comprehensive Metrics: Redis storage metrics:final:{conversation_id} (24h TTL)\n• Save Daily Summary: Redis storage metrics:daily:{YYYY-MM-DD} (24h TTL)\n•Merge1: Merge de flujos para sincronización\n• Code agregate: Combina datos AI + mensaje original para delivery\n\n• Send WhatsApp Response\n\n• Save Performance Metrics: Redis storage metrics:performance:{conversation_id} (1h TTL)\n• Final Success Logger: Log detallado de respuesta enviada exitosamente\n\nCAMINO 2 (No envío):\n\n•No-Response Logger: Log cuando NO se envía respuesta (bloqueada/filtrada)\n•Save Blocked Metrics: Redis storage mensajes bloqueados por seguridad\n\n🎯 FUNCIÓN PRINCIPAL:\nSistema completo de métricas y delivery - recolecta datos de performance, guarda en Redis con diferentes TTLs y maneja logging tanto de éxitos como fallos.\n📊 MÉTRICAS CLAVE:\n\nPerformance: tiempos de procesamiento por componente\nNegocio: tipo de consulta, complejidad, usuario ayudado\nSeguridad: bloqueos, patrones detectados, nivel de riesgo\nStorage distribuido con TTLs optimizados",
+        "height": 840,
+        "width": 2480,
+        "color": 5
+      },
+      "id": "dadac747-59eb-4b9b-89db-42b42b06e88a",
+      "name": "Sticky Note39",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        9360,
+        240
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "📱 SEND WHATSAPP RESPONSE\n🔧 NODO Y FUNCIÓN:\nSend WhatsApp Response\n\nEnvía respuesta final via WAHA API a WhatsApp Business\nParámetros: chatId (usuario destinatario), text (respuesta procesada)\nUsa credenciales WAHA configuradas para autenticación\nOperation: \"Send Text\" para mensajes de texto plano\n\n🎯 FUNCIÓN PRINCIPAL:\nDelivery final - envía la respuesta procesada por IA al usuario en WhatsApp.",
+        "height": 400,
+        "width": 320,
+        "color": 4
+      },
+      "id": "4dddac89-294b-423c-8c54-badfffd2b10d",
+      "name": "Sticky Note40",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        11100,
+        -280
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "18x7SCE5kNKvy7Hj2ctwCW49l8tdKz1CVCAatvQaaf1g",
+          "mode": "list",
+          "cachedResultName": "datos de clientes",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18x7SCE5kNKvy7Hj2ctwCW49l8tdKz1CVCAatvQaaf1g/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1701313981,
+          "mode": "list",
+          "cachedResultName": "Administradores",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18x7SCE5kNKvy7Hj2ctwCW49l8tdKz1CVCAatvQaaf1g/edit#gid=1701313981"
+        },
+        "options": {}
+      },
+      "id": "627d680a-004a-4ebe-8362-42b8c63227c4",
+      "name": "Lookup Cliente en Sheets1",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [
+        2720,
+        -520
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "oSawvuZNrPTwfkvX",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "debe_procesar_condition",
+              "leftValue": "={{ $json.Estado === \"on\" }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "5a5c9fd4-9717-436c-b7ca-0c0c5422a8a8",
+      "name": "¿Cliente en Automático?1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3120,
+        -660
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "TELEFONO",
+              "field2": "message.from"
+            }
+          ]
+        },
+        "joinMode": "enrichInput2",
+        "options": {
+          "multipleMatches": "all"
+        }
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        2900,
+        -440
+      ],
+      "id": "749d3324-a10b-4c43-9c2b-f05261d77ffa",
+      "name": "Merge5",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.from }}\n",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        8460,
+        -1440
+      ],
+      "id": "6eb6f030-8de1-4ca1-a948-a8b3c3f1d986",
+      "name": "Optimized Memory1"
+    },
+    {
+      "parameters": {
+        "sseEndpoint": "https://n8n.pampaservers.com/mcp/3c43cbf8-665f-48d6-9526-274d0c79a6c9/sse",
+        "include": "selected",
+        "includeTools": [
+          "Agregar_contactos",
+          "Actualizar",
+          "Verificacion_de_datos",
+          "Leer_Contactos"
+        ]
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        8760,
+        -1440
+      ],
+      "id": "dd3a0fa4-8488-481e-92d5-8fc393ef552d",
+      "name": "MCP Contacto1"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-preview-04-17",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        8300,
+        -1440
+      ],
+      "id": "0cff5d96-3869-4712-bfc1-28367fd2975f",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "6dvy7Q0YoRJ42lQs",
+          "name": "Google Gemini(PaLM) Api account 3"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "d5c26457-8f35-4065-8196-25a504b34ccd",
+      "name": "No Operation, do nothing2",
+      "type": "n8n-nodes-base.noOp",
+      "position": [
+        10100,
+        -1840
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "id": "efdc8724-bd28-44cc-af83-4ad35fa34a03",
+      "name": "No Operation, do nothing",
+      "type": "n8n-nodes-base.noOp",
+      "position": [
+        3920,
+        -1800
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "description": "=# 🧠 THINK PROCESS - MOTOR DE DECISIONES OPTIMIZADO LICENCIADA v4.0\n\n## **FLUJO DE PENSAMIENTO SIMPLIFICADO**\n\n```\nINICIO → Analizar intención de la licenciada\n\n1. DETECCIÓN RÁPIDA DE TIPO\n   ├─ ¿Es consulta de agenda? → BLOQUE_CONSULTA\n   ├─ ¿Es crear turno? → BLOQUE_CREAR\n   ├─ ¿Es modificar turno? → BLOQUE_MODIFICAR\n   ├─ ¿Es cancelar individual? → BLOQUE_CANCELAR\n   ├─ ¿Es cancelación masiva? → BLOQUE_MASIVO_V4 🆕🔄\n   ├─ ¿Es notificación directa? → BLOQUE_NOTIFICACION 🆕\n   ├─ ¿Es gestión de contactos? → BLOQUE_CONTACTOS\n   └─ ¿Es acción mixta? → BLOQUE_MIXTO\n\n2. BLOQUE_CONSULTA 📅\n   ├─ ¿Es día específico? (mañana/hoy/viernes)\n   │  ├─ Calcular fecha exacta\n   │  ├─ `Obtener_Eventos` con fecha específica\n   │  └─ Formatear: • HH:MM - [Cliente]\n   ├─ ¿Es semanal? (semana que viene/próxima semana)\n   │  ├─ Calcular rango (máx 7 días)\n   │  ├─ `Obtener_Eventos` con rango\n   │  └─ Agrupar por día: **Lunes [DD/MM]:** • HH:MM - [Cliente]\n   └─ ¿Sin resultados? → \"No tiene turnos para [período]\"\n\n3. BLOQUE_CREAR 🆕\n   ├─ PASO 1: Extraer datos (cliente, fecha, hora)\n   ├─ PASO 2: **VALIDAR HORARIO LABORAL**\n   │  ├─ ¿L-V entre 8-13 o 15-19? ✓\n   │  ├─ ¿Sáb entre 8-12? ✓  \n   │  ├─ ¿Domingo? ✗ → Rechazar\n   │  └─ ¿Fuera de horario? → Sugerir alternativas\n   ├─ PASO 3: `Obtener_Eventos` para verificar conflictos\n   │  ├─ ¿Hay conflicto? → Mostrar horarios libres\n   │  └─ ¿Libre? → Continuar\n   ├─ PASO 4: `Leer_Contactos` verificar cliente existe\n   │  ├─ ¿No existe? → Ir a CREAR_CONTACTO\n   │  └─ ¿Existe? → Continuar\n   ├─ PASO 5: `Crear_evento` con datos completos\n   └─ CONFIRMAR: \"Agendé [cliente] para [fecha] a las [hora]\"\n\n4. BLOQUE_MODIFICAR 🔄\n   ├─ PASO 1: Identificar turno (cliente + fecha/hora actual)\n   ├─ PASO 2: `Obtener_Eventos` localizar turno exacto\n   │  ├─ ¿No encontrado? → \"No encontré ese turno\"\n   │  └─ ¿Encontrado? → Continuar\n   ├─ PASO 3: Extraer nuevo horario solicitado\n   ├─ PASO 4: **VALIDAR NUEVO HORARIO** (igual que BLOQUE_CREAR)\n   ├─ PASO 5: `Actualizar_Evento` con nueva fecha/hora\n   └─ CONFIRMAR: \"Moví turno de [cliente] a [nueva hora]\"\n\n5. BLOQUE_CANCELAR ❌\n   ├─ PASO 1: Identificar turno específico\n   ├─ PASO 2: `Obtener_Eventos` localizar\n   ├─ PASO 3: ¿Encontrado?\n   │  ├─ SÍ → `Eliminar_Evento` + confirmar\n   │  └─ NO → \"No encontré ese turno\"\n   └─ \"Cancelé turno de [cliente] del [fecha]\"\n\n6. BLOQUE_MASIVO_V4 🚨🆕🔄 (CON NOTIFICACIÓN AUTOMÁTICA)\n   \n   ├─ **PASO 1: DETECTAR PATRONES DE CANCELACIÓN MASIVA**\n   │  ├─ \"No trabajo el [día/fecha]\"\n   │  ├─ \"Cancela todos los turnos del [período]\"\n   │  ├─ \"Del lunes al viernes no trabajo\"\n   │  ├─ \"Toda la semana\" / \"Esta semana\"\n   │  ├─ \"Los próximos 3 días\"\n   │  ├─ \"Cancelar el 15/07 al 18/07\"\n   │  └─ \"Me tomo libre [período]\"\n   \n   ├─ **PASO 2: USAR HERRAMIENTA `Cancelacion_de_turno`**\n   │  ├─ Input: query con texto EXACTO del usuario\n   │  ├─ La herramienta valida automáticamente:\n   │  │  ├─ Fechas válidas\n   │  │  ├─ Días laborales (excluye domingos)\n   │  │  ├─ Rangos permitidos (máx 14 días)\n   │  │  └─ Formatos de fecha múltiples\n   │  └─ Recibir respuesta procesada\n   \n   ├─ **PASO 3: INTERPRETAR RESPUESTA DE LA HERRAMIENTA**\n   │  ├─ ¿Error? → \"No puedo procesar: [motivo]. ¿Otra fecha?\"\n   │  ├─ ¿operation_type: \"single_day\"? → IR A FLUJO_DIA_INDIVIDUAL\n   │  └─ ¿operation_type: \"date_range\"? → IR A FLUJO_RANGO_MULTIPLE\n   \n   ├─ **FLUJO_DIA_INDIVIDUAL** 📅\n   │  ├─ Extraer: fecha, dia, fecha_iso_start, fecha_iso_end\n   │  ├─ `Obtener_Eventos` con rango ISO de la herramienta\n   │  ├─ **MOSTRAR CONFIRMACIÓN ESPECÍFICA**:\n   │  │  \"Para el [dia] [fecha] voy a:\n   │  │   • Cancelar todos los turnos existentes\n   │  │   • Bloquear el día completo para nuevos turnos\n   │  │   • Reagendar automáticamente a los pacientes afectados 🆕\n   │  │   ¿CONFIRMA la cancelación masiva y bloqueo del [dia] [fecha]?\"\n   │  ├─ ¿Confirma? → Ejecutar cancelaciones + bloqueo día + 🆕 NOTIFICACIÓN AUTOMÁTICA\n   │  └─ IR A PASO 6: NOTIFICACIÓN AUTOMÁTICA\n   \n   ├─ **FLUJO_RANGO_MULTIPLE** 📊\n   │  ├─ Extraer: fecha_inicio, fecha_fin, total_days, dias_afectados\n   │  ├─ `Obtener_Eventos` con rango ISO completo\n   │  ├─ **MOSTRAR CONFIRMACIÓN DETALLADA**:\n   │  │  \"Para el período del [fecha_inicio] al [fecha_fin] ([total_days] días) voy a:\n   │  │   • Cancelar todos los turnos existentes en:\n   │  │     - [dia] [fecha]\n   │  │     - [dia] [fecha]\n   │  │     - ...\n   │  │   • Bloquear todos estos días para nuevos turnos\n   │  │   • Reagendar automáticamente a los pacientes afectados 🆕\n   │  │   ¿CONFIRMA la cancelación masiva y bloqueo de estos [total_days] días?\"\n   │  ├─ ¿Confirma? → Procesar cada día del rango + 🆕 NOTIFICACIÓN AUTOMÁTICA\n   │  └─ IR A PASO 6: NOTIFICACIÓN AUTOMÁTICA\n   \n   ├─ **PASO 4: EJECUTAR OPERACIONES (SI CONFIRMADO)**\n   │  ├─ Para cada turno encontrado → `Eliminar_Evento`\n   │  ├─ **CREAR EVENTOS DE BLOQUEO \"NO SE TRABAJA\"**:\n   │  │  ├─ **L-V**: `Crear_evento` 08:00-13:00 + `Crear_evento` 15:00-19:00\n   │  │  ├─ **Sáb**: `Crear_evento` 08:00-12:00\n   │  │  └─ Título: \"NO SE TRABAJA\"\n   │  └─ Usar blockingEvents de la herramienta (incluye datos ISO)\n   \n   ├─ **PASO 5: GUARDAR RESULTADOS - NO RESPONDER AÚN 🚨**\n   │  ├─ **CRÍTICO**: NO responder al profesional todavía\n   │  ├─ GUARDAR en memoria: respuesta de Cancelacion_de_turno\n   │  ├─ Almacenar: turnos cancelados, días bloqueados, mensaje parcial\n   │  └─ CONTINUAR automáticamente al PASO 6\n   \n   └─ **PASO 6: CADENA AUTOMÁTICA COMPLETA 🆕🔄**\n      ├─ **EJECUTAR INMEDIATAMENTE**: `Notificar_al_cliente()` (sin responder antes)\n      ├─ **ESPERAR**: Respuesta completa de notificación\n      ├─ **COMBINAR EN MEMORIA**: \n      │  ├─ Datos de cancelación (PASO 5)\n      │  ├─ Datos de notificación (PASO 6)\n      │  └─ Crear mensaje unificado\n      ├─ **AHORA SÍ RESPONDER AL PROFESIONAL** con información completa:\n      │  ├─ Día individual: \"✅ Cancelé X turnos del [dia] [fecha] y bloqueé el día completo. Reagendé Y pacientes automáticamente y notifiqué a todos por email.\"\n      │  └─ Rango: \"✅ Cancelación masiva completada: [total_days] días bloqueados ([fecha_inicio] al [fecha_fin]), X turnos cancelados. Reagendé Y pacientes y notifiqué a todos.\"\n      └─ **FLUJO COMPLETO**: Cancelacion_de_turno → (NO responder) → Notificar_al_cliente → (Combinar) → RESPONDER\n\n7. BLOQUE_NOTIFICACION 🆕📧 (COMANDO DIRECTO)\n   \n   ├─ **DETECTAR PATRONES DE NOTIFICACIÓN DIRECTA**\n   │  ├─ \"Procesar notificaciones pendientes\"\n   │  ├─ \"Notificar pacientes afectados\"\n   │  ├─ \"Reagendar pacientes cancelados\"\n   │  ├─ \"Enviar notificaciones\"\n   │  └─ \"Ver pacientes sin notificar\"\n   \n   ├─ **EJECUTAR HERRAMIENTA**\n   │  ├─ `Notificar_al_cliente()` (sin parámetros)\n   │  ├─ La herramienta procesa automáticamente:\n   │  │  ├─ Lee Google Sheets \"cambio de turno\"\n   │  │  ├─ Busca disponibilidad futura\n   │  │  ├─ Reagenda automáticamente\n   │  │  ├─ Envía notificaciones\n   │  │  └─ Limpia registros procesados\n   │  └─ Recibe respuesta con resultados\n   \n   └─ **RESPUESTA DIRECTA**\n      ├─ ¿Sin pacientes pendientes? → \"No hay notificaciones pendientes para procesar\"\n      ├─ ¿Con pacientes procesados? → \"✅ Procesé X pacientes pendientes. Reagendé Y automáticamente y notifiqué a todos.\"\n      └─ ¿Errores parciales? → \"✅ Procesé X pacientes. Reagendé Y automáticamente. Z requieren contacto manual.\"\n\n8. BLOQUE_CONTACTOS 👥\n   ├─ ¿Buscar? → `Leer_Contactos` + mostrar info\n   ├─ ¿Crear? → CREAR_CONTACTO\n   ├─ ¿Actualizar? \n   │  ├─ Localizar contacto\n   │  ├─ `Actualizar` con nuevos datos\n   │  ├─ `Verificacion_de_datos`\n   │  └─ Confirmar cambio\n   └─ CREAR_CONTACTO:\n      ├─ Solicitar: Nombre, Apellido, Teléfono\n      ├─ Opcionales: Email, Dirección\n      ├─ `Verificacion_de_datos`\n      ├─ `Agregar_contactos`\n      └─ Confirmar creación\n\n9. BLOQUE_MIXTO 🔀\n   ├─ ¿Editar cliente + turno?\n   │  ├─ Ejecutar BLOQUE_CONTACTOS (actualizar)\n   │  ├─ Ejecutar BLOQUE_MODIFICAR\n   │  └─ RESUMEN: \"✓ Actualicé datos ✓ Moví turno\"\n   ├─ ¿Crear cliente + turno?\n   │  ├─ Ejecutar CREAR_CONTACTO\n   │  ├─ Ejecutar BLOQUE_CREAR\n   │  └─ RESUMEN conjunto\n   └─ Otras combinaciones → Ejecutar en secuencia\n\nFIN → Esperar nueva interacción\n```\n\n## **🔑 REGLAS CRÍTICAS ACTUALIZADAS**\n\n### **🛠️ HERRAMIENTAS DISPONIBLES**\n```\n📅 CALENDARIO:\n- Crear_evento\n- Obtener_Eventos  \n- Actualizar_Evento\n- Eliminar_Evento\n- Cancelacion_de_turno 🆕 (para cancelaciones masivas)\n\n📧 NOTIFICACIÓN:\n- Notificar_al_cliente 🆕 (reagendamiento + notificación automática)\n\n👥 CONTACTOS:\n- Leer_Contactos\n- Agregar_contactos\n- Actualizar\n- Verificacion_de_datos\n\n🧠 PROCESAMIENTO:\n- Modelo_2_de_chat_de_Google_Gemini\n- Memoria_optimizada\n- Piensa_profesionalmente\n- Ver_calendario_de_clientes\n```\n\n### **⏰ HORARIOS LABORALES (OBLIGATORIO)**\n```\n✅ Lunes-Viernes: 08:00-13:00 y 15:00-19:00\n✅ Sábados: 08:00-12:00\n❌ Domingos: NO LABORAL\n❌ Feriados: NO LABORAL\n```\n\n### **📋 FORMATOS OBLIGATORIOS ACTUALIZADOS**\n\n**Confirmación cancelación masiva - DÍA INDIVIDUAL (V4.0):**\n```\nPara el [dia] [fecha] voy a:\n• Cancelar todos los turnos existentes\n• Bloquear el día completo para nuevos turnos\n• Reagendar automáticamente a los pacientes afectados\n\n¿CONFIRMA la cancelación masiva y bloqueo del [dia] [fecha]?\n```\n\n**Confirmación cancelación masiva - RANGO MÚLTIPLE (V4.0):**\n```\nPara el período del [fecha_inicio] al [fecha_fin] ([total_days] días) voy a:\n• Cancelar todos los turnos existentes en:\n  - [dia] [fecha]\n  - [dia] [fecha]\n  - ...\n• Bloquear todos estos días para nuevos turnos\n• Reagendar automáticamente a los pacientes afectados\n\n¿CONFIRMA la cancelación masiva y bloqueo de estos [total_days] días?\n```\n\n### **🔒 VALIDACIONES AUTOMÁTICAS ACTUALIZADAS**\n- **SIEMPRE USAR HERRAMIENTAS**: NUNCA suponer información de memoria - SIEMPRE llamar herramientas correspondientes\n- **Cancelación masiva**: USAR `Cancelacion_de_turno` OBLIGATORIAMENTE\n- **NO RESPONDER INMEDIATO**: Después de `Cancelacion_de_turno` NO responder al profesional\n- **CADENA OBLIGATORIA**: GUARDAR respuesta → EJECUTAR `Notificar_al_cliente` → ESPERAR ambas → RESPONDER\n- **Combinación de respuestas**: COMBINAR resultados de ambas herramientas ANTES de responder\n- **Horario laboral**: Verificar con `Obtener_Eventos` ANTES de agendar/mover\n- **Conflictos**: Consultar agenda con herramientas ANTES de crear/modificar\n- **Cliente existe**: Verificar con `Leer_Contactos` ANTES de agendar\n- **Confirmación masiva**: OBLIGATORIA antes de eliminar múltiples\n\n### **💬 RESPUESTAS ESTÁNDAR ACTUALIZADAS V4.0**\n- ✅ **Éxito**: \"Listo, [acción completada]\"\n- ❌ **Error**: \"No pude [acción] porque [motivo]\"  \n- 🔄 **Alternativa**: \"Ese horario no está disponible. Opciones: [lista]\"\n- 📝 **Masivo día + notificación**: \"✅ Cancelé X turnos del [día] [fecha] y bloqueé el día completo. Reagendé Y pacientes automáticamente y notifiqué a todos por email.\"\n- 📝 **Masivo rango + notificación**: \"✅ Cancelación masiva completada: [total_days] días bloqueados del [fecha_inicio] al [fecha_fin], X turnos cancelados. Reagendé Y pacientes y notifiqué a todos.\"\n- 📧 **Solo notificación**: \"✅ Procesé X pacientes pendientes. Reagendé Y automáticamente y notifiqué a todos.\"\n- 📝 **Resumen mixto**: \"Realicé: ✓ [acción1] ✓ [acción2]\"\n- 🚫 **Sin resultados**: \"No tiene turnos para [período]\"\n- 📧 **Sin pendientes**: \"No hay notificaciones pendientes para procesar\"\n- ⚠️ **Error herramienta**: \"No puedo procesar esa cancelación: [motivo]. ¿Desea intentar con otra fecha?\"\n\n## **⚠️ ALERTAS CRÍTICAS ACTUALIZADAS V4.0**\n\n### **🚨 USO OBLIGATORIO DE HERRAMIENTAS**\n- **NUNCA SUPONER INFORMACIÓN**: No usar memoria o conocimiento previo\n- **SIEMPRE LLAMAR HERRAMIENTAS**: Para TODA consulta de datos\n- **Ejemplos obligatorios**:\n  - ¿Turnos de mañana? → `Obtener_Eventos` (no suponer)\n  - ¿Cliente existe? → `Leer_Contactos` (no suponer)\n  - ¿Horario libre? → `Obtener_Eventos` (no suponer)\n  - ¿Agenda semanal? → `Obtener_Eventos` (no suponer)\n- **EXCEPCIÓN**: Solo respuestas de confirmación/error no requieren herramientas\n\n### **🚨 CANCELACIÓN MASIVA + NOTIFICACIÓN AUTOMÁTICA**\n- **SIEMPRE** usar `Cancelacion_de_turno` para comandos masivos\n- **🚨 CRÍTICO**: NUNCA responder inmediatamente después de `Cancelacion_de_turno`\n- **FLUJO OBLIGATORIO**: \n  ```\n  1. Cancelacion_de_turno → recibir respuesta\n  2. GUARDAR en memoria (NO responder al profesional)\n  3. AUTOMÁTICAMENTE ejecutar Notificar_al_cliente()\n  4. ESPERAR respuesta de notificación\n  5. COMBINAR ambas respuestas en memoria\n  6. AHORA SÍ responder al profesional con info completa\n  ```\n- **INTERPRETAR** respuesta: single_day vs date_range\n- **MOSTRAR** confirmación específica según el tipo (incluir reagendamiento automático)\n- **ESPERAR** confirmación explícita (\"sí\", \"confirmo\", \"todos\")\n- **EJECUTAR** cancelación según el tipo de operación\n- **BLOQUEO COMPLETO**: L-V (8-13 + 15-19) | Sáb (8-12)\n- **SI NO confirma** → Abortar operación (no ejecutar notificación)\n\n### **📧 NOTIFICACIÓN DIRECTA**\n- **DETECTAR** comandos de notificación: \"procesar notificaciones\", \"notificar pacientes\", etc.\n- **EJECUTAR** `Notificar_al_cliente()` sin parámetros\n- **RESPONDER** con resultados del procesamiento\n- **MANEJAR** casos sin pacientes pendientes\n\n### **🔧 CADENA AUTOMÁTICA OBLIGATORIA (FLUJO ESPECÍFICO)**\n```\n1. Cancelacion_de_turno (recibe respuesta)\n    ↓ \n2. GUARDAR en memoria (🚨 NO responder al profesional)\n    ↓ \n3. AUTOMÁTICAMENTE ejecutar Notificar_al_cliente()\n    ↓\n4. ESPERAR respuesta de notificación\n    ↓\n5. COMBINAR ambas respuestas en memoria\n    ↓\n6. RESPONDER al profesional con mensaje unificado\n\n🚨 CRÍTICO: NUNCA responder entre pasos 1-5\n```\n\n### **🕐 CONFLICTOS DE HORARIO**\n- **DETECTAR** automáticamente con `Obtener_Eventos`\n- **INFORMAR** conflicto específico\n- **SUGERIR** alternativas del mismo día\n- **NO AGENDAR** sobre turno existente\n\n### **👤 GESTIÓN DE CONTACTOS**\n- **VERIFICAR** existencia ANTES de agendar\n- **CREAR** contacto si no existe\n- **VALIDAR** datos después de actualizar\n\n### **🔄 MÁXIMO 2 INTENTOS**\n- Si herramienta falla → Reintentar 1 vez\n- Si falla nuevamente → \"Dificultades técnicas, intente más tarde\"\n\n### **📞 DERIVACIÓN**\n- Error técnico persistente → Sugerir contacto directo\n- Información ambigua → Pedir aclaración con opciones específicas\n\n## **🎯 DECISIÓN RÁPIDA ACTUALIZADA V4.0**\n```\n¿Qué busca la licenciada?\n├─ Ver agenda → CONSULTA\n├─ Agendar → CREAR  \n├─ Cambiar turno → MODIFICAR\n├─ Cancelar uno → CANCELAR\n├─ Cancelar varios/período → MASIVO_V4 🆕 (cancelación + notificación automática)\n├─ Notificar/reagendar → NOTIFICACION 🆕 (comando directo)\n├─ Gestionar contacto → CONTACTOS\n└─ Múltiples acciones → MIXTO\n```\n\n## **🆕 EJEMPLOS DE FLUJO CON NOTIFICACIÓN AUTOMÁTICA**\n\n### **Ejemplo 1: Día Individual + Notificación Automática (Flujo Completo)**\n```\nUsuario: \"Quiero cancelar todo el martes\"\n├─ DETECTAR: Cancelación masiva → BLOQUE_MASIVO_V4\n├─ USAR: Cancelacion_de_turno con query: \"Quiero cancelar todo el martes\"\n├─ RECIBIR: operation_type: \"single_day\", fecha: \"15/07/2025\", dia: \"martes\"\n├─ CONFIRMAR: \"Para el martes 15/07/2025 voy a cancelar todos los turnos, bloquear el día y reagendar automáticamente a los pacientes. ¿CONFIRMA?\"\n├─ EJECUTAR: Obtener_Eventos → Eliminar_Evento(s) → Crear eventos \"NO SE TRABAJA\"\n├─ 🚨 GUARDAR: Respuesta de cancelación EN MEMORIA (NO responder al profesional)\n├─ 🚨 AUTOMÁTICO: Notificar_al_cliente() (ejecutar sin responder antes)\n├─ 🚨 RECIBIR: Respuesta de notificación\n├─ 🚨 COMBINAR: Datos de cancelación + datos de notificación\n└─ 🚨 AHORA SÍ RESPONDER: \"✅ Cancelé 5 turnos del martes 15/07 y bloqueé el día completo. Reagendé 4 pacientes automáticamente y notifiqué a todos por email.\"\n```\n\n### **Ejemplo 2: Comando Directo de Notificación**\n```\nUsuario: \"Procesar notificaciones pendientes\"\n├─ DETECTAR: Notificación directa → BLOQUE_NOTIFICACION\n├─ USAR: Notificar_al_cliente()\n├─ RECIBIR: pacientes_procesados: 3, reagendamientos_exitosos: 2, notificaciones_enviadas: 3\n└─ RESPUESTA: \"✅ Procesé 3 pacientes pendientes. Reagendé 2 automáticamente y notifiqué a todos.\"\n```\n\n### **Ejemplo 3: Sin Pacientes Pendientes**\n```\nUsuario: \"Notificar pacientes afectados\"\n├─ DETECTAR: Notificación directa → BLOQUE_NOTIFICACION\n├─ USAR: Notificar_al_cliente()\n├─ RECIBIR: sin pacientes pendientes\n└─ RESPUESTA: \"No hay notificaciones pendientes para procesar.\"\n```"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        8620,
+        -1440
+      ],
+      "id": "95ec877c-197e-4353-a0e5-eca35aefdb1c",
+      "name": "Think Profesional"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.body }}",
+        "options": {
+          "systemMessage": "=# Prompt Agente Asistente - Licenciada\n\n## CONFIGURACIÓN INICIAL\nEres el asistente personal de una licenciada profesional. Tu función es ayudarla a gestionar su agenda y contactos de manera eficiente y proactiva.\n\n**CONTEXTO TEMPORAL Y UBICACIÓN:**\n- Ubicación: Argentina\n- Fecha actual: 10 de julio de 2025\n- Hora actual: Se obtiene del workflow\n- Zona horaria: UTC-3 (Argentina)\n- Formato de fecha: DD/MM/YYYY\n- Formato de hora: HH:MM (24 horas)\n\n## PERSONALIDAD Y COMUNICACIÓN\n\n**SALUDO INICIAL:** \"Buenas licenciada, ¿en qué puedo ayudarte hoy?\"\n\n**CARACTERÍSTICAS:**\n- Tono profesional, cordial y eficiente\n- Proactivo en sugerir soluciones\n- Claro en las confirmaciones\n- Detallado en los resúmenes de acciones\n\n## HORARIOS DE TRABAJO\n- **Lunes a Viernes:** 08:00 a 13:00 y 15:00 a 19:00\n- **Sábados:** 08:00 a 12:00\n- **No laborables:** Domingos y feriados\n\n## HERRAMIENTAS DISPONIBLES\n\n### HERRAMIENTAS DE PROCESAMIENTO INTELIGENTE\n- `Modelo_2_de_chat_de_Google_Gemini` - Modelo de chat avanzado\n- `Memoria_optimizada` - Sistema de memoria del agente\n- `Piensa_profesionalmente` - Procesamiento de razonamiento\n- **`Cancelacion_de_turno`** - Cancelación masiva y bloqueo de días\n- `Ver_calendario_de_clientes` - Consulta inteligente de disponibilidad\n- **`Notificar_al_cliente`** - Reagendamiento y notificación automática\n\n### MCP CALENDARIO\n- `Crear_evento2` - Agendar nuevos turnos\n- `Obtener_Eventos2` - Consultar agenda por fecha/período\n- `Actualizar_Evento2` - Modificar turnos existentes\n- `Eliminar_Evento2` - Cancelar turnos individuales\n\n### MCP CONTACTO  \n- `Leer_Contactos` - Buscar información de clientes\n- `Agregar_contactos` - Añadir nuevos clientes\n- `Actualizar` - Modificar datos de clientes existentes\n- `Verificacion_de_datos` - Validar información de contactos\n\n## FUNCIONALIDADES PRINCIPALES\n\n### 1. GESTIÓN DE TURNOS\n**Crear turnos:**\n- Verificar disponibilidad en horarios laborables\n- Confirmar datos del cliente antes de agendar\n- Sugerir horarios alternativos si hay conflictos\n\n**Modificar turnos:**\n- Buscar el turno existente\n- Verificar nueva disponibilidad\n- Actualizar y confirmar cambios\n\n**Cancelar turnos individuales:**\n- Localizar el turno específico\n- Eliminar y confirmar cancelación\n\n**Consultar agenda:**\n- Usar `Ver_calendario_de_clientes` para consultas inteligentes\n- Mostrar turnos de períodos específicos\n- Formato de lista detallada con fecha, hora y cliente\n\n### 2. CANCELACIÓN MASIVA Y NOTIFICACIÓN AUTOMÁTICA\n\n**HERRAMIENTA CANCELACION_DE_TURNO:**\nDetectar automáticamente cuando la licenciada solicita:\n- \"No trabajo el [día/fecha]\"\n- \"Cancela todos los turnos del [período]\"\n- \"Me tomo el día libre\"\n- \"Quiero cancelar todo el martes\"\n- \"Cancelar toda la semana\"\n- \"Del lunes al viernes no trabajo\"\n\n**HERRAMIENTA NOTIFICAR_AL_CLIENTE:**\nSe activa automáticamente después de `Cancelacion_de_turno` exitosa.\n\n**PROCESO COMPLETO:**\n```\nUsuario: \"Cancelar el martes\"\nAgente: \n1. Usar Cancelacion_de_turno(\"Cancelar el martes\")\n2. Confirmar con licenciada\n3. Si acepta → Ejecutar cancelación\n4. Automáticamente → Usar Notificar_al_cliente()\n5. Combinar respuestas: \"✅ Cancelé X turnos del martes 15/07. Reagendé Y pacientes automáticamente y notifiqué a todos por email.\"\n```\n\n**COMANDOS ADICIONALES:**\n- \"Procesar notificaciones pendientes\" → Llamar Notificar_al_cliente()\n- \"Notificar pacientes afectados\" → Llamar Notificar_al_cliente()\n\n### 3. GESTIÓN DE CONTACTOS\n**Buscar clientes:**\n- Por nombre, apellido, teléfono o email\n- Mostrar información completa del cliente\n\n**Editar datos de clientes:**\n- Actualizar información personal\n- Modificar datos de contacto\n- Verificar datos después de actualizar\n\n**Agregar nuevos clientes:**\n- Solicitar datos completos\n- Verificar información antes de guardar\n\n## FLUJOS DE CONVERSACIÓN\n\n### Ejemplo 1: Cancelación masiva con notificación (FLUJO CORRECTO)\n```\nUsuario: \"Quiero cancelar todo el martes\"\nAgente: \n1. Usar Cancelacion_de_turno(\"Quiero cancelar todo el martes\")\n2. RECIBIR respuesta → GUARDAR en memoria (NO responder al profesional aún)\n3. \"Licenciada, para el martes 15/07/2025 voy a cancelar todos los turnos, bloquear el día y reagendar automáticamente a los pacientes. ¿CONFIRMA?\"\n4. Si confirma → Ejecutar cancelación\n5. AUTOMÁTICAMENTE usar Notificar_al_cliente() (sin responder antes)\n6. ESPERAR respuesta de notificación\n7. COMBINAR ambas respuestas en memoria\n8. AHORA SÍ RESPONDER: \"✅ Completado: Cancelé 5 turnos del martes 15/07. Reagendé 4 pacientes automáticamente y notifiqué a todos por email.\"\n```\n\n### Ejemplo 2: Consultar agenda (USO OBLIGATORIO DE HERRAMIENTAS)\n```\nUsuario: \"¿Qué turnos tengo mañana?\"\nAgente:\n1. OBLIGATORIO: Ver_calendario_de_clientes(\"mañana\") - NO suponer información\n2. \"Licenciada, sus turnos para mañana [DD/MM] son:\n   • 09:00 - María González\n   • 10:30 - Juan Pérez  \n   • 16:00 - Ana López\"\n```\n\n### Ejemplo 3: Procesar notificaciones pendientes\n```\nUsuario: \"Procesar notificaciones pendientes\"\nAgente:\n1. Notificar_al_cliente()\n2. \"✅ Procesé 3 pacientes pendientes. Reagendé 2 automáticamente y notifiqué a todos.\"\n```\n\n## VALIDACIONES Y CONTROLES\n\n### USO OBLIGATORIO DE HERRAMIENTAS\n- **NUNCA SUPONER INFORMACIÓN**: No usar memoria o conocimiento previo\n- **SIEMPRE LLAMAR HERRAMIENTAS**: Para TODA consulta de datos\n- **Ejemplos obligatorios**:\n  - ¿Turnos de mañana? → `Obtener_Eventos2` (no suponer)\n  - ¿Cliente existe? → `Leer_Contactos` (no suponer)\n  - ¿Horario libre? → `Obtener_Eventos2` (no suponer)\n  - ¿Agenda semanal? → `Obtener_Eventos2` (no suponer)\n\n### FLUJO DE CANCELACIÓN MASIVA\n- **Usar `Cancelacion_de_turno`** para TODOS los comandos de cancelación masiva\n- **🚨 CRÍTICO**: Después de `Cancelacion_de_turno` NO responder inmediatamente al profesional\n- **FLUJO OBLIGATORIO**: \n  1. `Cancelacion_de_turno` → recibir respuesta\n  2. GUARDAR en memoria (NO responder al profesional)\n  3. AUTOMÁTICAMENTE ejecutar `Notificar_al_cliente`\n  4. ESPERAR respuesta de notificación\n  5. COMBINAR ambas respuestas en memoria\n  6. AHORA SÍ responder al profesional con información completa\n- **Siempre confirmar** antes de ejecutar cancelaciones y bloqueos\n- **Verificar disponibilidad** antes de agendar/mover turnos  \n- **Validar datos** antes de actualizar contactos\n\n## MANEJO DE ERRORES\n- Si herramientas devuelven error: Explicar el motivo y ofrecer alternativas\n- Si no encuentra un cliente: Ofrecer búsqueda alternativa o creación\n- Si no hay disponibilidad: Sugerir horarios libres más cercanos\n- Si hay datos incompletos: Solicitar información faltante\n\n## RESPUESTAS TIPO\n- **Confirmación:** \"Perfecto, [acción realizada]. ¿Necesita algo más?\"\n- **Error:** \"No pude [acción] porque [motivo]. ¿Qué prefiere hacer?\"\n- **Alternativa:** \"Ese horario no está disponible, pero puedo ofrecer: [opciones]\"\n- **Cancelación + Notificación (COMBINADA):** \"✅ Cancelé X turnos del [día]. Reagendé Y pacientes y notifiqué a todos.\"\n- **Solo notificación:** \"✅ Procesé X pacientes pendientes. Reagendé Y automáticamente.\"\n- **Uso de herramientas:** SIEMPRE consultar herramientas - NUNCA suponer información\n- **Flujo cancelación:** Cancelacion_de_turno → (GUARDAR - NO responder) → Notificar_al_cliente → (COMBINAR) → RESPONDER"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        8660,
+        -1840
+      ],
+      "id": "45d3e2a3-969e-4a37-b2e3-780ee339ab51",
+      "name": "Agente Profesional"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message }}",
+        "options": {
+          "systemMessage": "=# ASISTENTE VIRTUAL - CONSULTORIO DRA. LUCÍA MARTÍNEZ\n**Psicóloga Clínica | TCC | Mendoza, Argentina**\n\n## ROL Y OBJETIVO\nEres el asistente virtual del consultorio de la Dra. Lucía Martínez. Tu función es gestionar turnos, brindar información y mantener la seguridad de los datos de pacientes con un tono profesional, empático y cálido no hagas abreviaciones cuando hables siempre se explicativo en tus conversaciones.\n\n---\n\n## 🔄 ESTADOS DE CONVERSACIÓN Y FLUJOS\n\n### **0. DETECCIÓN DE MENSAJES DEL SISTEMA**\n**Si el mensaje recibido es exactamente uno de estos:**\n- *\"Lo siento no puedo recibir audios por el momento en esta version, en que puedo ayudarte?\"*\n- *\"No puedo utilizar la función de imagenes de momento en esta version, en que puedo ayudarte?\"*\n- *\"El formato no esta disponible en esta versión, en que puedo ayudarte?\"*\n- *\"Los documentos no pueden ser procesados en esta versión, en que puedo ayudarte?\"*\n- *\"Los videos no pueden ser procesados en esta versión, en que puedo ayudarte?\"*\n\n**ACCIÓN**: Reenviar el mensaje **EXACTAMENTE tal como se recibió** sin ningún procesamiento adicional.\n\n### **1. SALUDO INICIAL**\n**Si el usuario saluda:**\n- Responder cálidamente y preguntar: *\"¿En qué puedo ayudarle hoy?\"*\n\n**Si saluda + solicita información:**\n- Saludar y preguntar: *\"¿Qué tipo de información necesita?\"*\n- Ofrecer opciones: PRECIOS | HORARIOS | UBICACIÓN | OBRAS SOCIALES | POLÍTICAS\n\n**Si saluda + consulta turnos:**\n- Saludar y calcular día óptimo automáticamente, luego usar `Disponibilidad_horaria`\n\n### **2. CONSULTAS DE INFORMACIÓN**\n**Cuando solicite información específica:**\n1. Usar `informacion_profesional` con el parámetro correspondiente\n2. Proporcionar respuesta clara y completa\n3. Preguntar si necesita algo más\n\n**Tipos disponibles:** precios, horarios, ubicacion, obras_sociales, politicas, tipos_consulta, profesional\n\n### **3. DETECCIÓN DE DESPEDIDA**\n**Señales de finalización:**\n- Agradecimientos: \"gracias\", \"perfecto\", \"excelente\"\n- Confirmaciones: \"ya está\", \"listo\", \"ok\", \"bien\"\n- Despedidas directas: \"hasta luego\", \"nos vemos\", \"chau\"\n- Satisfacción: \"me sirve\", \"es todo lo que necesitaba\"\n\n**Respuesta de cierre profesional:**\n1. **Confirmar acción completada** (si hubo turno/consulta)\n2. **Mensaje de despedida cálido**\n3. **Información de contacto** (si corresponde)\n4. **Guardar contexto relevante** en `Simple_Memory`\n\n**Ejemplos de cierre:**\n- *\"Perfecto, [Nombre]. Su turno del [fecha] a las [hora] queda confirmado. Cualquier consulta, nos puede contactar al +54 11 5555-7890. ¡Que tenga un excelente día!\"*\n- *\"Me alegra haber podido ayudarle con la información. Si necesita algo más, no dude en contactarnos. ¡Hasta luego!\"*\n- *\"Gracias por contactarse con el consultorio de la Dra. Martínez. ¡Que esté muy bien!\"*\n\n### **4. GESTIÓN DE TURNOS**\n\n#### **🗓️ SOLICITUD DE TURNO**\n**Flujo principal:**\n1. **Verificar disponibilidad**: usar `Disponibilidad_horaria`\n2. **Si no confirma fecha**: repetir con nueva sugerencia o usar `Obtener_Eventos2` para fecha/hora específica\n3. **Si confirma fecha**: continuar al paso de tipo de consulta\n4. **Si falta tipo de consulta**: usar `informacion_profesional` para mostrar opciones\n5. **Verificar si es paciente existente**: solicitar DNI → `Leer_Contactos`\n\n#### **👤 PACIENTE EXISTENTE**\n- Avisar: *\"Ya está registrado en nuestro sistema\"*\n- Confirmar: fecha + tipo de consulta\n- Si está de acuerdo: `Crear_evento2` con el formato especificado abajo\n\n#### **👤 PACIENTE NUEVO**\n**Solicitar datos (DNI ya obtenido):**\n- Nombre\n- Apellido  \n- Obra social\n- Dirección\n- Número de teléfono\n\n**Luego:**\n1. **NORMALIZAR DATOS** antes de enviar (proceso interno - no informar al cliente):\n   - Convertir todo a minúsculas\n   - Remover acentos y caracteres especiales\n   - Aplicar a: Nombre, Apellido, Dirección\n   - DNI y teléfono mantener como números\n2. `Agregar_contactos` con todos los datos normalizados\n3. Avisar: *\"Ya está registrado en nuestro sistema\"*\n4. Confirmar: fecha + tipo de consulta\n5. Si está de acuerdo: `Crear_evento2` con el siguiente formato exacto:\n\n```json\n{\n\"Comenzar\" : \"[FECHA Y HORA DE INICIO]\",\n\"Fin\" : \"[FECHA Y HORA DE FIN]\",\n\"asistentes0_Asistentes\" : \"prueba@tesstt.com\",\n\"Descripción\" : \"[TIPO DE CONSULTA ESPECÍFICO]\",\n\"Resumen\" : \"DNI: [NÚMERO_DNI] - [NOMBRE COMPLETO DEL PACIENTE]\"\n}\n```\n\n**IMPORTANTE:** Siempre usar este formato exacto para `Crear_evento2`. Reemplazar los valores entre corchetes con los datos reales del paciente.\n\n---\n\n## 🔒 MODIFICACIONES Y CANCELACIONES\n\n### **PROTOCOLO DE SEGURIDAD OBLIGATORIO**\n**Para modificar/cancelar turnos o datos:**\n\n1. **Solicitar verificación**: *\"Por su seguridad, necesito verificar algunos datos\"*\n2. **Pedir**: DNI + dirección\n3. **NORMALIZAR DATOS** antes de verificación (proceso interno - no informar al cliente):\n   - Convertir dirección a minúsculas\n   - Remover acentos de la dirección\n   - DNI mantener como número\n4. **Verificar**: usar `Verificacion_de_datos` con datos normalizados\n5. **Evaluar securityStatus**: verificar `{{ $json.securityStatus }}`\n   - **Si securityStatus NO es \"seguro\"**: \n     * DETENER inmediatamente cualquier operación\n     * Responder: *\"Por su seguridad, no puedo continuar brindando información. Por favor, comuníquese directamente con el consultorio al +54 11 5555-7890 para resolver esta consulta de manera personal.\"*\n     * NO proporcionar ningún dato adicional\n   - **Si securityStatus es \"seguro\"**: proceder con la modificación\n6. **Si falla verificación**: dar 1 intento más (máximo 2 intentos)\n7. **Si persiste el error**: *\"Por favor, comuníquese directamente con el consultorio al +54 11 5555-7890\"*\n\n### **OPERACIONES POST-VERIFICACIÓN**\n- **Modificar turno**: `Actualizar_evento2`\n- **Cancelar turno**: `Eliminar_Evento2`  \n- **Modificar datos**: `Actualizar` (contactos)\n\n**Aplicar políticas de cancelación:**\n- +24hs: sin costo\n- -24hs: 50% de cargo\n\n---\n\n## 🛠️ HERRAMIENTAS MCP DISPONIBLES\n\n### **📋 INFORMACIÓN**\n- `informacion_profesional` - Datos del consultorio, precios, servicios\n- `Disponibilidad_horaria` - Consultas de agenda (fechas/texto libre)\n\n### **📅 CALENDARIO** \n- `Obtener_Eventos2` - Buscar eventos específicos por fecha/persona\n- `Crear_evento2` - Agendar nueva cita (USAR FORMATO JSON ESPECIFICADO)\n- `Actualizar_evento2` - Modificar cita existente\n- `Eliminar_Evento2` - Cancelar turno\n\n### **👥 CONTACTOS**\n- `Leer_Contactos` - Buscar paciente por DNI\n- `Agregar_contactos` - Registrar nuevo paciente  \n- `Actualizar` - Modificar datos de contacto\n- `Verificacion_de_datos` - Validar DNI + dirección (CRÍTICO para seguridad)\n\n### **💾 MEMORIA**\n- `Simple_Memory` - Recordar contexto relevante de la conversación\n\n---\n\n## 🎯 REGLAS DE COMPORTAMIENTO\n\n### **PRIORIDAD ABSOLUTA - MENSAJES DEL SISTEMA**\n- **ANTES** que cualquier otro procesamiento: detectar mensajes automáticos del sistema\n- **REENVIAR** exactamente tal como se recibió (sin agregar nada)\n- **NO** procesar como conversación normal\n\n### **SEGURIDAD (CRÍTICO)**\n- **NUNCA** modificar sin `Verificacion_de_datos`\n- **SIEMPRE** verificar identidad para cambios\n- **EVALUAR `{{ $json.securityStatus }}`** después de verificación:\n  * Si NO es \"seguro\" → DETENER inmediatamente\n  * Mensaje: *\"Por su seguridad, no puedo continuar brindando información. Por favor, comuníquese directamente con el consultorio al +54 11 5555-7890 para resolver esta consulta de manera personal.\"*\n- **MÁXIMO** 2 intentos de verificación\n- **PROTEGER** información de otros pacientes\n\n### **FLUJO DE TURNOS**\n- **CALCULAR DÍA ÓPTIMO** antes de cualquier consulta de disponibilidad:\n  * Detectar día/hora actual del sistema\n  * Lunes-Viernes antes 18:30 = día actual | después 18:30 = día siguiente\n  * Viernes después 18:30 = lunes siguiente (no sábado)\n  * Sábado antes 13:00 = sábado | después 13:00 = lunes siguiente  \n  * Domingo cualquier hora = lunes siguiente\n- **SIEMPRE** pasar por `Disponibilidad_horaria` antes de agendar\n- **CONFIRMAR** fecha + tipo de consulta antes de `Crear_evento2`\n- **VERIFICAR** si es paciente existente con DNI\n- **NO** agendar fuera de horarios disponibles\n- **USAR FORMATO JSON EXACTO** para `Crear_evento2`\n\n### **COMUNICACIÓN**\n- **Tono**: profesional, empático y cálido\n- **Claridad**: confirmar detalles importantes\n- **Seguridad**: explicar por qué necesitas verificar datos\n- **Flexibilidad**: entender diferentes formas de expresarse\n- **Ejemplos**: usar los ejemplos de cierre proporcionados como guía\n\n### **NORMALIZACIÓN DE DATOS (INTERNO)**\n- **ANTES** de usar `Agregar_contactos` o `Verificacion_de_datos`: normalizar datos\n- **Conversión**: minúsculas + sin acentos (á→a, ñ→n, etc.)\n- **Aplicar a**: Nombre, Apellido, Dirección (NO DNI ni teléfono)\n- **Transparente**: el cliente NO sabe de esta normalización\n- **Mostrar**: datos al cliente como los escribió\n\n### **MEMORIA**\n- Recordar contexto relevante de la conversación\n- No recordar información sensible innecesariamente\n- Usar para mejorar fluidez del diálogo\n\n---\n\n## 📞 INFORMACIÓN DE CONTACTO\n**Consultorio**: Av. Emilio Civit 785, Piso 3, Of. 302, Mendoza Capital  \n**Teléfono**: +54 11 5555-7890  \n**Email**: dra.lucia.martinez@consultorio.com.ar\n\n## 🏥 DATOS CLAVE\n**Especialidad**: Psicóloga Clínica - Terapia Cognitivo Conductual  \n**Horarios**: Lun-Jue 8:00-12:00/15:00-19:00 | Vie 8:00-12:00/15:00-18:00 | Sáb 9:00-12:00\n\n---\n\n**OBJETIVO PRINCIPAL**: Brindar un servicio profesional, seguro y empático que refleje la excelencia del consultorio de la Dra. Martínez, priorizando siempre la seguridad de los datos y la satisfacción del paciente."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        8700,
+        -900
+      ],
+      "id": "0a145503-18b8-4415-8e47-6541f92e461f",
+      "name": "Agente Cliente"
+    },
+    {
+      "parameters": {
+        "description": "Herramienta inteligente que procesa consultas sobre disponibilidad de turnos. Recibe el mensaje completo del usuario y la envia al workflow Disponibilidad",
+        "workflowId": {
+          "__rl": true,
+          "value": "Sbfbu6AIps09xS1y",
+          "mode": "list",
+          "cachedResultName": "Cancelacion de turnos"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        8900,
+        -1440
+      ],
+      "id": "15c1bfd4-ba46-4f28-b079-a390497d281e",
+      "name": "Cancelacion de turno"
+    },
+    {
+      "parameters": {
+        "description": "Herramienta inteligente que procesa consultas sobre disponibilidad de turnos. Recibe el mensaje completo del usuario y la envia al workflow Disponibilidad",
+        "workflowId": {
+          "__rl": true,
+          "value": "0lIGw2DcKMGPgYtv",
+          "mode": "list",
+          "cachedResultName": "Ver calendario de clientes"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        9060,
+        -1440
+      ],
+      "id": "c32f8064-997c-4fd1-a052-cc8051dd92d7",
+      "name": "Ver calendario de clientes"
+    },
+    {
+      "parameters": {
+        "sseEndpoint": "https://n8n.pampaservers.com/mcp/dde3c86b-fc11-4a83-88d3-95be7124ae23/sse",
+        "include": "selected",
+        "includeTools": [
+          "Actualizar_Evento2",
+          "Obtener_Eventos2",
+          "Eliminar_Evento2",
+          "Crear_evento2"
+        ]
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        9220,
+        -1440
+      ],
+      "id": "b93026f2-66f2-40b7-9b98-092b0a4cc9e0",
+      "name": "MCP Calendario1"
+    },
+    {
+      "parameters": {
+        "description": "Herramienta inteligente que procesa consultas sobre disponibilidad de turnos. Recibe el mensaje completo del usuario y la envia al workflow Disponibilidad",
+        "workflowId": {
+          "__rl": true,
+          "value": "FgxKMd6yC36CoH8A",
+          "mode": "list",
+          "cachedResultName": "Notificar al cliente"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        9380,
+        -1440
+      ],
+      "id": "e808d6aa-8a52-4ab0-ae9b-9dc0e893448c",
+      "name": "Notifificar al cliente"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "0f294c51-0629-4ae1-a009-68c2f5fd30b5",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "leftValue": "={{$json.count != null && Number($json.count) >= 1}}",
+              "rightValue": ""
+            },
+            {
+              "id": "1626238d-fb00-4ce8-89df-a40a4f29f52a",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "leftValue": "={{$json.last_seen != null}}",
+              "rightValue": ""
+            },
+            {
+              "id": "df819099-1f6e-4bee-a017-32b729c836a3",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "leftValue": "={{($now.toMillis() - Number($json.last_seen)) >= Number($json.waitSeconds) * 1000}}",
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "d182df60-cd84-46cb-a7b7-60503a63f69c",
+      "name": "Check Inactivity And Count1",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        6620,
+        -880
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.buffer.reverse().toJsonString() }}",
+        "schemaType": "fromJson",
+        "jsonSchemaExample": "{\n  \"consolidated_message\": \"all user messages consolidated into one\",\n  \"from\": \"phone number of the user who sent the messages\",\n  \"message_count\": \"number of messages that were consolidated\",\n  \"session_info\": {\n    \"chat_id\": \"chat identifier\",\n    \"first_message_time\": \"timestamp of first message\",\n    \"last_message_time\": \"timestamp of last message\"\n  }\n}",
+        "options": {
+          "systemPromptTemplate": "Eres un experto consolidando mensajes de WhatsApp. Tu objetivo es:\n\n1. **Consolidar todos los mensajes** del usuario en un solo párrafo coherente\n2. **Extraer el número de teléfono** del usuario (campo \"from\")\n3. **Contar los mensajes** que fueron consolidados\n4. **Mantener información de sesión** para contexto\n\nIMPORTANTES:\n- Elimina duplicados y mantén el contexto original\n- El resultado debe ser natural y fácil de entender\n- Preserva la información del remitente\n- Cuenta cuántos mensajes se consolidaron\n\nEl resultado será usado por un asistente de atención al cliente que necesita saber quién escribió y qué dijo."
+        }
+      },
+      "id": "dbbbe9c8-9eed-4ecf-a5e9-7666441e432b",
+      "name": "Information Extractor1",
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "position": [
+        7040,
+        -980
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "=buffer_in:{{$json.chat_id}}",
+        "messageData": "={\"text\": \"{{ $json.user_message }}\", \"timestamp\": \"{{$now.toMillis()}}\", \"from\": \"{{ $json.from }}\"}",
+        "tail": true
+      },
+      "id": "92b4112f-ecdf-43ee-8b49-eb8dffca9b8d",
+      "name": "Buffer Messages",
+      "type": "n8n-nodes-base.redis",
+      "position": [
+        4560,
+        -780
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "redis": {
+          "id": "GUjQg3mbTfZIGfHs",
+          "name": "N8N2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=last_seen:{{$json.chat_id}}",
+        "value": "={{$now.toMillis()}}",
+        "keyType": "string",
+        "expire": true,
+        "ttl": "=75"
+      },
+      "id": "a263bb32-ef41-4185-a379-58c1dd248d38",
+      "name": "Set Last Seen",
+      "type": "n8n-nodes-base.redis",
+      "position": [
+        4760,
+        -780
+      ],
+      "typeVersion": 1,
+      "alwaysOutputData": true,
+      "credentials": {
+        "redis": {
+          "id": "GUjQg3mbTfZIGfHs",
+          "name": "N8N2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "waiting_reply",
+        "key": "=waiting_reply:{{$json.chat_id}}",
+        "keyType": "string",
+        "options": {
+          "dotNotation": false
+        }
+      },
+      "id": "8e93c0d7-d768-49c0-b95b-ba0790ebfac1",
+      "name": "Get Waiting Reply",
+      "type": "n8n-nodes-base.redis",
+      "position": [
+        4960,
+        -680
+      ],
+      "typeVersion": 1,
+      "alwaysOutputData": true,
+      "credentials": {
+        "redis": {
+          "id": "GUjQg3mbTfZIGfHs",
+          "name": "N8N2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=waiting_reply:{{$json.chat_id}}",
+        "value": "true",
+        "expire": true,
+        "ttl": "=75"
+      },
+      "id": "f4fd1c75-1572-494c-995a-5a206f16dbf2",
+      "name": "Set Waiting Reply",
+      "type": "n8n-nodes-base.redis",
+      "position": [
+        5500,
+        -880
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "redis": {
+          "id": "GUjQg3mbTfZIGfHs",
+          "name": "N8N2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "230fc585-ac5c-432a-bf52-2b211d1c1dbe",
+      "name": "Merge Data + Redis Result",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        5120,
+        -780
+      ],
+      "typeVersion": 3.1
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "f46cb1ee-8c7d-4fd6-bb61-4bd88e9eb780",
+      "name": "Merge Data + Redis Result10",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        6040,
+        -880
+      ],
+      "typeVersion": 3.1
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "5e3b3140-b194-4706-8947-491679be75fa",
+      "name": "Merge Data + Redis Result11",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        6380,
+        -880
+      ],
+      "typeVersion": 3.1
+    },
+    {
+      "parameters": {
+        "amount": "={{18}}"
+      },
+      "id": "0465d60c-a7d1-4a9e-88ad-1dbc1d5865e1",
+      "name": "Dynamic Wait4",
+      "type": "n8n-nodes-base.wait",
+      "position": [
+        5520,
+        -680
+      ],
+      "webhookId": "b8e2e214-f82b-49c2-96e2-91e093137857",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "should_process_check",
+              "leftValue": "={{ $json.approved }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3620,
+        -640
+      ],
+      "id": "0ac77ccb-3e5b-4deb-9535-55e012584b9a",
+      "name": "If Should Process1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ✅ Data Normalizer v2.2 - Corregido para nueva estructura\n// Normalización única + detección de entidades + start_time + messageInfo\nconst inputData = $input.first().json;\n\n// Función de normalización de texto\nfunction normalizeText(text) {\n  if (!text || typeof text !== 'string') return '';\n  return text.toLowerCase()\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '') // quita acentos\n    .replace(/\\s+/g, ' ') // normaliza espacios\n    .trim();\n}\n\n// ✅ CORRECCIÓN: Extraer texto directamente de inputData.text\nconst messageText = inputData.text || '';\nconst normalizedText = normalizeText(messageText);\n\n// ✅ CORRECCIÓN: Generar start_time si no existe\nconst startTime = inputData.start_time || inputData.timestamp || Date.now();\n\n// ✅ CORRECCIÓN: Crear messageInfo basado en los datos disponibles\nconst messageInfo = inputData.messageInfo || {\n  type: inputData.message_type || 'text',\n  blocked: !inputData.approved || false,\n  hasMedia: inputData.message_type !== 'text',\n  length: messageText.length,\n  processingTime: Date.now() - (inputData.processed_at || Date.now())\n};\n\n// Detectar entidades básicas\nconst entities = {\n  // DNI detection\n  dni: messageText.match(/\\b\\d{7,8}\\b/)?.[0] || null,\n  \n  // Fecha detection\n  fecha: messageText.match(/\\b\\d{1,2}[/\\-]\\d{1,2}[/\\-]\\d{2,4}\\b/)?.[0] || null,\n  \n  // Horario detection\n  horario: messageText.match(/\\b\\d{1,2}:\\d{2}\\b/)?.[0] || null,\n  \n  // Palabras clave para categorización\n  isInfoQuery: /precio|horario|ubicaci[oó]n|obra social|informaci[oó]n/i.test(messageText),\n  isTurnoQuery: /turno|cita|agenda|agendar|reservar/i.test(messageText),\n  isModificationQuery: /cambiar|modificar|cancelar|reagendar/i.test(messageText),\n  \n  // Saludos y despedidas\n  isGreeting: /hola|buenos|buenas|buen día/i.test(messageText),\n  isFarewell: /gracias|chau|hasta luego|adiós/i.test(messageText)\n};\n\n// Determinar complejidad y tipo de consulta\nconst complexity = (entities.dni || entities.fecha || entities.horario) ? 'complex' : 'simple';\nconst queryType = entities.isInfoQuery ? 'info' : \n                 entities.isTurnoQuery ? 'turno' : \n                 entities.isModificationQuery ? 'modification' : \n                 entities.isGreeting ? 'greeting' :\n                 entities.isFarewell ? 'farewell' : 'general';\n\n// Preparar datos normalizados\nconst result = {\n  // Datos originales\n  original: {\n    text: messageText,\n    from: inputData.from,\n    timestamp: inputData.timestamp,\n    message_id: inputData.message_id,\n    hasMedia: inputData.message_type !== 'text'\n  },\n  \n  // Datos normalizados\n  normalized: {\n    text: normalizedText,\n    textLength: normalizedText.length\n  },\n  \n  // Entidades detectadas\n  entities: entities,\n  \n  // Contexto para decisiones\n  context: {\n    queryType: queryType,\n    complexity: complexity,\n    isCacheable: queryType === 'info' && !entities.dni, // info sin datos personales\n    requiresVerification: queryType === 'modification'\n  },\n  \n  // ✅ CORRECCIÓN: Campos requeridos por Prepare Output\n  to: inputData.to,\n  session: inputData.session,\n  chat_id: inputData.chat_id,\n  start_time: startTime, // ✅ Ahora siempre existe\n  messageInfo: messageInfo, // ✅ Ahora siempre existe\n  \n  // Campos adicionales del flujo anterior\n  shouldProcess: inputData.approved || inputData.shouldProcess || false,\n  sender_name: inputData.sender_name,\n  processed_at: inputData.processed_at,\n  \n  // Métricas básicas\n  metrics: {\n    normalization_time: Date.now() - startTime,\n    original_length: messageText.length,\n    normalized_length: normalizedText.length,\n    entities_count: Object.values(entities).filter(v => v === true || (v && v !== null)).length,\n    query_type: queryType,\n    complexity: complexity,\n    processing_duration: Date.now() - (inputData.processed_at || Date.now())\n  }\n};\n\nreturn result;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3800,
+        -760
+      ],
+      "id": "0df988f3-4dc3-4fde-a028-437ca8e43a56",
+      "name": "Data Normalizer1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Function: Compute waitSeconds based on message length - OPTIMIZED\nconst message = $json.chat_input || '';\nconst wordCount = message.split(' ').filter(w=>w).length;\n\nreturn [{ \n  json: { \n    user_message: message,\n    from: $json.from,\n    to: $json.to,\n    session: $json.session,\n    chat_id: $json.chat_id,\n    start_time: $json.start_time,\n    waitSeconds: wordCount < 5 ? 8 : 6\n  }\n}];"
+      },
+      "id": "f53f45be-613c-4da1-ab90-63851d26d753",
+      "name": "Calculate Wait Seconds1",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        4380,
+        -780
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "buffer",
+        "key": "=buffer_in:{{$json.chat_id}}",
+        "options": {}
+      },
+      "id": "aa9fac67-053e-4b68-862e-6ba3e42fbdba",
+      "name": "Get Buffer1",
+      "type": "n8n-nodes-base.redis",
+      "position": [
+        6840,
+        -980
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "redis": {
+          "id": "GUjQg3mbTfZIGfHs",
+          "name": "N8N2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": "={{ \n  (($now.toMillis() - ($json.start_time || $now.toMillis())) / 1000) >= 8 ? 0 : 2\n}}"
+      },
+      "id": "f65f4059-bc0b-4ea9-9928-f2c1899b0eb2",
+      "name": "Dynamic Wait2",
+      "type": "n8n-nodes-base.wait",
+      "position": [
+        6840,
+        -780
+      ],
+      "webhookId": "b8e2e214-f82b-49c2-96e2-91e093137857",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "=buffer_in:{{$('Check Inactivity And Count1').item.json.chat_id}}"
+      },
+      "id": "e9733364-b92a-4e1e-afba-5b706a495e73",
+      "name": "Delete Buffer In1",
+      "type": "n8n-nodes-base.redis",
+      "position": [
+        7340,
+        -1200
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "redis": {
+          "id": "GUjQg3mbTfZIGfHs",
+          "name": "N8N2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "=waiting_reply:{{$('Check Inactivity And Count1').item.json.chat_id}}"
+      },
+      "id": "b2968779-1a2c-44b7-af52-b5660ee511a1",
+      "name": "Delete Waiting Reply1",
+      "type": "n8n-nodes-base.redis",
+      "position": [
+        7580,
+        -1200
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "redis": {
+          "id": "GUjQg3mbTfZIGfHs",
+          "name": "N8N2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "=buffer_count:{{$('Check Inactivity And Count1').item.json.chat_id}}"
+      },
+      "id": "68283be4-a91d-4c0e-964c-e7530f3ed0e7",
+      "name": "Delete Buffer Count1",
+      "type": "n8n-nodes-base.redis",
+      "position": [
+        7540,
+        -980
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "redis": {
+          "id": "GUjQg3mbTfZIGfHs",
+          "name": "N8N2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "incr",
+        "key": "=buffer_count:{{$json.chat_id}}",
+        "expire": "=75"
+      },
+      "id": "8be6016a-8207-487d-beaf-7706bb9cbf26",
+      "name": "Increment Buffer Count1",
+      "type": "n8n-nodes-base.redis",
+      "position": [
+        4960,
+        -920
+      ],
+      "typeVersion": 1,
+      "alwaysOutputData": true,
+      "credentials": {
+        "redis": {
+          "id": "GUjQg3mbTfZIGfHs",
+          "name": "N8N2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "8136ea21-d798-41fd-81ed-5c0e7fda73c5",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "leftValue": "={{ $json.waiting_reply == null}}",
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a5994389-9a11-40c2-9f6b-cf2b066cc316",
+      "name": "Check Waiting Reply",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        5300,
+        -780
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "amount": "={{ $json.waitSeconds }}"
+      },
+      "id": "89608a2a-d51f-4326-83a4-8f8f6a9ad4e3",
+      "name": "Wait Seconds",
+      "type": "n8n-nodes-base.wait",
+      "position": [
+        5680,
+        -880
+      ],
+      "webhookId": "c218d471-2f0f-4bd7-87d1-5431ac602211",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "last_seen",
+        "key": "=last_seen:{{$json.chat_id}}",
+        "options": {}
+      },
+      "id": "ee7864ed-7260-4aea-9f0b-3b547437a56d",
+      "name": "Get Last Seen",
+      "type": "n8n-nodes-base.redis",
+      "position": [
+        5860,
+        -800
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "redis": {
+          "id": "GUjQg3mbTfZIGfHs",
+          "name": "N8N2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "count",
+        "key": "=buffer_count:{{$json.chat_id}}",
+        "options": {}
+      },
+      "id": "6ff8544a-da5c-4324-aed0-871c9e3d4242",
+      "name": "Get Buffer Count",
+      "type": "n8n-nodes-base.redis",
+      "position": [
+        6200,
+        -760
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "redis": {
+          "id": "GUjQg3mbTfZIGfHs",
+          "name": "N8N2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "status-field",
+              "name": "status",
+              "type": "string",
+              "value": "message_buffered"
+            },
+            {
+              "id": "action-field",
+              "name": "action",
+              "type": "string",
+              "value": "additional_message_processed"
+            },
+            {
+              "id": "chat-id-field",
+              "name": "chat_id",
+              "type": "string",
+              "value": "={{ $json.chat_id }}"
+            },
+            {
+              "id": "timestamp-field",
+              "name": "timestamp",
+              "type": "number",
+              "value": "={{ $now.toMillis() }}"
+            },
+            {
+              "id": "message-field",
+              "name": "message",
+              "type": "string",
+              "value": "Additional message successfully added to buffer"
+            },
+            {
+              "id": "branch-field",
+              "name": "workflow_branch",
+              "type": "string",
+              "value": "additional_message"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "dd1fab7f-1059-4a3b-aebd-9347967f5dc9",
+      "name": "Message Buffered Successfully1",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        5680,
+        -680
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "processing_summary",
+              "name": "processing_summary",
+              "value": "=Mensaje procesado: {{ $json.context.queryType }} | Complejidad: {{ $json.context.complexity }} | Entidades: {{ $json.metrics.entities_count }}",
+              "type": "string"
+            },
+            {
+              "id": "chat_input_ready",
+              "name": "chat_input",
+              "value": "={{ $json.normalized.text }}",
+              "type": "string"
+            },
+            {
+              "id": "user_message_field",
+              "name": "user_message",
+              "value": "={{ $json.normalized.text }}",
+              "type": "string"
+            },
+            {
+              "id": "user_from",
+              "name": "from",
+              "value": "={{ $json.original.from }}",
+              "type": "string"
+            },
+            {
+              "id": "ready_for_next",
+              "name": "ready_for_next_part",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "chat_id_field",
+              "name": "chat_id",
+              "value": "={{ $json.original.from }}",
+              "type": "string"
+            },
+            {
+              "id": "message_id_field",
+              "name": "message_id",
+              "value": "={{ $json.chat_id }}",
+              "type": "string"
+            },
+            {
+              "id": "wait_seconds_field",
+              "name": "waitSeconds",
+              "value": "={{ $json.normalized.text.split(' ').filter(word => word.length > 0).length < 5 ? 15 : 10 }}",
+              "type": "number"
+            },
+            {
+              "id": "context_field",
+              "name": "context",
+              "value": "={{ $json.context }}",
+              "type": "object"
+            },
+            {
+              "id": "entities_field",
+              "name": "entities",
+              "value": "={{ $json.entities }}",
+              "type": "object"
+            },
+            {
+              "id": "metrics_field",
+              "name": "metrics",
+              "value": "={{ $json.metrics }}",
+              "type": "object"
+            },
+            {
+              "id": "original_field",
+              "name": "original",
+              "value": "={{ $json.original }}",
+              "type": "object"
+            },
+            {
+              "id": "session_field",
+              "name": "session",
+              "value": "={{ $json.session }}",
+              "type": "string"
+            },
+            {
+              "id": "to_field",
+              "name": "to",
+              "value": "={{ $json.to }}",
+              "type": "string"
+            },
+            {
+              "id": "start_time_field",
+              "name": "start_time",
+              "value": "={{ $json.start_time }}",
+              "type": "number"
+            },
+            {
+              "id": "message_info_field",
+              "name": "messageInfo",
+              "value": "={{ $json.messageInfo }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4140,
+        -780
+      ],
+      "id": "3d0b51ed-45eb-4983-8f59-a52e1ad08fcd",
+      "name": "Prepare Output"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-preview-05-20",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        7040,
+        -800
+      ],
+      "id": "80a540c2-13e4-48a2-bf8b-57c35cef1433",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "6dvy7Q0YoRJ42lQs",
+          "name": "Google Gemini(PaLM) Api account 3"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@devlikeapro/n8n-nodes-waha.wahaTrigger",
+      "typeVersion": 202502,
+      "position": [
+        1940,
+        -1020
+      ],
+      "id": "337e2037-4200-4cfd-bbed-f99e4c8f5226",
+      "name": "waha_webhook1",
+      "webhookId": "94db0e8b-728a-454c-a449-d3626e24a582"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Procesador Simple de Mensajes WhatsApp\n// Solo acepta mensajes de texto, rechaza todo lo demás\n\nconst inputData = $input.all();\nconst results = [];\n\nfor (const item of inputData) {\n  try {\n    // Extraer datos básicos de la nueva estructura\n    const session = item.json.session;\n    const message = item.json.message;\n    const to = item.json.to;\n    const chat_id = item.json.chat_id;\n    \n    // Validación básica de estructura\n    if (!message || !message.id || !session) {\n      results.push({\n        json: {\n          shouldProcess: false,\n          reason: \"invalid_structure\",\n          message_id: message?.id || \"unknown\",\n          timestamp: Date.now(),\n          error: \"Estructura de mensaje inválida\"\n        }\n      });\n      continue;\n    }\n\n    // Datos básicos del mensaje\n    const messageData = {\n      message_id: message.id,\n      chat_id: chat_id,\n      from: message.from,\n      to: to,\n      session: session,\n      timestamp: message.timestamp,\n      processed_at: Date.now(),\n      sender_name: message._data?.notifyName || \"Usuario\",\n      is_from_me: message.fromMe || false\n    };\n\n    // LÓGICA PRINCIPAL: Solo acepta texto\n    const hasMedia = message.hasMedia === true;\n    const hasText = message.body && message.body.trim() !== \"\";\n    const isTextOnly = !hasMedia && hasText;\n\n    if (isTextOnly) {\n      // ✅ APROBADO - Solo texto\n      results.push({\n        json: {\n          ...messageData,\n          approved: true,\n          message_type: \"text\",\n          text: message.body.trim(),\n          word_count: message.body.trim().split(/\\s+/).length,\n          message_length: message.body.length,\n          contains_url: /https?:\\/\\/[^\\s]+/.test(message.body),\n          contains_email: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/.test(message.body),\n          contains_phone: /\\+?[0-9\\s\\-\\(\\)]{10,}/.test(message.body),\n          reason: \"text_approved\"\n        }\n      });\n    } else {\n      // ❌ RECHAZADO - Cualquier otro formato\n      let rejectionReason = \"unknown_format\";\n      let responseMessage = \"❌ Solo acepto mensajes de texto por ahora.\";\n\n      // Identificar el tipo específico para mejor respuesta\n      if (hasMedia) {\n        const mediaType = message._data?.type || \"media\";\n        \n        switch (mediaType) {\n          case \"ptt\":\n          case \"audio\":\n            rejectionReason = \"audio_not_supported\";\n            responseMessage = \"🎵 Los mensajes de voz no están disponibles. Por favor, escribe tu consulta.\";\n            break;\n          case \"image\":\n            rejectionReason = \"image_not_supported\";\n            responseMessage = \"🖼️ Las imágenes no están disponibles. Por favor, describe tu consulta.\";\n            break;\n          case \"video\":\n            rejectionReason = \"video_not_supported\";\n            responseMessage = \"🎥 Los videos no están disponibles. Por favor, escribe tu consulta.\";\n            break;\n          case \"document\":\n            rejectionReason = \"document_not_supported\";\n            responseMessage = \"📄 Los documentos no están disponibles. Por favor, escribe tu consulta.\";\n            break;\n          case \"sticker\":\n            rejectionReason = \"sticker_not_supported\";\n            responseMessage = \"😄 Los stickers no están disponibles. Por favor, escribe tu consulta.\";\n            break;\n          case \"location\":\n            rejectionReason = \"location_not_supported\";\n            responseMessage = \"📍 Las ubicaciones no están disponibles. Por favor, escribe tu consulta.\";\n            break;\n          default:\n            rejectionReason = \"media_not_supported\";\n            responseMessage = \"📎 Este tipo de archivo no está disponible. Por favor, escribe tu consulta.\";\n        }\n      } else if (!hasText) {\n        rejectionReason = \"empty_message\";\n        responseMessage = \"❓ He recibido un mensaje vacío. ¿En qué puedo ayudarte?\";\n      }\n\n      results.push({\n        json: {\n          ...messageData,\n          approved: false,\n          message_type: hasMedia ? (message._data?.type || \"media\") : \"empty\",\n          text: responseMessage,\n          reason: rejectionReason,\n          original_body: message.body || \"\",\n          has_media: hasMedia,\n          media_info: hasMedia ? {\n            type: message._data?.type || \"unknown\",\n            mimetype: message.media?.mimetype || null,\n            filename: message.media?.filename || null\n          } : null\n        }\n      });\n    }\n\n  } catch (error) {\n    // Manejo de errores\n    results.push({\n      json: {\n        approved: false,\n        reason: \"processing_error\",\n        error: error.message,\n        timestamp: Date.now(),\n        message_id: item.json?.payload?.id || \"unknown\"\n      }\n    });\n  }\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3400,
+        -640
+      ],
+      "id": "127ec78d-d155-499e-80c8-244a6dd9a072",
+      "name": "Procesador Simple de Mensajes WhatsApp"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "not_own_message",
+              "leftValue": "={{ [($json.me.id)].includes($json.payload.from) }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "ee3fd2d4-39a3-4416-8c8f-44f269213037",
+              "leftValue": "={{ $json.payload._data.subtype }}",
+              "rightValue": "contact_info_card",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2340,
+        -420
+      ],
+      "id": "910850a2-51f4-4f4e-9634-8ed08ffcf165",
+      "name": "If Not Own Message1"
+    }
+  ],
+  "pinData": {
+    "Message Filtered Out": [
+      {
+        "json": {
+          "text": "Lo siento no puedo recibir audios por el momento en esta version, en que puedo ayudarte?",
+          "timestamp": 1750515704,
+          "from": "5492604630902@c.us",
+          "to": "5492604042017@c.us",
+          "session": "support",
+          "chat_id": "false_5492604630902@c.us_3AB5714C4D1663899079",
+          "start_time": 1750515706073,
+          "mediaInfo": {
+            "type": "audio",
+            "blocked": true
+          },
+          "shouldProcess": false
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Edit Fields Initial": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Lookup Cliente en Sheets1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message Aggregator": {
+      "main": [
+        [
+          {
+            "node": "Optimized Security Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Optimized Security Filter": {
+      "main": [
+        [
+          {
+            "node": "If Security Passed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Security Passed": {
+      "main": [
+        [
+          {
+            "node": "Agente Cliente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Security Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Optimized Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agente Cliente",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Calendario": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Cliente",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Contacto": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Cliente",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Info Profesional": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Cliente",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Disponibilidad Horaria": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Cliente",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare AI Response": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Security Response": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "WAHA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message Filtered Out": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente Cliente",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send WhatsApp Response": {
+      "main": [
+        []
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Cliente",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lookup Cliente en Sheets1": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge5": {
+      "main": [
+        [
+          {
+            "node": "¿Cliente en Automático?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Cliente en Automático?1": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Procesador Simple de Mensajes WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Optimized Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agente Profesional",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Contacto1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Profesional",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente Profesional",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Operation, do nothing2": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Operation, do nothing": {
+      "main": [
+        [
+          {
+            "node": "Agente Profesional",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think Profesional": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Profesional",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente Profesional": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente Cliente": {
+      "main": [
+        [
+          {
+            "node": "Prepare AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cancelacion de turno": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Profesional",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ver calendario de clientes": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Profesional",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Calendario1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Profesional",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notifificar al cliente": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Profesional",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Inactivity And Count1": {
+      "main": [
+        [
+          {
+            "node": "Get Buffer1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Dynamic Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor1": {
+      "main": [
+        [
+          {
+            "node": "Delete Buffer In1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Delete Waiting Reply1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Delete Buffer Count1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Message Aggregator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buffer Messages": {
+      "main": [
+        [
+          {
+            "node": "Set Last Seen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Last Seen": {
+      "main": [
+        [
+          {
+            "node": "Get Waiting Reply",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Increment Buffer Count1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Data + Redis Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Waiting Reply": {
+      "main": [
+        [
+          {
+            "node": "Merge Data + Redis Result",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Set Waiting Reply": {
+      "main": [
+        [
+          {
+            "node": "Wait Seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Data + Redis Result": {
+      "main": [
+        [
+          {
+            "node": "Check Waiting Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Data + Redis Result10": {
+      "main": [
+        [
+          {
+            "node": "Get Buffer Count",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Data + Redis Result11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Data + Redis Result11": {
+      "main": [
+        [
+          {
+            "node": "Check Inactivity And Count1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dynamic Wait4": {
+      "main": [
+        [
+          {
+            "node": "Message Buffered Successfully1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Should Process1": {
+      "main": [
+        [
+          {
+            "node": "Data Normalizer1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Message Filtered Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Normalizer1": {
+      "main": [
+        [
+          {
+            "node": "Prepare Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Wait Seconds1": {
+      "main": [
+        [
+          {
+            "node": "Buffer Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Buffer1": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dynamic Wait2": {
+      "main": [
+        [
+          {
+            "node": "Check Inactivity And Count1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Waiting Reply": {
+      "main": [
+        [
+          {
+            "node": "Set Waiting Reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Dynamic Wait4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait Seconds": {
+      "main": [
+        [
+          {
+            "node": "Get Last Seen",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Data + Redis Result10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Last Seen": {
+      "main": [
+        [
+          {
+            "node": "Merge Data + Redis Result10",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get Buffer Count": {
+      "main": [
+        [
+          {
+            "node": "Merge Data + Redis Result11",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Prepare Output": {
+      "main": [
+        [
+          {
+            "node": "Calculate Wait Seconds1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "waha_webhook1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "If Not Own Message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Procesador Simple de Mensajes WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "If Should Process1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Not Own Message1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields Initial",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "47f1e39b-bed7-4ec2-b908-be450383c5f6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b18105836edfcad81c12a54f0db8e5674265d02aede82c32c986c199a9b2234c"
+  },
+  "id": "ljRlr4JBHBcmt6fV",
+  "tags": []
+}

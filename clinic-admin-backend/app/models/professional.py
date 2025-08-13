@@ -25,6 +25,9 @@ class ProfessionalBase(BaseModel):
     working_hours: Optional[str] = Field(None, max_length=200)  # e.g., "Lun-Vie 9:00-17:00"
     consultation_fee: Optional[float] = Field(None, ge=0)  # Optional fee information
     
+    # Professional services
+    services: List[dict] = Field(default=[])  # List of services with custom pricing
+    
     model_config = {"populate_by_name": True, "arbitrary_types_allowed": True}
 
 

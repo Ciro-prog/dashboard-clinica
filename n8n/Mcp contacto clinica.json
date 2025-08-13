@@ -1,0 +1,426 @@
+{
+  "name": "Mcp contacto clinica",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "3c43cbf8-665f-48d6-9526-274d0c79a6c9"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 1,
+      "position": [
+        60,
+        0
+      ],
+      "id": "56b542d1-d695-438f-8e6d-cac44ba07620",
+      "name": "MCP Server Trigger",
+      "webhookId": "3c43cbf8-665f-48d6-9526-274d0c79a6c9"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/18x7SCE5kNKvy7Hj2ctwCW49l8tdKz1CVCAatvQaaf1g/edit?usp=sharing",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18x7SCE5kNKvy7Hj2ctwCW49l8tdKz1CVCAatvQaaf1g/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "DNI",
+              "lookupValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('values0_Value', ``, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.5,
+      "position": [
+        40,
+        260
+      ],
+      "id": "c1aa4e0d-a501-48c3-96ad-498297a6ce1b",
+      "name": "Leer Contactos",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "oSawvuZNrPTwfkvX",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/18x7SCE5kNKvy7Hj2ctwCW49l8tdKz1CVCAatvQaaf1g/edit?usp=sharing",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18x7SCE5kNKvy7Hj2ctwCW49l8tdKz1CVCAatvQaaf1g/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "DNI": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('DNI__using_to_match_', ``, 'string') }}",
+            "Nombre": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Nombre', ``, 'string') }}",
+            "Apellido": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Apellido', ``, 'string') }}",
+            "Obrasocial": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Obrasocial', ``, 'string') }}",
+            "Direccion": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Direccion', ``, 'string') }}",
+            "Numero de telefono": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Numero_de_telefono', ``, 'string') }}",
+            "Tipo de consulta": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Tipo_de_consulta', ``, 'string') }}",
+            "Fecha de turno": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Fecha_de_turno', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "DNI"
+          ],
+          "schema": [
+            {
+              "id": "DNI",
+              "displayName": "DNI",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Nombre",
+              "displayName": "Nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Apellido",
+              "displayName": "Apellido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Obrasocial",
+              "displayName": "Obrasocial",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Direccion",
+              "displayName": "Direccion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Numero de telefono",
+              "displayName": "Numero de telefono",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tipo de consulta",
+              "displayName": "Tipo de consulta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fecha de turno",
+              "displayName": "Fecha de turno",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.5,
+      "position": [
+        380,
+        260
+      ],
+      "id": "6b37aef3-07dd-4867-812b-43a9ad790f7d",
+      "name": "Actualizar",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "oSawvuZNrPTwfkvX",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/18x7SCE5kNKvy7Hj2ctwCW49l8tdKz1CVCAatvQaaf1g/edit?usp=sharing",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18x7SCE5kNKvy7Hj2ctwCW49l8tdKz1CVCAatvQaaf1g/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "DNI": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('DNI', ``, 'string') }}",
+            "Nombre": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Nombre', ``, 'string') }}",
+            "Apellido": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Apellido', ``, 'string') }}",
+            "Obrasocial": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Obrasocial', ``, 'string') }}",
+            "Direccion": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Direccion', ``, 'string') }}",
+            "Numero de telefono": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Numero_de_telefono', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "DNI",
+              "displayName": "DNI",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Nombre",
+              "displayName": "Nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Apellido",
+              "displayName": "Apellido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Obrasocial",
+              "displayName": "Obrasocial",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Direccion",
+              "displayName": "Direccion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Numero de telefono",
+              "displayName": "Numero de telefono",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.5,
+      "position": [
+        220,
+        260
+      ],
+      "id": "f9d21a00-0875-41b7-95f5-80dd0746f636",
+      "name": "Agregar contactos",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "oSawvuZNrPTwfkvX",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/18x7SCE5kNKvy7Hj2ctwCW49l8tdKz1CVCAatvQaaf1g/edit?usp=sharing",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18x7SCE5kNKvy7Hj2ctwCW49l8tdKz1CVCAatvQaaf1g/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "DNI",
+              "lookupValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('values0_Value', ``, 'string') }}"
+            },
+            {
+              "lookupColumn": "Direccion",
+              "lookupValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('values1_Value', ``, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.5,
+      "position": [
+        560,
+        260
+      ],
+      "id": "5a2b174b-40be-4ba9-a714-240f76a5e6ed",
+      "name": "Verificacion de datos",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "oSawvuZNrPTwfkvX",
+          "name": "Google Sheets account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "MCP Server Trigger": [
+      {
+        "json": {
+          "consulta": {
+            "DNI": "38909651",
+            "Nombre": "Hugo Manuel",
+            "Apellido": "Metral",
+            "Obrasocial": "Particular",
+            "Dirección": "mercado 397",
+            "Número de teléfono": "2604630902",
+            "Tipo de consulta": "",
+            "Fecha_de_turno": ""
+          },
+          "herramienta": {
+            "nombre": "Agregar",
+            "descripción": "Leer, actualizar y escribir datos en Hojas de cálculo de Google\nRecurso: hoja\nOperación: añadir"
+          }
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Leer Contactos": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar contactos": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificacion de datos": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Argentina/Buenos_Aires",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "4ec27902-a5c7-4c7d-960c-9794edbf1f05",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b18105836edfcad81c12a54f0db8e5674265d02aede82c32c986c199a9b2234c"
+  },
+  "id": "fHrGVlXOIKvM1ur6",
+  "tags": []
+}

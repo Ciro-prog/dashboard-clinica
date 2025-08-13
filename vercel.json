@@ -18,7 +18,7 @@
         "source": "/api/waha/:path*",
         "headers": [
           {
-            "key": "X-API-Key",
+            "key": "X-Api-Key",
             "value": "pampaserver2025enservermuA!"
           },
           {
@@ -31,7 +31,7 @@
           },
           {
             "key": "Access-Control-Allow-Headers",
-            "value": "X-API-Key, Content-Type, Authorization"
+            "value": "X-Api-Key, Content-Type, Authorization"
           }
         ]
       }
