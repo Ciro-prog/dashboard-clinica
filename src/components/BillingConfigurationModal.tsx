@@ -101,7 +101,8 @@ export default function BillingConfigurationModal({
 
   // Cargar configuración actual
   useEffect(() => {
-    if (open && clinic) {
+    if (open && clinic && isMountedRef.current) {
+      resetModalState(); // Clear any previous state
       loadBillingConfiguration();
     }
   }, [open, clinic]);
@@ -128,18 +129,22 @@ export default function BillingConfigurationModal({
         }
       });
 
-      if (response.ok) {
+      if (response.ok && isMountedRef.current) {
         const configData = await response.json();
         setConfig(configData);
       }
     } catch (err) {
       console.error('❌ Error cargando configuración:', err);
     } finally {
-      setLoadingConfig(false);
+      if (isMountedRef.current) {
+        setLoadingConfig(false);
+      }
     }
   };
 
   const handleConfigChange = (field: string, value: any) => {
+    if (!isMountedRef.current || loading) return;
+    
     if (field.startsWith('service_restriction_levels.')) {
       const level = field.split('.')[1];
       setConfig(prev => ({
@@ -201,11 +206,9 @@ export default function BillingConfigurationModal({
         console.log('✅ Configuración simulada exitosamente (backend no implementado)');
       }
       
-      // Cerrar modal y notificar al padre con timeout para evitar DOM conflicts
-      setTimeout(() => {
-        onClose();
-        onConfigurationUpdated();
-      }, 100);
+      // Cerrar modal y notificar al padre - removed timeout to prevent DOM conflicts
+      onClose();
+      onConfigurationUpdated();
       
     } catch (err) {
       console.error('❌ Error en actualización de configuración:', err);
@@ -218,16 +221,35 @@ export default function BillingConfigurationModal({
   };
 
   const handleClose = () => {
-    // Clear any pending state updates to prevent DOM errors
+    if (!loading) {
+      // Clear any pending state updates to prevent DOM errors
+      setLoading(false);
+      setError(null);
+      onClose();
+    }
+  };
+
+  const resetModalState = () => {
     setLoading(false);
     setError(null);
-    onClose();
+    setLoadingConfig(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={(newOpen) => {
+      if (!newOpen && !loading) {
+        // Reset state in next tick to prevent DOM manipulation conflicts
+        setTimeout(() => {
+          resetModalState();
+        }, 0);
+        onClose();
+      }
+    }}>
       <DialogContent 
+        key={`billing-config-${clinic?.clinic_id || 'new'}`}
         className="sm:max-w-[800px] bg-slate-800 border-slate-700 text-slate-100 max-h-[90vh] overflow-y-auto"
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => !loading && handleClose()}
       >
         <DialogHeader>
           <DialogTitle className="text-white flex items-center gap-2">

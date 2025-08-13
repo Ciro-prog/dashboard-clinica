@@ -40,6 +40,7 @@ export default function AdminConfigModal({ open, onClose }: AdminConfigModalProp
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
   const [testResults, setTestResults] = useState<Record<string, boolean>>({});
   const [testing, setTesting] = useState<Record<string, boolean>>({});
+  const isMountedRef = React.useRef(true);
 
   const [config, setConfig] = useState<APIConfig>({
     backend_url: 'http://localhost:8000',
@@ -47,6 +48,14 @@ export default function AdminConfigModal({ open, onClose }: AdminConfigModalProp
     n8n_folder: '',
     admin_session_duration: 24
   });
+
+  // Cleanup to prevent memory leaks and DOM errors
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (open) {
@@ -239,8 +248,22 @@ export default function AdminConfigModal({ open, onClose }: AdminConfigModalProp
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-800 border-slate-700">
+    <Dialog open={open} onOpenChange={(newOpen) => {
+      if (!newOpen && !loading && !saving) {
+        // Reset state in next tick to prevent DOM manipulation conflicts
+        setTimeout(() => {
+          setError(null);
+          setSuccess(null);
+        }, 0);
+        onClose();
+      }
+    }}>
+      <DialogContent 
+        key={`admin-config-${open ? 'open' : 'closed'}`}
+        className="max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-800 border-slate-700"
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => !loading && !saving && onClose()}
+      >
         <DialogHeader>
           <DialogTitle className="text-white flex items-center gap-2">
             <Settings className="h-5 w-5" />

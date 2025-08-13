@@ -13,7 +13,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Building2, Loader2, Edit, Eye, EyeOff } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Building2, Loader2, Edit, Eye, EyeOff, Settings, Palette, Users, Clock, DollarSign, UserCheck, Plus, Trash2 } from 'lucide-react';
 
 interface Clinic {
   id: string;
@@ -29,6 +31,19 @@ interface Clinic {
   subscription_expires: string | null;
   created_at: string;
   updated_at: string;
+  domain_name?: string;
+  max_professionals?: number;
+  max_patients?: number;
+  whatsapp_session_name?: string;
+  n8n_folder_name?: string;
+  services?: any[];
+  schedule?: any;
+  contact_info?: any;
+  specialties?: string[];
+  subscription_features?: any;
+  branding?: any;
+  patient_form_fields?: string[];
+  custom_patient_fields?: any[];
 }
 
 interface ClinicEditModalProps {
@@ -43,6 +58,8 @@ export default function ClinicEditModal({ clinic, open, onClose, onClinicUpdated
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [changePassword, setChangePassword] = useState(false);
+  const [activeTab, setActiveTab] = useState('basic');
+  const [tabSwitchDisabled, setTabSwitchDisabled] = useState(false);
   
   const [formData, setFormData] = useState({
     name_clinic: '',
@@ -51,12 +68,29 @@ export default function ClinicEditModal({ clinic, open, onClose, onClinicUpdated
     cell_phone: '',
     address: '',
     subscription_plan: '',
+    subscription_status: '',
+    subscription_expires: '',
     status_clinic: '',
+    domain_name: '',
+    max_professionals: 5,
+    max_patients: 100,
+    whatsapp_session_name: '',
+    n8n_folder_name: '',
     password: ''
   });
 
+  // Extended state for complete clinic data
+  const [services, setServices] = useState<any[]>([]);
+  const [schedule, setSchedule] = useState<any>({});
+  const [specialties, setSpecialties] = useState<string[]>([]);
+  const [contactInfo, setContactInfo] = useState<any>({});
+  const [subscriptionFeatures, setSubscriptionFeatures] = useState<any>({});
+  const [branding, setBranding] = useState<any>({});
+  const [patientFields, setPatientFields] = useState<string[]>([]);
+  const [customPatientFields, setCustomPatientFields] = useState<any[]>([]);
+
   useEffect(() => {
-    if (clinic) {
+    if (clinic && open) {
       setFormData({
         name_clinic: clinic.name_clinic,
         suscriber: clinic.suscriber,
@@ -64,19 +98,49 @@ export default function ClinicEditModal({ clinic, open, onClose, onClinicUpdated
         cell_phone: clinic.cell_phone,
         address: clinic.address,
         subscription_plan: clinic.subscription_plan,
+        subscription_status: clinic.subscription_status || 'trial',
+        subscription_expires: clinic.subscription_expires || '',
         status_clinic: clinic.status_clinic,
+        domain_name: clinic.domain_name || '',
+        max_professionals: clinic.max_professionals || 5,
+        max_patients: clinic.max_patients || 100,
+        whatsapp_session_name: clinic.whatsapp_session_name || '',
+        n8n_folder_name: clinic.n8n_folder_name || '',
         password: ''
       });
+      
+      // Load extended data
+      setServices(clinic.services || []);
+      setSchedule(clinic.schedule || {});
+      setSpecialties(clinic.specialties || []);
+      setContactInfo(clinic.contact_info || {});
+      setSubscriptionFeatures(clinic.subscription_features || {});
+      setBranding(clinic.branding || {});
+      setPatientFields(clinic.patient_form_fields || []);
+      setCustomPatientFields(clinic.custom_patient_fields || []);
+      
       setChangePassword(false);
       setShowPassword(false);
+      setError(null);
+      
+      // Only reset tab when opening modal, not when clinic changes
+      if (open) {
+        setActiveTab('basic');
+      }
     }
-  }, [clinic]);
+  }, [clinic, open]);
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleTabChange = (newTab: string) => {
+    if (!tabSwitchDisabled && !loading) {
+      setActiveTab(newTab);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -84,24 +148,27 @@ export default function ClinicEditModal({ clinic, open, onClose, onClinicUpdated
     
     try {
       setLoading(true);
+      setTabSwitchDisabled(true);
       setError(null);
       
-      console.log('✏️ Actualizando clínica:', formData);
+      console.log('✏️ Actualizando clínica completa:', formData);
       
       const token = localStorage.getItem('admin_token');
       if (!token) {
         throw new Error('Token de administrador no encontrado');
       }
 
-      // Preparar datos para envío
+      // Preparar datos completos para envío
       const updateData = {
-        name_clinic: formData.name_clinic,
-        suscriber: formData.suscriber,
-        email: formData.email,
-        cell_phone: formData.cell_phone,
-        address: formData.address,
-        subscription_plan: formData.subscription_plan,
-        status_clinic: formData.status_clinic,
+        ...formData,
+        services,
+        schedule,
+        contact_info: contactInfo,
+        specialties,
+        subscription_features: subscriptionFeatures,
+        branding,
+        patient_form_fields: patientFields,
+        custom_patient_fields: customPatientFields,
         ...(changePassword && formData.password && { password: formData.password })
       };
 
@@ -141,6 +208,7 @@ export default function ClinicEditModal({ clinic, open, onClose, onClinicUpdated
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
       setLoading(false);
+      setTabSwitchDisabled(false);
     }
   };
 
@@ -153,21 +221,36 @@ export default function ClinicEditModal({ clinic, open, onClose, onClinicUpdated
         cell_phone: clinic.cell_phone,
         address: clinic.address,
         subscription_plan: clinic.subscription_plan,
-        status_clinic: clinic.status_clinic
+        subscription_status: clinic.subscription_status || 'trial',
+        subscription_expires: clinic.subscription_expires || '',
+        status_clinic: clinic.status_clinic,
+        domain_name: clinic.domain_name || '',
+        max_professionals: clinic.max_professionals || 5,
+        max_patients: clinic.max_patients || 100,
+        whatsapp_session_name: clinic.whatsapp_session_name || '',
+        n8n_folder_name: clinic.n8n_folder_name || '',
+        password: ''
       });
     }
     setError(null);
+    setChangePassword(false);
+    setShowPassword(false);
+    // Don't reset activeTab here to avoid DOM manipulation conflicts
   };
 
   return (
     <Dialog open={open} onOpenChange={(newOpen) => {
-      if (!newOpen) {
+      if (!newOpen && !loading) {
         onClose();
-        resetForm();
+        // Reset tab first, then form data in next tick
+        setTimeout(() => {
+          setActiveTab('basic');
+          resetForm();
+        }, 0);
       }
     }}>
       <DialogContent 
-        className="sm:max-w-[600px] bg-slate-800 border-slate-700 text-slate-100 max-h-[90vh] overflow-y-auto"
+        className="sm:max-w-[800px] bg-slate-800 border-slate-700 text-slate-100 max-h-[90vh] overflow-y-auto"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => !loading && onClose()}
       >
@@ -177,7 +260,7 @@ export default function ClinicEditModal({ clinic, open, onClose, onClinicUpdated
             Editar Clínica - {clinic.name_clinic}
           </DialogTitle>
           <DialogDescription className="text-slate-400">
-            Modifica la información de la clínica médica.
+            Modifica toda la información y configuración de la clínica médica.
           </DialogDescription>
         </DialogHeader>
 
@@ -187,143 +270,289 @@ export default function ClinicEditModal({ clinic, open, onClose, onClinicUpdated
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <Tabs 
+            key={`clinic-edit-tabs-${clinic?.clinic_id || 'new'}`}
+            value={activeTab} 
+            onValueChange={handleTabChange} 
+            className="w-full"
+          >
+            <TabsList className={`grid w-full grid-cols-4 bg-slate-700 text-xs ${tabSwitchDisabled || loading ? 'pointer-events-none opacity-50' : ''}`}>
+              <TabsTrigger value="basic" className="text-slate-200">Básico</TabsTrigger>
+              <TabsTrigger value="subscription" className="text-slate-200">Suscripción</TabsTrigger>
+              <TabsTrigger value="branding" className="text-slate-200">Branding</TabsTrigger>
+              <TabsTrigger value="integration" className="text-slate-200">Integración</TabsTrigger>
+            </TabsList>
+            
             {/* Información Básica */}
-            <div className="space-y-2">
-              <Label htmlFor="name_clinic" className="text-slate-200">Nombre de la Clínica *</Label>
-              <Input
-                id="name_clinic"
-                value={formData.name_clinic}
-                onChange={(e) => handleInputChange('name_clinic', e.target.value)}
-                placeholder="Clínica Médica Demo"
-                className="bg-slate-700 border-slate-600 text-slate-100 placeholder:text-slate-400"
-                required
-                disabled={loading}
-              />
-            </div>
+            <TabsContent value="basic" className="space-y-4">
+              <Card className="bg-slate-700 border-slate-600">
+                <CardHeader>
+                  <CardTitle className="text-slate-200 flex items-center gap-2">
+                    <Building2 className="h-5 w-5" />
+                    Información Básica
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name_clinic" className="text-slate-200">Nombre de la Clínica *</Label>
+                      <Input
+                        id="name_clinic"
+                        value={formData.name_clinic}
+                        onChange={(e) => handleInputChange('name_clinic', e.target.value)}
+                        className="bg-slate-700 border-slate-600 text-slate-100"
+                        required
+                        disabled={loading}
+                      />
+                    </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="suscriber" className="text-slate-200">Responsable/Suscriptor *</Label>
-              <Input
-                id="suscriber"
-                value={formData.suscriber}
-                onChange={(e) => handleInputChange('suscriber', e.target.value)}
-                placeholder="Dr. Juan Pérez"
-                className="bg-slate-700 border-slate-600 text-slate-100 placeholder:text-slate-400"
-                required
-                disabled={loading}
-              />
-            </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="suscriber" className="text-slate-200">Responsable/Suscriptor *</Label>
+                      <Input
+                        id="suscriber"
+                        value={formData.suscriber}
+                        onChange={(e) => handleInputChange('suscriber', e.target.value)}
+                        className="bg-slate-700 border-slate-600 text-slate-100"
+                        required
+                        disabled={loading}
+                      />
+                    </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-slate-200">Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                placeholder="demo@clinicamedica.com"
-                className="bg-slate-700 border-slate-600 text-slate-100 placeholder:text-slate-400"
-                required
-                disabled={loading}
-              />
-            </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-slate-200">Email *</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => handleInputChange('email', e.target.value)}
+                        className="bg-slate-700 border-slate-600 text-slate-100"
+                        required
+                        disabled={loading}
+                      />
+                    </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="cell_phone" className="text-slate-200">Teléfono *</Label>
-              <Input
-                id="cell_phone"
-                value={formData.cell_phone}
-                onChange={(e) => handleInputChange('cell_phone', e.target.value)}
-                placeholder="+54911234567"
-                className="bg-slate-700 border-slate-600 text-slate-100 placeholder:text-slate-400"
-                required
-                disabled={loading}
-              />
-            </div>
-          </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="cell_phone" className="text-slate-200">Teléfono *</Label>
+                      <Input
+                        id="cell_phone"
+                        value={formData.cell_phone}
+                        onChange={(e) => handleInputChange('cell_phone', e.target.value)}
+                        className="bg-slate-700 border-slate-600 text-slate-100"
+                        required
+                        disabled={loading}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="domain_name" className="text-slate-200">Dominio</Label>
+                      <Input
+                        id="domain_name"
+                        value={formData.domain_name}
+                        onChange={(e) => handleInputChange('domain_name', e.target.value)}
+                        className="bg-slate-700 border-slate-600 text-slate-100"
+                        disabled={loading}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="whatsapp_session_name" className="text-slate-200">Sesión WhatsApp</Label>
+                      <Input
+                        id="whatsapp_session_name"
+                        value={formData.whatsapp_session_name}
+                        onChange={(e) => handleInputChange('whatsapp_session_name', e.target.value)}
+                        className="bg-slate-700 border-slate-600 text-slate-100"
+                        disabled={loading}
+                      />
+                    </div>
+                  </div>
 
-          {/* Dirección */}
-          <div className="space-y-2">
-            <Label htmlFor="address" className="text-slate-200">Dirección *</Label>
-            <Textarea
-              id="address"
-              value={formData.address}
-              onChange={(e) => handleInputChange('address', e.target.value)}
-              placeholder="Av. Corrientes 1234, CABA"
-              className="bg-slate-700 border-slate-600 text-slate-100 placeholder:text-slate-400"
-              rows={2}
-              required
-              disabled={loading}
-            />
-          </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="address" className="text-slate-200">Dirección *</Label>
+                    <Textarea
+                      id="address"
+                      value={formData.address}
+                      onChange={(e) => handleInputChange('address', e.target.value)}
+                      className="bg-slate-700 border-slate-600 text-slate-100"
+                      rows={2}
+                      required
+                      disabled={loading}
+                    />
+                  </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Plan de Suscripción */}
-            <div className="space-y-2">
-              <Label htmlFor="subscription_plan" className="text-slate-200">Plan de Suscripción</Label>
-              <Select 
-                value={formData.subscription_plan} 
-                onValueChange={(value) => handleInputChange('subscription_plan', value)}
-                disabled={loading}
-              >
-                <SelectTrigger className="bg-slate-700 border-slate-600 text-slate-100">
-                  <SelectValue placeholder="Seleccionar plan" />
-                </SelectTrigger>
-                <SelectContent 
-                  className="bg-slate-700 border-slate-600"
-                  position="popper"
-                  sideOffset={4}
-                >
-                  <SelectItem value="trial" className="text-slate-100 hover:bg-slate-600 focus:bg-slate-600">
-                    Trial (Gratuito)
-                  </SelectItem>
-                  <SelectItem value="basic" className="text-slate-100 hover:bg-slate-600 focus:bg-slate-600">
-                    Básico ($29.99/mes)
-                  </SelectItem>
-                  <SelectItem value="premium" className="text-slate-100 hover:bg-slate-600 focus:bg-slate-600">
-                    Premium ($59.99/mes)
-                  </SelectItem>
-                  <SelectItem value="test-plan" className="text-slate-100 hover:bg-slate-600 focus:bg-slate-600">
-                    Plan de Prueba ($49.99/mes)
-                  </SelectItem>
-                  <SelectItem value="enterprise" className="text-slate-100 hover:bg-slate-600 focus:bg-slate-600">
-                    Empresarial ($99.99/mes)
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="subscription_plan" className="text-slate-200">Plan de Suscripción</Label>
+                      <Select 
+                        value={formData.subscription_plan} 
+                        onValueChange={(value) => handleInputChange('subscription_plan', value)}
+                        disabled={loading}
+                      >
+                        <SelectTrigger className="bg-slate-700 border-slate-600 text-slate-100">
+                          <SelectValue placeholder="Seleccionar plan" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-700 border-slate-600">
+                          <SelectItem value="trial">Trial (Gratuito)</SelectItem>
+                          <SelectItem value="basic">Básico ($29.99/mes)</SelectItem>
+                          <SelectItem value="premium">Premium ($59.99/mes)</SelectItem>
+                          <SelectItem value="enterprise">Empresarial ($99.99/mes)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-            {/* Estado */}
-            <div className="space-y-2">
-              <Label htmlFor="status_clinic" className="text-slate-200">Estado</Label>
-              <Select 
-                value={formData.status_clinic} 
-                onValueChange={(value) => handleInputChange('status_clinic', value)}
-                disabled={loading}
-              >
-                <SelectTrigger className="bg-slate-700 border-slate-600 text-slate-100">
-                  <SelectValue placeholder="Seleccionar estado" />
-                </SelectTrigger>
-                <SelectContent 
-                  className="bg-slate-700 border-slate-600"
-                  position="popper"
-                  sideOffset={4}
-                >
-                  <SelectItem value="active" className="text-slate-100 hover:bg-slate-600 focus:bg-slate-600">
-                    Activo
-                  </SelectItem>
-                  <SelectItem value="inactive" className="text-slate-100 hover:bg-slate-600 focus:bg-slate-600">
-                    Inactivo
-                  </SelectItem>
-                  <SelectItem value="suspended" className="text-slate-100 hover:bg-slate-600 focus:bg-slate-600">
-                    Suspendido
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="status_clinic" className="text-slate-200">Estado</Label>
+                      <Select 
+                        value={formData.status_clinic} 
+                        onValueChange={(value) => handleInputChange('status_clinic', value)}
+                        disabled={loading}
+                      >
+                        <SelectTrigger className="bg-slate-700 border-slate-600 text-slate-100">
+                          <SelectValue placeholder="Seleccionar estado" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-700 border-slate-600">
+                          <SelectItem value="active">Activo</SelectItem>
+                          <SelectItem value="inactive">Inactivo</SelectItem>
+                          <SelectItem value="suspended">Suspendido</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Suscripción */}
+            <TabsContent value="subscription" className="space-y-4">
+              <Card className="bg-slate-700 border-slate-600">
+                <CardHeader>
+                  <CardTitle className="text-slate-200 flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Configuración de Suscripción
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-slate-200">Máximo Profesionales</Label>
+                      <Input
+                        type="number"
+                        value={formData.max_professionals}
+                        onChange={(e) => handleInputChange('max_professionals', parseInt(e.target.value) || 5)}
+                        className="bg-slate-700 border-slate-600 text-slate-100"
+                        min="1"
+                        max="100"
+                        disabled={loading}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-slate-200">Máximo Pacientes</Label>
+                      <Input
+                        type="number"
+                        value={formData.max_patients}
+                        onChange={(e) => handleInputChange('max_patients', parseInt(e.target.value) || 100)}
+                        className="bg-slate-700 border-slate-600 text-slate-100"
+                        min="1"
+                        max="10000"
+                        disabled={loading}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-slate-200">Estado de Suscripción</Label>
+                      <Select 
+                        value={formData.subscription_status} 
+                        onValueChange={(value) => handleInputChange('subscription_status', value)}
+                        disabled={loading}
+                      >
+                        <SelectTrigger className="bg-slate-700 border-slate-600 text-slate-100">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-700 border-slate-600">
+                          <SelectItem value="trial">Trial</SelectItem>
+                          <SelectItem value="active">Activa</SelectItem>
+                          <SelectItem value="expired">Expirada</SelectItem>
+                          <SelectItem value="cancelled">Cancelada</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-slate-200">Fecha de Expiración</Label>
+                      <Input
+                        type="date"
+                        value={formData.subscription_expires}
+                        onChange={(e) => handleInputChange('subscription_expires', e.target.value)}
+                        className="bg-slate-700 border-slate-600 text-slate-100"
+                        disabled={loading}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Branding */}
+            <TabsContent value="branding" className="space-y-4">
+              <Card className="bg-slate-700 border-slate-600">
+                <CardHeader>
+                  <CardTitle className="text-slate-200 flex items-center gap-2">
+                    <Palette className="h-5 w-5" />
+                    Branding y Personalización
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-slate-200">Título de la Clínica</Label>
+                      <Input
+                        value={branding.clinic_title || formData.name_clinic}
+                        onChange={(e) => setBranding(prev => ({ ...prev, clinic_title: e.target.value }))}
+                        className="bg-slate-700 border-slate-600 text-slate-100"
+                        disabled={loading}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-slate-200">URL del Logo</Label>
+                      <Input
+                        value={branding.logo_url || ''}
+                        onChange={(e) => setBranding(prev => ({ ...prev, logo_url: e.target.value }))}
+                        className="bg-slate-700 border-slate-600 text-slate-100"
+                        disabled={loading}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Integración */}
+            <TabsContent value="integration" className="space-y-4">
+              <Card className="bg-slate-700 border-slate-600">
+                <CardHeader>
+                  <CardTitle className="text-slate-200 flex items-center gap-2">
+                    <UserCheck className="h-5 w-5" />
+                    Integración N8N
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-slate-200">Carpeta N8N</Label>
+                    <Input
+                      value={formData.n8n_folder_name}
+                      onChange={(e) => handleInputChange('n8n_folder_name', e.target.value)}
+                      placeholder="Clinica Demo - Operativa"
+                      className="bg-slate-700 border-slate-600 text-slate-100"
+                      disabled={loading}
+                    />
+                    <p className="text-xs text-slate-500">Carpeta para workflows de automatización</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
 
           {/* Información de solo lectura */}
           <div className="space-y-2">
@@ -365,7 +594,7 @@ export default function ClinicEditModal({ clinic, open, onClose, onClinicUpdated
                     value={formData.password}
                     onChange={(e) => handleInputChange('password', e.target.value)}
                     placeholder="••••••••"
-                    className="bg-slate-700 border-slate-600 text-slate-100 placeholder:text-slate-400 pr-10"
+                    className="bg-slate-700 border-slate-600 text-slate-100 pr-10"
                     required={changePassword}
                     minLength={8}
                     disabled={loading}
@@ -380,7 +609,6 @@ export default function ClinicEditModal({ clinic, open, onClose, onClinicUpdated
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
-                <p className="text-xs text-slate-500">Mínimo 8 caracteres - Dejar vacío para mantener actual</p>
               </div>
             ) : (
               <div className="text-sm text-slate-400">

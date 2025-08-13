@@ -68,6 +68,7 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
   const [editingProfessional, setEditingProfessional] = useState<Professional | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [managingServices, setManagingServices] = useState<Professional | null>(null);
+  const isMountedRef = React.useRef(true);
   
   const [formData, setFormData] = useState({
     first_name: '',
@@ -89,6 +90,8 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
   };
 
   const loadProfessionals = async () => {
+    if (!isMountedRef.current) return;
+    
     try {
       setLoading(true);
       setError(null);
@@ -117,18 +120,26 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
       }
 
       const data = await response.json();
-      setProfessionals(Array.isArray(data) ? data : []);
+      if (isMountedRef.current) {
+        setProfessionals(Array.isArray(data) ? data : []);
+      }
       
     } catch (err) {
       console.error('❌ Error cargando profesionales:', err);
-      setError(err instanceof Error ? err.message : 'Error desconocido');
+      if (isMountedRef.current) {
+        setError(err instanceof Error ? err.message : 'Error desconocido');
+      }
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
   };
 
   const handleCreateProfessional = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isMountedRef.current) return;
     
     try {
       setCreating(true);
@@ -166,19 +177,27 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
       console.log('✅ Profesional creado exitosamente:', newProfessional);
       
       // Resetear formulario y recargar lista
-      resetForm();
-      setShowCreateForm(false);
-      await loadProfessionals();
+      if (isMountedRef.current) {
+        resetForm();
+        setShowCreateForm(false);
+        await loadProfessionals();
+      }
       
     } catch (err) {
       console.error('❌ Error en creación de profesional:', err);
-      setError(err instanceof Error ? err.message : 'Error desconocido');
+      if (isMountedRef.current) {
+        setError(err instanceof Error ? err.message : 'Error desconocido');
+      }
     } finally {
-      setCreating(false);
+      if (isMountedRef.current) {
+        setCreating(false);
+      }
     }
   };
 
   const resetForm = () => {
+    if (!isMountedRef.current) return;
+    
     setFormData({
       first_name: '',
       last_name: '',
@@ -212,7 +231,7 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
   const handleUpdateProfessional = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!editingProfessional) return;
+    if (!editingProfessional || !isMountedRef.current) return;
     
     try {
       setCreating(true);
@@ -256,16 +275,22 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
       console.log('✅ Profesional actualizado exitosamente:', updatedProfessional);
       
       // Resetear formulario y recargar lista
-      setEditingProfessional(null);
-      resetForm();
-      setShowCreateForm(false);
-      await loadProfessionals();
+      if (isMountedRef.current) {
+        setEditingProfessional(null);
+        resetForm();
+        setShowCreateForm(false);
+        await loadProfessionals();
+      }
       
     } catch (err) {
       console.error('❌ Error en actualización de profesional:', err);
-      setError(err instanceof Error ? err.message : 'Error desconocido');
+      if (isMountedRef.current) {
+        setError(err instanceof Error ? err.message : 'Error desconocido');
+      }
     } finally {
-      setCreating(false);
+      if (isMountedRef.current) {
+        setCreating(false);
+      }
     }
   };
 
@@ -273,6 +298,8 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
     if (!confirm(`¿Estás seguro de eliminar al profesional ${professional.first_name} ${professional.last_name}?`)) {
       return;
     }
+    
+    if (!isMountedRef.current) return;
     
     try {
       setDeleting(professional.id);
@@ -302,18 +329,34 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
       console.log('✅ Profesional eliminado exitosamente');
       
       // Recargar lista
-      await loadProfessionals();
+      if (isMountedRef.current) {
+        await loadProfessionals();
+      }
       
     } catch (err) {
       console.error('❌ Error en eliminación de profesional:', err);
-      setError(err instanceof Error ? err.message : 'Error desconocido');
+      if (isMountedRef.current) {
+        setError(err instanceof Error ? err.message : 'Error desconocido');
+      }
     } finally {
-      setDeleting(null);
+      if (isMountedRef.current) {
+        setDeleting(null);
+      }
     }
   };
 
+  // Cleanup to prevent memory leaks and DOM errors
   useEffect(() => {
-    loadProfessionals();
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isMountedRef.current) {
+      loadProfessionals();
+    }
   }, [clinic.clinic_id]);
 
   return (
@@ -340,10 +383,24 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
             </p>
           </div>
           <Button
-            onClick={onClose}
+            onClick={() => {
+              if (!creating && !loading) {
+                // Reset state in next tick to prevent DOM manipulation conflicts
+                setTimeout(() => {
+                  if (isMountedRef.current) {
+                    setError(null);
+                    setShowCreateForm(false);
+                    setEditingProfessional(null);
+                    setManagingServices(null);
+                  }
+                }, 0);
+                onClose();
+              }
+            }}
             variant="ghost"
             size="sm"
             className="text-slate-400 hover:text-slate-200 hover:bg-slate-700"
+            disabled={creating || loading}
           >
             <X className="h-4 w-4" />
           </Button>
@@ -533,9 +590,11 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
                       type="button"
                       variant="outline"
                       onClick={() => {
-                        setShowCreateForm(false);
-                        setEditingProfessional(null);
-                        resetForm();
+                        if (isMountedRef.current) {
+                          setShowCreateForm(false);
+                          setEditingProfessional(null);
+                          resetForm();
+                        }
                       }}
                       className="border-slate-500 bg-slate-600 text-slate-200 hover:bg-slate-500"
                       disabled={creating}
@@ -695,9 +754,23 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
         {/* Footer */}
         <div className="flex justify-end p-6 border-t border-slate-700">
           <Button
-            onClick={onClose}
+            onClick={() => {
+              if (!creating && !loading) {
+                // Reset state in next tick to prevent DOM manipulation conflicts
+                setTimeout(() => {
+                  if (isMountedRef.current) {
+                    setError(null);
+                    setShowCreateForm(false);
+                    setEditingProfessional(null);
+                    setManagingServices(null);
+                  }
+                }, 0);
+                onClose();
+              }
+            }}
             variant="outline"
             className="border-slate-600 bg-slate-700 text-slate-200 hover:bg-slate-600"
+            disabled={creating || loading}
           >
             Cerrar
           </Button>
@@ -728,7 +801,11 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
                 </p>
               </div>
               <Button
-                onClick={() => setManagingServices(null)}
+                onClick={() => {
+                  if (isMountedRef.current) {
+                    setManagingServices(null);
+                  }
+                }}
                 variant="ghost"
                 size="sm"
                 className="text-slate-400 hover:text-slate-200 hover:bg-slate-700"
@@ -742,6 +819,8 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
                 professionalId={managingServices.id}
                 services={managingServices.services || []}
                 onServicesUpdate={(services) => {
+                  if (!isMountedRef.current || !managingServices) return;
+                  
                   // Actualizar los servicios del profesional
                   const updatedProfessionals = professionals.map(p => 
                     p.id === managingServices.id ? { ...p, services } : p

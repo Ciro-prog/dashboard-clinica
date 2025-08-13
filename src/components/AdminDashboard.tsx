@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -29,7 +30,10 @@ import {
   CheckCircle,
   RefreshCw,
   Edit,
-  Trash2
+  Trash2,
+  FileText,
+  Search,
+  X
 } from 'lucide-react';
 import ClinicCreateModal from './ClinicCreateModal';
 import ClinicEditModal from './ClinicEditModal';
@@ -40,6 +44,7 @@ import EnhancedSubscriptionUpgradeModal from './EnhancedSubscriptionUpgradeModal
 import EnhancedPaymentManagementModal from './EnhancedPaymentManagementModal';
 import BillingConfigurationModal from './BillingConfigurationModal';
 import AdminConfigModal from './AdminConfigModal';
+import ApiDocumentationModal from './ApiDocumentationModal';
 
 interface AdminUser {
   username: string;
@@ -104,7 +109,12 @@ export default function AdminDashboard({ adminUser, onLogout }: AdminDashboardPr
   const [selectedClinicForPayments, setSelectedClinicForPayments] = useState<Clinic | null>(null);
   const [selectedClinicForBilling, setSelectedClinicForBilling] = useState<Clinic | null>(null);
   const [showConfigModal, setShowConfigModal] = useState(false);
+  const [showApiDocumentation, setShowApiDocumentation] = useState(false);
+  const [selectedClinicForDocumentation, setSelectedClinicForDocumentation] = useState<Clinic | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [deletingClinicId, setDeletingClinicId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [deleteSearchTerm, setDeleteSearchTerm] = useState<string>('');
   
   // Estados para los datos
   const [clinics, setClinics] = useState<Clinic[]>([]);
@@ -224,6 +234,73 @@ export default function AdminDashboard({ adminUser, onLogout }: AdminDashboardPr
     // Refrescar datos sin mostrar loading global para evitar pantalla negra
     refreshDataSilently();
   };
+
+  const handleDeleteClinic = async (clinic: Clinic) => {
+    const confirmMessage = `🚫 ELIMINAR CLÍNICA: ${clinic.name_clinic}\n\n¿Estás completamente seguro de ELIMINAR PERMANENTEMENTE esta clínica?\n\n📋 INFORMACIÓN DE LA CLÍNICA:\n• Nombre: ${clinic.name_clinic}\n• Suscriptor: ${clinic.suscriber}\n• Email: ${clinic.email}\n• ID: ${clinic.clinic_id}\n• Plan: ${clinic.subscription_plan}\n\n🗑️ ESTA ACCIÓN ELIMINARÁ PERMANENTEMENTE:\n• Todos los datos de la clínica\n• Profesionales asociados y sus datos\n• Pacientes registrados y sus historiales\n• Citas médicas y seguimientos\n• Configuraciones personalizadas\n• Facturas y registros de pagos\n\n⚠️ ADVERTENCIA CRÍTICA:\nEsta acción es IRREVERSIBLE y NO se puede deshacer.\nTodos los datos se perderán para siempre.\n\n¿Deseas continuar con la eliminación?`;
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+    
+    try {
+      setDeletingClinicId(clinic.clinic_id);
+      setError(null);
+      
+      console.log(`🗑️ Eliminando clínica ${clinic.clinic_id}...`);
+      
+      const token = localStorage.getItem('admin_token');
+      if (!token) {
+        throw new Error('Token de administrador no encontrado');
+      }
+
+      const response = await fetch(`/api/admin/clinics/${clinic.clinic_id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('❌ Error eliminando clínica:', response.status, errorData);
+        throw new Error(`Error del servidor: ${response.status}`);
+      }
+
+      console.log('✅ Clínica eliminada exitosamente');
+      setSuccessMessage(`✅ Clínica "${clinic.name_clinic}" eliminada exitosamente`);
+      setTimeout(() => setSuccessMessage(null), 5000);
+      
+      // Recargar datos
+      refreshDataSilently();
+      
+    } catch (err) {
+      console.error('❌ Error en eliminación de clínica:', err);
+      setError(err instanceof Error ? err.message : 'Error desconocido eliminando clínica');
+    } finally {
+      setDeletingClinicId(null);
+    }
+  };
+
+  // Función para filtrar clínicas por búsqueda
+  const filterClinics = (clinics: Clinic[], searchTerm: string) => {
+    if (!searchTerm.trim()) return clinics;
+    
+    const term = searchTerm.toLowerCase().trim();
+    return clinics.filter((clinic) =>
+      clinic.name_clinic.toLowerCase().includes(term) ||
+      clinic.suscriber.toLowerCase().includes(term) ||
+      clinic.email.toLowerCase().includes(term) ||
+      clinic.clinic_id.toLowerCase().includes(term) ||
+      clinic.subscription_plan.toLowerCase().includes(term)
+    );
+  };
+
+  // Clínicas filtradas para la lista principal
+  const filteredClinics = filterClinics(clinics, searchTerm);
+  
+  // Clínicas filtradas para el dropdown de eliminar
+  const filteredClinicsForDelete = filterClinics(clinics, deleteSearchTerm);
 
   const handleClinicUpdated = () => {
     console.log('✅ Clínica actualizada - refrescando en segundo plano...');
@@ -606,19 +683,124 @@ export default function AdminDashboard({ adminUser, onLogout }: AdminDashboardPr
                       Total: {clinics.length} clínicas en el sistema
                     </CardDescription>
                   </div>
-                  <ClinicCreateModal onClinicCreated={handleClinicCreated} />
+                  <div className="flex items-center gap-3">
+                    <ClinicCreateModal onClinicCreated={handleClinicCreated} />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="border-red-600 bg-red-600/20 text-red-300 hover:bg-red-500/30"
+                          disabled={clinics.length === 0}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Eliminar Clínica
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-80 bg-slate-800 border-slate-700">
+                        <DropdownMenuLabel className="text-slate-200">
+                          Selecciona clínica a eliminar
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator className="bg-slate-600" />
+                        
+                        {/* Buscador en dropdown */}
+                        <div className="px-2 py-2">
+                          <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-3 w-3" />
+                            <Input
+                              placeholder="Buscar clínica a eliminar..."
+                              value={deleteSearchTerm}
+                              onChange={(e) => setDeleteSearchTerm(e.target.value)}
+                              className="pl-8 pr-8 h-8 bg-slate-700 border-slate-600 text-slate-100 placeholder:text-slate-400 text-xs"
+                            />
+                            {deleteSearchTerm && (
+                              <button
+                                onClick={() => setDeleteSearchTerm('')}
+                                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            )}
+                          </div>
+                          {deleteSearchTerm && (
+                            <p className="text-xs text-slate-400 mt-1">
+                              {filteredClinicsForDelete.length} de {clinics.length} clínicas
+                            </p>
+                          )}
+                        </div>
+                        
+                        <DropdownMenuSeparator className="bg-slate-600" />
+                        
+                        <div className="max-h-64 overflow-y-auto">
+                          {filteredClinicsForDelete.length === 0 ? (
+                            <DropdownMenuItem disabled className="text-slate-400">
+                              {deleteSearchTerm ? 'No se encontraron clínicas' : 'No hay clínicas para eliminar'}
+                            </DropdownMenuItem>
+                          ) : (
+                            filteredClinicsForDelete.map((clinic) => (
+                            <DropdownMenuItem 
+                              key={clinic.clinic_id}
+                              onClick={() => handleDeleteClinic(clinic)}
+                              className="text-red-300 hover:bg-red-900/30 cursor-pointer focus:text-red-200"
+                              disabled={deletingClinicId === clinic.clinic_id}
+                            >
+                              <div className="flex items-center justify-between w-full">
+                                <div className="flex items-center gap-2">
+                                  <Trash2 className="h-3 w-3" />
+                                  <div className="flex flex-col">
+                                    <span className="text-sm font-medium">{clinic.name_clinic}</span>
+                                    <span className="text-xs text-slate-400">{clinic.suscriber}</span>
+                                  </div>
+                                </div>
+                                {deletingClinicId === clinic.clinic_id && (
+                                  <RefreshCw className="h-3 w-3 animate-spin" />
+                                )}
+                              </div>
+                            </DropdownMenuItem>
+                            ))
+                          )}
+                        </div>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
-                {clinics.length === 0 ? (
+                {/* Buscador de clínicas */}
+                <div className="mb-6">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                    <Input
+                      placeholder="Buscar clínicas por nombre, suscriptor, email, ID o plan..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 pr-10 bg-slate-700 border-slate-600 text-slate-100 placeholder:text-slate-400 focus:border-medical-500"
+                    />
+                    {searchTerm && (
+                      <button
+                        onClick={() => setSearchTerm('')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                  {searchTerm && (
+                    <p className="text-xs text-slate-400 mt-2">
+                      Mostrando {filteredClinics.length} de {clinics.length} clínicas
+                    </p>
+                  )}
+                </div>
+                
+                {filteredClinics.length === 0 ? (
                   <div className="text-center py-8 text-slate-400">
                     <Building2 className="h-12 w-12 mx-auto mb-4 text-slate-500" />
-                    <p>No hay clínicas registradas.</p>
-                    <p className="text-sm">Las clínicas aparecerán aquí cuando se registren.</p>
+                    <p>{searchTerm ? 'No se encontraron clínicas con ese criterio de búsqueda.' : 'No hay clínicas registradas.'}</p>
+                    <p className="text-sm">{searchTerm ? 'Intenta con otros términos de búsqueda.' : 'Las clínicas aparecerán aquí cuando se registren.'}</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {clinics.map((clinic) => (
+                    {filteredClinics.map((clinic) => (
                       <div key={clinic.id} className="flex items-center justify-between p-4 border border-slate-600 rounded-lg hover:bg-slate-700/70 bg-slate-800">
                         <div className="flex-1">
                           <div className="flex items-center gap-3">
@@ -722,6 +904,32 @@ export default function AdminDashboard({ adminUser, onLogout }: AdminDashboardPr
                             >
                               <Clock className="h-4 w-4 mr-1" />
                               Facturación
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => {
+                                setSelectedClinicForDocumentation(clinic);
+                                setShowApiDocumentation(true);
+                              }}
+                              className="border-slate-600 bg-slate-600/20 text-slate-300 hover:bg-slate-500/30"
+                            >
+                              <FileText className="h-4 w-4 mr-1" />
+                              Documentación
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleDeleteClinic(clinic)}
+                              className="border-red-600 bg-red-900/30 text-red-300 hover:bg-red-900/50"
+                              disabled={deletingClinicId === clinic.clinic_id}
+                            >
+                              {deletingClinicId === clinic.clinic_id ? (
+                                <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-3 w-3 mr-1" />
+                              )}
+                              Eliminar
                             </Button>
                           </div>
                         </div>
@@ -902,6 +1110,17 @@ export default function AdminDashboard({ adminUser, onLogout }: AdminDashboardPr
       <AdminConfigModal
         open={showConfigModal}
         onClose={() => setShowConfigModal(false)}
+      />
+
+      {/* API Documentation Modal */}
+      <ApiDocumentationModal
+        open={showApiDocumentation}
+        onClose={() => {
+          setShowApiDocumentation(false);
+          setSelectedClinicForDocumentation(null);
+        }}
+        clinicId={selectedClinicForDocumentation?.clinic_id}
+        clinicName={selectedClinicForDocumentation?.name_clinic}
       />
     </div>
   );
