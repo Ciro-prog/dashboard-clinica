@@ -393,7 +393,7 @@ export default function EnhancedPaymentManagementModal({
               </div>
 
               {/* Actualización de Suscripción */}
-              <Card className="bg-slate-600 border-slate-500">
+              <Card className="bg-medical-900/30 border-medical-500/50 ring-1 ring-medical-400/20">
                 <CardHeader>
                   <div className="flex items-center space-x-2">
                     <Switch
@@ -401,7 +401,8 @@ export default function EnhancedPaymentManagementModal({
                       checked={updateSubscription}
                       onCheckedChange={setUpdateSubscription}
                     />
-                    <Label htmlFor="update-subscription" className="font-medium text-slate-200">
+                    <Label htmlFor="update-subscription" className="font-medium text-medical-100 flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4 text-medical-400" />
                       Actualizar Suscripción
                     </Label>
                   </div>
