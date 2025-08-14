@@ -1,25 +1,85 @@
 # ⚡ Dashboard Clínica - Despliegue Rápido
 
-Comandos paso a paso para desplegar Dashboard Clínica en tu servidor Linux.
+Comandos paso a paso para desplegar Dashboard Clínica en Windows o servidor Linux.
 
-## 🚀 Opción 1: Despliegue Automático (Recomendado)
+**Repositorio**: https://github.com/Ciro-prog/dashboard-clinica.git
+
+---
+
+# 🪟 WINDOWS - Despliegue Rápido
+
+## 🚀 Opción 1: Script Automático Windows (Recomendado)
+
+### En PowerShell como Administrador:
+
+```powershell
+# 1. Crear directorio y navegar
+mkdir C:\Projects\dashboard-clinica
+cd C:\Projects\dashboard-clinica
+
+# 2. Clonar repositorio usando HTTPS
+git clone https://github.com/Ciro-prog/dashboard-clinica.git .
+
+# 3. Ejecutar script automático
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+.\scripts\deploy-windows.ps1 -Mode setup
+```
+
+¡Listo! El script se encarga de todo automáticamente.
+
+## 🔧 Opción 2: Manual Windows
+
+```powershell
+# 1. Verificar Docker Desktop está funcionando
+docker --version
+docker-compose --version
+
+# 2. Descargar proyecto
+mkdir C:\Projects\dashboard-clinica
+cd C:\Projects\dashboard-clinica
+git clone https://github.com/Ciro-prog/dashboard-clinica.git .
+
+# 3. Configurar variables de entorno
+Copy-Item .env.example .env
+notepad .env  # Editar si es necesario
+
+# 4. Verificar/Crear MongoDB
+docker ps | Select-String "mongo"
+# Si no existe:
+docker run -d --name mongodb-clinic -p 60516:27017 -v mongodb_clinic_data:/data/db --restart unless-stopped mongo:7.0
+
+# 5. Iniciar servicios
+docker-compose --profile development up -d
+
+# 6. Verificar funcionamiento
+docker-compose ps
+```
+
+### URLs Windows:
+- **Frontend Cliente**: http://localhost:60521
+- **Backend API**: http://localhost:60522  
+- **Admin Panel**: http://localhost:60523
+- **API Docs**: http://localhost:60522/docs
+
+---
+
+# 🐧 LINUX - Despliegue Rápido
+
+## 🚀 Opción 1: Script Automático Linux (Recomendado)
 
 ### En tu servidor Linux:
 
 ```bash
-# 1. Conectar al servidor
-ssh usuario@tu-servidor-ip
-
-# 2. Crear directorio y descargar el script
+# 1. Crear directorio y descargar el script
 sudo mkdir -p /opt/dashboard-clinica
 cd /opt
 sudo chown $USER:$USER dashboard-clinica
 
-# 3. Clonar repositorio
-git clone https://github.com/TU_USUARIO/dashboard-clinica.git
+# 2. Clonar repositorio usando HTTPS
+git clone https://github.com/Ciro-prog/dashboard-clinica.git dashboard-clinica
 cd dashboard-clinica
 
-# 4. Ejecutar despliegue automático completo
+# 3. Ejecutar despliegue automático completo
 chmod +x scripts/deploy-server.sh
 ./scripts/deploy-server.sh setup
 ```

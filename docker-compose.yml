@@ -1,5 +1,4 @@
 # Docker Compose para Dashboard Clínica - Configuración Multi-Container
-version: '3.8'
 
 services:
   # Frontend Cliente - React App Principal
@@ -18,6 +17,9 @@ services:
     restart: unless-stopped
     depends_on:
       - backend-api
+    profiles:
+      - development
+      - production
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/"]
       interval: 30s
@@ -49,6 +51,9 @@ services:
     restart: unless-stopped
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    profiles:
+      - development
+      - production
     volumes:
       - backend-uploads:/app/uploads
       - backend-logs:/app/logs
@@ -79,6 +84,8 @@ services:
     restart: unless-stopped
     depends_on:
       - backend-api
+    profiles:
+      - development
     volumes:
       - admin-frontend-logs:/app/logs
     healthcheck:
@@ -109,15 +116,4 @@ x-common-variables: &common-variables
   TZ: America/Bogota
   LANG: es_CO.UTF-8
 
-# Profiles para diferentes entornos
-profiles:
-  development:
-    services:
-      - frontend-client
-      - backend-api
-      - admin-frontend
-  
-  production:
-    services:
-      - frontend-client
-      - backend-api
+# Profiles configurados individualmente en cada servicio
