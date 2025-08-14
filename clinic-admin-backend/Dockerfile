@@ -1,5 +1,5 @@
-# Usar Python 3.13 slim para optimizar tamaño
-FROM python:3.13-slim
+# Usar Python 3.11 slim para compatibilidad con Pandas
+FROM python:3.11-slim
 
 # Instalar dependencias del sistema
 RUN apt-get update && apt-get install -y \
