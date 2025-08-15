@@ -37,10 +37,10 @@ services:
       dockerfile: Dockerfile
     container_name: clinic-backend-api
     ports:
-      - "60519:8000"
+      - "60522:8000"
     environment:
       - PYTHONPATH=/app
-      - MONGODB_URL=mongodb://admin:PampaServers2025@192.168.1.23:60516/clinic_dashboard?authSource=admin
+      - MONGODB_URL=mongodb://host.docker.internal:60516/clinic_dashboard
       - ADMIN_SECRET_KEY=${ADMIN_SECRET_KEY:-clinic-admin-super-secret-key-2024}
       - API_SECRET_KEY=${API_SECRET_KEY:-clinic-api-secret-key-2024}
       - ADMIN_SESSION_DURATION=${ADMIN_SESSION_DURATION:-24}
@@ -77,8 +77,8 @@ services:
       - "60523:5173"
     environment:
       - NODE_ENV=development
-      - VITE_API_URL=http://localhost:60519
-      - VITE_ADMIN_API_URL=http://localhost:60519/api
+      - VITE_API_URL=http://localhost:60522
+      - VITE_ADMIN_API_URL=http://localhost:60522/api
     networks:
       - clinic-network
     restart: unless-stopped

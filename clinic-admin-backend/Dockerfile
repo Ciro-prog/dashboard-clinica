@@ -51,8 +51,8 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Comando para inicializar datos si es necesario
-COPY <<EOF /app/init.sh
+# Crear script de inicialización con permisos ejecutables
+COPY --chmod=755 <<EOF /app/init.sh
 #!/bin/bash
 set -e
 
@@ -82,8 +82,6 @@ fi
 echo "🎯 Starting FastAPI server on port 8000..."
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload --log-level info
 EOF
-
-RUN chmod +x /app/init.sh
 
 # Comando de inicio
 CMD ["/app/init.sh"]

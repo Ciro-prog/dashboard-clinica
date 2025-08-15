@@ -10,11 +10,11 @@ WORKDIR /app
 COPY package*.json ./
 COPY bun.lockb* ./
 
-# Instalar dependencias (usar npm como fallback si no hay bun.lockb)
+# Instalar dependencias (usar npm como fallback sino hay bun.lockb)
 RUN if [ -f bun.lockb ]; then \
     npm install -g bun && bun install --frozen-lockfile; \
     else \
-    npm ci --only=production && npm cache clean --force; \
+    npm ci && npm cache clean --force; \
     fi
 
 # Copiar código fuente
