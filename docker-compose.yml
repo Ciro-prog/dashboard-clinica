@@ -11,7 +11,7 @@ services:
       - "60519:8000"
     environment:
       - PYTHONPATH=/app
-      - MONGODB_URL=mongodb://admin:PampaServers2025@mongodb:27017/clinica-dashboard?authSource=admin
+      - MONGODB_URL=mongodb://admin:PampaServers2025@host.docker.internal:60516/clinica-dashboard?authSource=admin
       - ADMIN_SECRET_KEY=${ADMIN_SECRET_KEY:-clinic-admin-super-secret-key-2024}
       - API_SECRET_KEY=${API_SECRET_KEY:-clinic-api-secret-key-2024}
       - ADMIN_SESSION_DURATION=${ADMIN_SESSION_DURATION:-24}

@@ -1,43 +1,34 @@
-🔐 Iniciando login de administrador: admin
-LoginForm.tsx:65 ✅ Admin login exitoso: admin
-Dashboard.tsx:186 🏥 Loaded clinics data: []
-Dashboard.tsx:234 ✅ Successfully loaded 0 clinics
-Dashboard.tsx:186 🏥 Loaded clinics data: []
-Dashboard.tsx:234 ✅ Successfully loaded 0 clinics
-Dashboard.tsx:156 Error loading subscription plans: TypeError: Failed to fetch
-    at loadSubscriptionPlans (Dashboard.tsx:43:28)
-    at Dashboard.tsx:23:5
-    at commitHookEffectListMount (chunk-WALXKXZM.js?v=3a6cab3d:16936:34)
-    at commitPassiveMountOnFiber (chunk-WALXKXZM.js?v=3a6cab3d:18184:19)
-    at commitPassiveMountEffects_complete (chunk-WALXKXZM.js?v=3a6cab3d:18157:17)
-    at commitPassiveMountEffects_begin (chunk-WALXKXZM.js?v=3a6cab3d:18147:15)
-    at commitPassiveMountEffects (chunk-WALXKXZM.js?v=3a6cab3d:18137:11)
-    at flushPassiveEffectsImpl (chunk-WALXKXZM.js?v=3a6cab3d:19518:11)
-    at flushPassiveEffects (chunk-WALXKXZM.js?v=3a6cab3d:19475:22)
-    at chunk-WALXKXZM.js?v=3a6cab3d:19356:17
-overrideMethod @ hook.js:608
-loadSubscriptionPlans @ Dashboard.tsx:156
-await in loadSubscriptionPlans
-(anonymous) @ Dashboard.tsx:23
-commitHookEffectListMount @ chunk-WALXKXZM.js?v=3a6cab3d:16936
-commitPassiveMountOnFiber @ chunk-WALXKXZM.js?v=3a6cab3d:18184
-commitPassiveMountEffects_complete @ chunk-WALXKXZM.js?v=3a6cab3d:18157
-commitPassiveMountEffects_begin @ chunk-WALXKXZM.js?v=3a6cab3d:18147
-commitPassiveMountEffects @ chunk-WALXKXZM.js?v=3a6cab3d:18137
-flushPassiveEffectsImpl @ chunk-WALXKXZM.js?v=3a6cab3d:19518
-flushPassiveEffects @ chunk-WALXKXZM.js?v=3a6cab3d:19475
-(anonymous) @ chunk-WALXKXZM.js?v=3a6cab3d:19356
-workLoop @ chunk-WALXKXZM.js?v=3a6cab3d:197
-flushWork @ chunk-WALXKXZM.js?v=3a6cab3d:176
-performWorkUntilDeadline @ chunk-WALXKXZM.js?v=3a6cab3d:384Understand this error
-Dashboard.tsx:156 Error loading subscription plans: TypeError: Failed to fetch
-    at loadSubscriptionPlans (Dashboard.tsx:43:28)
-    at Dashboard.tsx:23:5
-    at commitHookEffectListMount (chunk-WALXKXZM.js?v=3a6cab3d:16936:34)
-    at invokePassiveEffectMountInDEV (chunk-WALXKXZM.js?v=3a6cab3d:18352:19)
-    at invokeEffectsInDev (chunk-WALXKXZM.js?v=3a6cab3d:19729:19)
-    at commitDoubleInvokeEffectsInDEV (chunk-WALXKXZM.js?v=3a6cab3d:19714:15)
-    at flushPassiveEffectsImpl (chunk-WALXKXZM.js?v=3a6cab3d:19531:13)
-    at flushPassiveEffects (chunk-WALXKXZM.js?v=3a6cab3d:19475:22)
-    at chunk-WALXKXZM.js?v=3a6cab3d:19356:17
-    at workLoop (chunk-WALXKXZM.js?v=3a6cab3d:197:42)
+cirolinux@cirolinux:/opt/dashboard-clinica$   docker-compose logs backend-api
+clinic-backend-api  | 🚀 Starting Clinic Admin Backend...
+clinic-backend-api  | 📊 MongoDB URL: mongodb://admin:PampaServers2025@mongodb:27017/clinica-dashboard?authSource=admin
+clinic-backend-api  | 🔍 Checking MongoDB connection...
+clinic-backend-api  | Error connecting to MongoDB: mongodb:27017: [Errno -3] Temporary failure in name resolution (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 68a02a8ccb07d159a9ff8969, topology_type: Unknown, servers: [<ServerDescription ('mongodb', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('mongodb:27017: [Errno -3] Temporary failure in name resolution (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+clinic-backend-api  | ❌ MongoDB connection failed: mongodb:27017: [Errno -3] Temporary failure in name resolution (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 68a02a8ccb07d159a9ff8969, topology_type: Unknown, servers: [<ServerDescription ('mongodb', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('mongodb:27017: [Errno -3] Temporary failure in name resolution (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+clinic-backend-api  | 🚀 Starting Clinic Admin Backend...
+clinic-backend-api  | 📊 MongoDB URL: mongodb://admin:PampaServers2025@mongodb:27017/clinica-dashboard?authSource=admin
+clinic-backend-api  | 🔍 Checking MongoDB connection...
+clinic-backend-api  | Error connecting to MongoDB: mongodb:27017: [Errno -3] Temporary failure in name resolution (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 68a02aad8351f5d3dca7fddc, topology_type: Unknown, servers: [<ServerDescription ('mongodb', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('mongodb:27017: [Errno -3] Temporary failure in name resolution (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+clinic-backend-api  | ❌ MongoDB connection failed: mongodb:27017: [Errno -3] Temporary failure in name resolution (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 68a02aad8351f5d3dca7fddc, topology_type: Unknown, servers: [<ServerDescription ('mongodb', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('mongodb:27017: [Errno -3] Temporary failure in name resolution (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+clinic-backend-api  | 🚀 Starting Clinic Admin Backend...
+clinic-backend-api  | 📊 MongoDB URL: mongodb://admin:PampaServers2025@mongodb:27017/clinica-dashboard?authSource=admin
+clinic-backend-api  | 🔍 Checking MongoDB connection...
+clinic-backend-api  | Error connecting to MongoDB: mongodb:27017: [Errno -3] Temporary failure in name resolution (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 68a02ad0b66441ea1698123f, topology_type: Unknown, servers: [<ServerDescription ('mongodb', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('mongodb:27017: [Errno -3] Temporary failure in name resolution (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+clinic-backend-api  | ❌ MongoDB connection failed: mongodb:27017: [Errno -3] Temporary failure in name resolution (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 68a02ad0b66441ea1698123f, topology_type: Unknown, servers: [<ServerDescription ('mongodb', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('mongodb:27017: [Errno -3] Temporary failure in name resolution (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+clinic-backend-api  | 🚀 Starting Clinic Admin Backend...
+clinic-backend-api  | 📊 MongoDB URL: mongodb://admin:PampaServers2025@mongodb:27017/clinica-dashboard?authSource=admin
+clinic-backend-api  | 🔍 Checking MongoDB connection...
+cirolinux@cirolinux:/opt/dashboard-clinica$   docker-compose logs admin-frontend
+clinic-admin-frontend  | 🎨 Starting Admin Frontend...
+clinic-admin-frontend  | 📊 API URL: http://localhost:60519
+clinic-admin-frontend  | 🔧 Admin API URL: http://localhost:60519/api
+clinic-admin-frontend  | 🔄 No build found, starting dev server...
+clinic-admin-frontend  |
+clinic-admin-frontend  | > clinic-admin-frontend@1.0.0 dev
+clinic-admin-frontend  | > vite --host 0.0.0.0 --port 5173
+clinic-admin-frontend  |
+clinic-admin-frontend  |
+clinic-admin-frontend  |   VITE v4.5.14  ready in 501 ms
+clinic-admin-frontend  |
+clinic-admin-frontend  |   ➜  Local:   http://localhost:5173/admin/
+clinic-admin-frontend  |   ➜  Network: http://172.21.0.3:5173/admin/
+cirolinux@cirolinux:/opt/dashboard-clinica$
