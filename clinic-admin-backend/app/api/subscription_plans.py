@@ -37,7 +37,6 @@ async def list_public_subscription_plans():
         # Create response without sensitive statistics
         plan_response = SubscriptionPlanResponse(
             **plan_data.model_dump(),
-            id=str(plan_doc["_id"]),
             clinics_count=None,  # Hide statistics in public endpoint
             monthly_revenue=None
         )

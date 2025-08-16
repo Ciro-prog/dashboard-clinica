@@ -23,6 +23,7 @@ export default defineConfig({
       '/api': {
         target: 'http://clinic-backend-api:8000',
         changeOrigin: true,
+        secure: false
       }
     }
   },
