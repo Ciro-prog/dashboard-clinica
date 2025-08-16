@@ -15,7 +15,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instalar dependencias
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci && npm cache clean --force
 
 # Copiar código fuente del admin frontend
 COPY . .
@@ -28,8 +28,8 @@ USER app
 
 # Variables de entorno para el admin frontend
 ENV NODE_ENV=production
-ENV VITE_API_URL=http://localhost:60522
-ENV VITE_ADMIN_API_URL=http://localhost:60522/api
+ENV VITE_API_URL=http://localhost:60519
+ENV VITE_ADMIN_API_URL=http://localhost:60519/api
 
 # Exponer puerto para desarrollo
 EXPOSE 5173
@@ -38,11 +38,14 @@ EXPOSE 5173
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:5173 || exit 1
 
+# Comando de inicio
+CMD ["/app/start.sh"]
+
 # Script de inicio para el admin frontend
-COPY <<EOF /app/start.sh
+COPY --chmod=755 <<EOF /app/start.sh
+
 #!/bin/sh
 set -e
-
 echo "🎨 Starting Admin Frontend..."
 echo "📊 API URL: \$VITE_API_URL"
 echo "🔧 Admin API URL: \$VITE_ADMIN_API_URL"
@@ -56,8 +59,6 @@ else
     npm run dev -- --host 0.0.0.0 --port 5173
 fi
 EOF
-
-RUN chmod +x /app/start.sh
 
 # Comando de inicio
 CMD ["/app/start.sh"]
