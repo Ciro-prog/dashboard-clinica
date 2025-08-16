@@ -1,35 +1,6 @@
 # Docker Compose para Dashboard Clínica - Configuración Multi-Container
 
 services:
-  # Frontend Cliente - Sistema Principal de Clínicas (con fondo oscuro)
-  frontend-client:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: clinic-frontend-client
-    ports:
-      - "60521:80"
-    environment:
-      - NODE_ENV=production
-      - VITE_API_URL=http://localhost:60519
-    networks:
-      - clinic-network
-    restart: unless-stopped
-    depends_on:
-      - backend-api
-    profiles:
-      - development
-      - production
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`localhost`) && PathPrefix(`/`)"
-      - "traefik.http.services.frontend.loadbalancer.server.port=80"
-
   # Backend API - FastAPI Principal
   backend-api:
     build:
@@ -67,7 +38,7 @@ services:
       - "traefik.http.routers.backend.rule=Host(`localhost`) && PathPrefix(`/api/`)"
       - "traefik.http.services.backend.loadbalancer.server.port=8000"
 
-  # Admin Frontend - React Admin del Backend (DESACTIVADO)
+  # Admin Frontend - React Admin del Backend
   admin-frontend:
     build:
       context: ./clinic-admin-backend/frontend
@@ -85,7 +56,7 @@ services:
     depends_on:
       - backend-api
     profiles:
-      - disabled
+      - development
     volumes:
       - admin-frontend-logs:/app/logs
     healthcheck:

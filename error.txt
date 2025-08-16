@@ -1,135 +1,16 @@
-clinic-backend-api       dashboard-clinica-backend-api       "/app/init.sh"           backend-api       25 minutes ago       Up 25 minutes (healthy)         0.0.0.0:60519->8000/tcp, [::]:60519->8000/tcp
-clinic-frontend-client   dashboard-clinica-frontend-client   "/docker-entrypoint.…"   frontend-client   About a minute ago   Restarting (1) 49 seconds ago
+ Ciro,  54 minutes ago (August 16, 2025 at 3:31 AM)
 
-cirolinux@cirolinux:/opt/dashboard-clinica$   docker-compose logs frontend-client
-clinic-frontend-client  | /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
-clinic-frontend-client  | /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
-clinic-frontend-client  | 10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
-clinic-frontend-client  | 10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs from the packaged version
-clinic-frontend-client  | /docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
-clinic-frontend-client  | /docker-entrypoint.sh: Configuration complete; ready for start up
-clinic-frontend-client  | 2025/08/16 07:21:31 [emerg] 1#1: host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:13
-clinic-frontend-client  | nginx: [emerg] host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:13
-clinic-frontend-client  | /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
-clinic-frontend-client  | /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
-clinic-frontend-client  | 10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
-clinic-frontend-client  | 10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs from the packaged version
-clinic-frontend-client  | /docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
-clinic-frontend-client  | /docker-entrypoint.sh: Configuration complete; ready for start up
-clinic-frontend-client  | 2025/08/16 07:21:33 [emerg] 1#1: host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:13
-clinic-frontend-client  | nginx: [emerg] host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:13
-clinic-frontend-client  | /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
-clinic-frontend-client  | /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
-clinic-frontend-client  | 10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
-clinic-frontend-client  | 10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs from the packaged version
-clinic-frontend-client  | /docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
-clinic-frontend-client  | /docker-entrypoint.sh: Configuration complete; ready for start up
-clinic-frontend-client  | 2025/08/16 07:21:34 [emerg] 1#1: host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:13
-clinic-frontend-client  | nginx: [emerg] host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:13
-clinic-frontend-client  | /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
-clinic-frontend-client  | /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
-clinic-frontend-client  | 10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
-clinic-frontend-client  | 10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs from the packaged version
-clinic-frontend-client  | /docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
-clinic-frontend-client  | /docker-entrypoint.sh: Configuration complete; ready for start up
-clinic-frontend-client  | 2025/08/16 07:21:36 [emerg] 1#1: host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:13
-clinic-frontend-client  | nginx: [emerg] host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:13
-clinic-frontend-client  | /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
-clinic-frontend-client  | /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
-clinic-frontend-client  | 10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
-clinic-frontend-client  | 10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs from the packaged version
-clinic-frontend-client  | /docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
-clinic-frontend-client  | /docker-entrypoint.sh: Configuration complete; ready for start up
-clinic-frontend-client  | 2025/08/16 07:21:38 [emerg] 1#1: host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:13
-clinic-frontend-client  | nginx: [emerg] host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:13
-clinic-frontend-client  | /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
-clinic-frontend-client  | /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
-clinic-frontend-client  | 10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
-clinic-frontend-client  | 10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs from the packaged version
-clinic-frontend-client  | /docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
-clinic-frontend-client  | /docker-entrypoint.sh: Configuration complete; ready for start up
-clinic-frontend-client  | 2025/08/16 07:21:40 [emerg] 1#1: host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:13
-clinic-frontend-client  | nginx: [emerg] host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:13
-clinic-frontend-client  | /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
-clinic-frontend-client  | /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
-clinic-frontend-client  | 10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
-clinic-frontend-client  | 10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs from the packaged version
-clinic-frontend-client  | /docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
-clinic-frontend-client  | /docker-entrypoint.sh: Configuration complete; ready for start up
-clinic-frontend-client  | 2025/08/16 07:21:45 [emerg] 1#1: host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:13
-clinic-frontend-client  | nginx: [emerg] host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:13
-clinic-frontend-client  | /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
-clinic-frontend-client  | /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
-clinic-frontend-client  | 10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
-clinic-frontend-client  | 10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs from the packaged version
-clinic-frontend-client  | /docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
-clinic-frontend-client  | /docker-entrypoint.sh: Configuration complete; ready for start up
-clinic-frontend-client  | 2025/08/16 07:21:52 [emerg] 1#1: host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:13
-clinic-frontend-client  | nginx: [emerg] host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:13
-clinic-frontend-client  | /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
-clinic-frontend-client  | /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
-clinic-frontend-client  | 10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
-clinic-frontend-client  | 10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs from the packaged version
-clinic-frontend-client  | /docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
-clinic-frontend-client  | /docker-entrypoint.sh: Configuration complete; ready for start up
-clinic-frontend-client  | 2025/08/16 07:22:06 [emerg] 1#1: host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:13
-clinic-frontend-client  | nginx: [emerg] host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:13
-clinic-frontend-client  | /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
-clinic-frontend-client  | /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
-clinic-frontend-client  | 10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
-clinic-frontend-client  | 10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs from the packaged version
-clinic-frontend-client  | /docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
-clinic-frontend-client  | /docker-entrypoint.sh: Configuration complete; ready for start up
-clinic-frontend-client  | 2025/08/16 07:22:33 [emerg] 1#1: host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:13
-clinic-frontend-client  | nginx: [emerg] host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:13
-clinic-frontend-client  | /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
-clinic-frontend-client  | /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
-clinic-frontend-client  | 10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
-clinic-frontend-client  | 10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs from the packaged version
-clinic-frontend-client  | /docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
-clinic-frontend-client  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
-clinic-frontend-client  | /docker-entrypoint.sh: Configuration complete; ready for start up
-clinic-frontend-client  | 2025/08/16 07:23:25 [emerg] 1#1: host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:13
-clinic-frontend-client  | nginx: [emerg] host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:13
+Elimina componentes y configuraciones del frontend relacionados con la administración, incluyendo AdminApp, AdminDashboard, AdminConfigModal y AdminLoginForm. Actualiza docker-compose.yml para eliminar el servicio frontend-client y ajusta las rutas en App.tsx para reflejar el nuevo puerto del backend. Se realizan cambios en error.txt para mejorar la claridad de los mensajes de inicio de sesión.
 
+8 files changed, 30 insertions(+), 2102 deletions(-)
 
-cirolinux@cirolinux:/opt/dashboard-clinica$   docker ps | grep frontend-client
-c3a7a5113668   dashboard-clinica-frontend-client     "/docker-entrypoint.…"   2 minutes ago    Restarting (1) 51 seconds ago                                                             clinic-frontend-client
+b40351f
 
+Ciro Ciro,  2 hours ago (August 16, 2025 at 2:22 AM)
 
-irolinux@cirolinux:/opt/dashboard-clinica$   docker port clinic-frontend-client
-cirolinux@cirolinux:/opt/dashboard-clinica$   docker exec clinic-frontend-client curl http://localhost:80
-Error response from daemon: Container c3a7a51136686509e28b739c7152189b915da5470388b59b407bbf953895d96b is restarting, wait until the container is running
-cirolinux@cirolinux:/opt/dashboard-clinica$
+Actualiza las rutas de la API de planes de suscripción en varios componentes del frontend para eliminar el prefijo 'admin'. Esto incluye cambios en ClinicEditor, Dashboard y SubscriptionPlanManager, asegurando que todas las solicitudes se dirijan a '/api/subscription-plans/'.
+
+4 files changed, 63 insertions(+), 91 deletions(-)
+
+4efe1e0
+Open on GitHub
