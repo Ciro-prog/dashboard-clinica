@@ -5,7 +5,7 @@ FROM node:18-alpine AS frontend-builder
 # Build admin frontend
 WORKDIR /app/frontend-admin
 COPY frontend-admin/package*.json ./
-RUN npm ci --only=production
+RUN npm install
 
 COPY frontend-admin/ ./
 RUN npm run build

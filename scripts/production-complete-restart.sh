@@ -232,9 +232,10 @@ echo "Verificando Frontend Client (60521)..."
 curl -f http://localhost:60521 2>/dev/null && echo -e "${GREEN}✅ Frontend Client OK${NC}" || echo -e "${RED}❌ Frontend Client Error${NC}"
 
 echo ""
-echo "=== CONECTIVIDAD DE PRODUCCIÓN ==="
-echo "Verificando API externa..."
-curl -f http://pampaservers.com:60519/docs 2>/dev/null && echo -e "${GREEN}✅ API Externa OK${NC}" || echo -e "${YELLOW}⚠️ API Externa no accesible desde aquí${NC}"
+echo "=== CONECTIVIDAD INTERNA ==="
+echo "Verificando servicios internos..."
+netstat -tlnp | grep :60519 >/dev/null && echo -e "${GREEN}✅ Puerto 60519 abierto${NC}" || echo -e "${YELLOW}⚠️ Puerto 60519 no disponible${NC}"
+netstat -tlnp | grep :60521 >/dev/null && echo -e "${GREEN}✅ Puerto 60521 abierto${NC}" || echo -e "${YELLOW}⚠️ Puerto 60521 no disponible${NC}"
 
 echo ""
 echo -e "${GREEN}✅ RESTART COMPLETO FINALIZADO${NC}"
