@@ -12,9 +12,16 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    host: '0.0.0.0',
+    allowedHosts: [
+      'localhost',
+      'pampaservers.com',
+      '127.0.0.1',
+      '0.0.0.0'
+    ],
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://clinic-backend-api:8000',
         changeOrigin: true,
       }
     }
