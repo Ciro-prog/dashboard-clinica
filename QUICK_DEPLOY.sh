@@ -60,8 +60,19 @@ fi
 # Step 3: Install and configure MongoDB
 print_step "3. Instalando MongoDB..."
 if ! command -v mongod &> /dev/null; then
+    # Fix MongoDB repository for Ubuntu Noble (24.04)
     wget -qO - https://www.mongodb.org/static/pgp/server-7.0.asc | sudo apt-key add -
-    echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu $(lsb_release -cs)/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+    
+    # Detect Ubuntu version and use appropriate repository
+    UBUNTU_VERSION=$(lsb_release -cs)
+    if [ "$UBUNTU_VERSION" = "noble" ]; then
+        # Use jammy repository for noble (Ubuntu 24.04)
+        echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+        print_warning "Using jammy repository for Ubuntu Noble (24.04)"
+    else
+        echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu $UBUNTU_VERSION/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+    fi
+    
     sudo apt update
     sudo apt install -y mongodb-org
     sudo systemctl start mongod

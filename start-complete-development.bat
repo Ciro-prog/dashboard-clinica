@@ -1,124 +1,111 @@
 @echo off
-REM ===========================================
-REM Script COMPLETO - 4 servicios independientes  
-REM ===========================================
+REM Script maestro para iniciar todo el entorno de desarrollo
 
 echo.
-echo 🏥 CLINIC SYSTEM - CONFIGURACIÓN COMPLETA
-echo ==========================================
+echo 🚀 CLINIC SYSTEM - COMPLETE DEVELOPMENT ENVIRONMENT
+echo ==================================================
 
+echo.
+echo Este script iniciará TODOS los servicios de desarrollo:
+echo.
+echo 🏥 Admin System (puerto 8000)
+echo    - Backend API con FastAPI
+echo    - Frontend Admin compilado
+echo    - MongoDB para admin
+echo.
+echo 👥 Client Dashboard (puerto 8080) 
+echo    - Frontend React en modo desarrollo
+echo    - Conexión a backend existente
+echo.
+echo ⚠️ IMPORTANTE: Asegúrate de tener Docker corriendo
+echo.
+pause
+
+REM Verificar Docker
+docker --version >nul 2>&1
+if %errorlevel% neq 0 (
+    echo ❌ Docker no está instalado o no está corriendo
+    pause
+    exit /b 1
+)
+
+echo.
+echo 🔧 Iniciando Admin System...
+cd /d "%~dp0\clinic-admin-backend"
+docker-compose -f docker-compose.admin.yml up -d
+
+echo.
+echo ⏳ Esperando que Admin System esté listo...
+ping -n 11 127.0.0.1 >nul
+
+echo.
+echo 🔧 Iniciando Client Dashboard...
 cd /d "%~dp0"
-
-echo 📝 CONFIGURACIÓN DE SERVICIOS:
-echo.
-echo 🔧 BACKEND API (Puerto 8000):
-echo    - API del sistema completo
-echo    - Base de datos MongoDB
-echo    - Endpoints para todas las interfaces
-echo.
-echo 👥 CLIENTE DASHBOARD (Puerto 8080):
-echo    - Interface para clínicas (gestión diaria)
-echo    - Pacientes, profesionales, citas
-echo    - WhatsApp Business integration
-echo.
-echo 🎨 ADMIN SISTEMA COMPLETO (Puerto 8081):
-echo    - Interface administrativa completa
-echo    - Gestión avanzada con tarjetas y tema oscuro  
-echo    - Pagos, suscripciones, profesionales
-echo.
-echo 🔐 ADMIN GESTIÓN EMPRESAS (Puerto 8082):
-echo    - Interface específica para empresas 
-echo    - CREAR/ELIMINAR clínicas con confirmación
-echo    - Buscador de empresas
-echo    - Gestión de suscripciones básica
-echo.
-
-choice /c YN /m "¿Iniciar todos los servicios automáticamente?"
-
-if errorlevel 2 goto manual
-if errorlevel 1 goto auto
-
-:auto
-echo 🚀 Iniciando servicios...
-
-REM 1. Backend API (Puerto 8000)
-start "Backend API" cmd /k "cd clinic-admin-backend && echo 🔧 BACKEND API (8000) INICIANDO... && python main.py"
-
-REM Esperar backend
-timeout /t 4 /nobreak >nul
-
-REM 2. Cliente Dashboard (Puerto 8080)  
-start "Cliente Dashboard" cmd /k "echo 👥 CLIENTE DASHBOARD (8080) INICIANDO... && npm run dev"
-
-REM Esperar cliente
-timeout /t 3 /nobreak >nul
-
-REM 3. Admin Sistema Completo (Puerto 8081)
-start "Admin Sistema Completo" cmd /k "cd clinic-admin-backend\frontend-admin && echo 🎨 ADMIN COMPLETO (8081) INICIANDO... && npm install && npm run dev"
-
-REM Esperar admin completo
-timeout /t 3 /nobreak >nul
-
-REM 4. Admin Gestión Empresas (Puerto 8082)
-start "Admin Gestión Empresas" cmd /k "cd clinic-admin-backend\frontend && echo 🔐 ADMIN EMPRESAS (8082) INICIANDO... && npm install && npm run dev"
-
-REM Esperar un momento y abrir navegadores
-timeout /t 10 /nobreak >nul
-
-echo 🌐 Abriendo interfaces principales...
-start http://localhost:8080
-timeout /t 2 /nobreak >nul
-start http://localhost:8081
-timeout /t 2 /nobreak >nul
-start http://localhost:8082
+docker-compose up -d frontend-client
 
 echo.
-echo ✅ DESARROLLO COMPLETO INICIADO!
+echo ⏳ Esperando que Client Dashboard esté listo...
+ping -n 11 127.0.0.1 >nul
+
 echo.
-echo 🌐 URLs disponibles:
-echo    👥 Cliente Dashboard:       http://localhost:8080
-echo    🎨 Admin Sistema Completo:  http://localhost:8081  
-echo    🔐 Admin Gestión Empresas:  http://localhost:8082 ⭐ (EL QUE BUSCABAS)
-echo    🔧 API Backend:             http://localhost:8000
-echo    📚 API Docs:                http://localhost:8000/docs
+echo 📊 Verificando estado de servicios...
 echo.
-echo ⭐ IMPORTANTE: 
-echo    - Puerto 8082 es el admin específico para crear/eliminar empresas
-echo    - Tiene buscador y confirmaciones de eliminación
-echo    - Es más básico pero más directo para gestión de empresas
+echo === ADMIN SYSTEM ===
+cd /d "%~dp0\clinic-admin-backend"
+docker-compose -f docker-compose.admin.yml ps
+
+echo.
+echo === CLIENT DASHBOARD ===
+cd /d "%~dp0"
+docker-compose ps frontend-client
+
+echo.
+echo 💚 Verificando health checks...
+curl -f http://localhost:8000/health 2>nul && echo ✅ Admin System OK || echo ⚠️ Admin System iniciando...
+curl -f http://localhost:8080 2>nul && echo ✅ Client Dashboard OK || echo ⚠️ Client Dashboard iniciando...
+
+echo.
+echo ✅ ENTORNO COMPLETO INICIADO
+echo ============================
+echo.
+echo 🖥️ URLs disponibles:
+echo.
+echo 🏥 ADMIN SYSTEM:
+echo    - Dashboard: http://localhost:8000/admin
+echo    - API:       http://localhost:8000/api
+echo    - Docs:      http://localhost:8000/docs
+echo    - Health:    http://localhost:8000/health
+echo.
+echo 👥 CLIENT DASHBOARD:
+echo    - Dashboard: http://localhost:8080
+echo.
+echo 🔐 Credenciales Admin:
+echo    - Usuario: admin
+echo    - Contraseña: admin123
+echo.
+echo 📋 Para acceder al ApiDocumentationModal:
+echo    1. Ir a http://localhost:8000/admin
+echo    2. Login con credenciales admin
+echo    3. Tab 'Clínicas' → Botón 'Documentación'
+echo.
+echo 📋 Comandos útiles:
+echo    - Ver logs admin:   docker-compose -f clinic-admin-backend\docker-compose.admin.yml logs -f
+echo    - Ver logs client:  docker-compose logs -f frontend-client
+echo    - Parar todo:       scripts\quick-dev.bat (opción 5)
+echo    - Gestión avanzada: scripts\quick-dev.bat
 echo.
 
-goto end
+REM Abrir URLs automáticamente
+echo 🌐 Abriendo URLs en el navegador...
+start "" "http://localhost:8000/admin"
+start "" "http://localhost:8080"
 
-:manual
 echo.
-echo 📋 PASOS MANUALES:
+echo 🎉 LISTO! Los servicios están corriendo
+echo =======================================
 echo.
-echo Terminal 1 (Backend API):
-echo   cd clinic-admin-backend
-echo   python main.py
+echo ⚠️ Para gestión avanzada de servicios, usar:
+echo    scripts\quick-dev.bat - Desarrollo
+echo    scripts\quick-prod.bat - Producción/Updates
 echo.
-echo Terminal 2 (Cliente Dashboard):  
-echo   npm run dev
-echo.
-echo Terminal 3 (Admin Sistema Completo):
-echo   cd clinic-admin-backend\frontend-admin
-echo   npm install
-echo   npm run dev
-echo.
-echo Terminal 4 (Admin Gestión Empresas):
-echo   cd clinic-admin-backend\frontend
-echo   npm install
-echo   npm run dev
-echo.
-echo URLs:
-echo   👥 Cliente:           http://localhost:8080
-echo   🎨 Admin Completo:    http://localhost:8081
-echo   🔐 Admin Empresas:    http://localhost:8082 ⭐
-echo   🔧 API:               http://localhost:8000
-echo.
-
-:end
-echo ⚠️  Para detener: Ctrl+C en cada terminal
-echo 💡 El admin que buscabas está en el puerto 8082
 pause

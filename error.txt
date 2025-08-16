@@ -1,34 +1,60 @@
-­ƒÅÑ CLINIC ADMIN SYSTEM - DOCKER
-================================
-­ƒöº Construyendo imagen admin...
-time="2025-08-16T18:52:05-03:00" level=warning msg="D:\\dashboard-clinica\\clinic-admin-backend\\docker-compose.admin.yml: the attribute `version` is obsolete, it will be ignored, please remove 
-it to avoid potential confusion"
-Compose now can delegate build to bake for better performances
-Just set COMPOSE_BAKE=true
-error during connect: Head "http://%2F%2F.%2Fpipe%2FdockerDesktopLinuxEngine/_ping": open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.
-­ƒÜÇ Iniciando servicios admin...
-time="2025-08-16T18:52:05-03:00" level=warning msg="D:\\dashboard-clinica\\clinic-admin-backend\\docker-compose.admin.yml: the attribute `version` is obsolete, it will be ignored, please remove 
-it to avoid potential confusion"
-unable to get image 'mongo:7.0': error during connect: Get "http://%2F%2F.%2Fpipe%2FdockerDesktopLinuxEngine/v1.48/images/mongo:7.0/json": open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.
-ÔÅ│ Esperando que los servicios est├®n listos...
-­ƒöì Verificando estado de servicios...
-time="2025-08-16T18:52:16-03:00" level=warning msg="D:\\dashboard-clinica\\clinic-admin-backend\\docker-compose.admin.yml: the attribute `version` is obsolete, it will be ignored, please remove 
-it to avoid potential confusion"
-error during connect: Get "http://%2F%2F.%2Fpipe%2FdockerDesktopLinuxEngine/v1.48/containers/json?filters=%7B%22label%22%3A%7B%22com.docker.compose.config-hash%22%3Atrue%2C%22com.docker.compose.oneoff%3DFalse%22%3Atrue%2C%22com.docker.compose.project%3Dclinic-admin-backend%22%3Atrue%7D%7D": open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.
-­ƒÆÜ Verificando salud del sistema...
-{"status":"healthy","service":"clinic-admin-backend","version":"1.0.0","database":"connected"}
-Ô£à SISTEMA ADMIN INICIADO
-=========================
-­ƒûÑ´©Å  Admin Dashboard: http://localhost:8000/admin
-­ƒöº  Backend API:     http://localhost:8000/api
-­ƒôÜ  API Docs:        http://localhost:8000/docs
+Procesando disparadores para ufw (0.36.2-6) ...
+Procesando disparadores para man-db (2.12.0-4build2) ...
+Scanning processes...
+Scanning candidates...
+Scanning linux images...
 
-­ƒöÉ Credenciales Admin:
-   Usuario: admin
-   Contrase├▒a: admin123
+Pending kernel upgrade!
+Running kernel version:
+  6.8.0-63-generic
+Diagnostics:
+  The currently running kernel version is not the expected kernel version
+6.8.0-71-generic.
 
-­ƒôï Comandos ├║tiles:
-   Ver logs:     docker-compose -f docker-compose.admin.yml logs -f
-   Parar:        docker-compose -f docker-compose.admin.yml down
-   Reiniciar:    docker-compose -f docker-compose.admin.yml restart
-Presione una tecla para continuar . . . 
+Restarting the system to load the new kernel will not be handled automatically,
+so you should consider rebooting.
+
+Restarting services...
+
+Service restarts being deferred:
+ /etc/needrestart/restart.d/dbus.service
+ systemctl restart getty@tty1.service
+ systemctl restart systemd-logind.service
+ systemctl restart unattended-upgrades.service
+
+No containers need to be restarted.
+
+No user sessions are running outdated binaries.
+
+No VM guests are running outdated hypervisor (qemu) binaries on this host.
+[STEP] 2. Instalando Docker...
+[STEP] 3. Instalando MongoDB...
+Warning: apt-key is deprecated. Manage keyring files in trusted.gpg.d instead (s                                                                                                             ee apt-key(8)).
+OK
+deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/7                                                                                                             .0 multiverse
+Obj:1 https://download.docker.com/linux/ubuntu noble InRelease
+Ign:2 https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/7.0 InRelease
+Obj:3 http://security.ubuntu.com/ubuntu noble-security InRelease
+Obj:4 http://ar.archive.ubuntu.com/ubuntu noble InRelease
+Obj:5 http://ar.archive.ubuntu.com/ubuntu noble-updates InRelease
+Err:6 https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/7.0 Release
+  404  Not Found [IP: 3.160.119.66 443]
+Obj:7 http://ar.archive.ubuntu.com/ubuntu noble-backports InRelease
+Leyendo lista de paquetes... Hecho
+E: El repositorio «https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/7.0 Rel                                                                                                             ease» no tiene un fichero de Publicación.
+N: No se puede actualizar de un repositorio como este de forma segura y por tant                                                                                                             o está deshabilitado por omisión.
+N: Vea la página de manual apt-secure(8) para los detalles sobre la creación de                                                                                                              repositorios y la configuración de usuarios.
+cirolinux@cirolinux:/opt/dashboard-clinica$ docker ps
+CONTAINER ID   IMAGE                                 COMMAND                  CR                                                                                                             EATED        STATUS                             PORTS                                                                                                                                                                  NAMES
+7abe668ef3f2   dashboard-clinica-frontend-client     "/docker-entrypoint.…"   15                                                                                                              hours ago   Restarting (1) 47 seconds ago                                                                                                                                                                             clinic-frontend-client
+5c132b5f04e3   dashboard-clinica-backend-api         "/app/init.sh"           15                                                                                                              hours ago   Up 13 seconds (health: starting)   0.0.0.0:60519->8000/tcp, [::]:60                                                                                                             519->8000/tcp             clinic-backend-api
+4e29a5378741   dashboard-clinica-admin-frontend      "docker-entrypoint.s…"   17                                                                                                              hours ago   Up 15 hours (healthy)              0.0.0.0:60523->5173/tcp, [::]:60                                                                                                             523->5173/tcp             clinic-admin-frontend
+c9af56e9deea   docker.n8n.io/n8nio/n8n               "tini -- /docker-ent…"   2                                                                                                              days ago     Up 2 days                          0.0.0.0:60514->5678/tcp, [::]:60                                                                                                             514->5678/tcp             n8n
+ef0301eab030   cms-clinica                           "docker-entrypoint.s…"   4                                                                                                              weeks ago    Up 3 days                          0.0.0.0:60520->1337/tcp, [::]:60                                                                                                             520->1337/tcp             cms-clinica
+135bb8fca5e6   devlikeapro/waha-plus:latest          "/usr/bin/tini -- /e…"   6                                                                                                              weeks ago    Up 3 days (unhealthy)              0.0.0.0:60513->3000/tcp, [::]:60                                                                                                             513->3000/tcp             waha-plus
+fb6aab86fd12   mongo-express:1.0.2                   "/sbin/tini -- /dock…"   6                                                                                                              weeks ago    Up 3 days                          0.0.0.0:60517->8081/tcp, [::]:60                                                                                                             517->8081/tcp             mongo-express
+abf54630e862   mongo:7.0                             "docker-entrypoint.s…"   6                                                                                                              weeks ago    Up 3 days                          0.0.0.0:60516->27017/tcp, [::]:6                                                                                                             0516->27017/tcp           mongodb
+f1322c2854a3   redis:7.2-alpine                      "docker-entrypoint.s…"   6                                                                                                              weeks ago    Up 3 days                          0.0.0.0:60515->6379/tcp, [::]:60                                                                                                             515->6379/tcp             redis-standalone
+40eda66fd12c   ghcr.io/gitroomhq/postiz-app:latest   "docker-entrypoint.s…"   6                                                                                                              weeks ago    Up 3 days                          4200/tcp, 0.0.0.0:60518->5000/tc                                                                                                             p, [::]:60518->5000/tcp   postiz
+3797af74915d   redis:7.2                             "docker-entrypoint.s…"   6                                                                                                              weeks ago    Up 3 days (healthy)                6379/tcp                                                                                                                                                               postiz-redis
+263faa2bcb34   postgres:17-alpine                    "docker-entrypoint.s…"   6                                                                                                              weeks ago    Up 3 days (healthy)                5432/tcp                                                                                                                                                               postiz-postgres
