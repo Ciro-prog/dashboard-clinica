@@ -1,0 +1,34 @@
+
+🏥 CLINIC ADMIN SYSTEM - DOCKER
+================================
+🔧 Construyendo imagen admin...
+time="2025-08-16T19:13:33-03:00" level=warning msg="D:\\dashboard-clinica\\clinic-admin-backend\\docker-compose.admin.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+Compose now can delegate build to bake for better performances
+Just set COMPOSE_BAKE=true
+error during connect: Head "http://%2F%2F.%2Fpipe%2FdockerDesktopLinuxEngine/_ping": open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.
+🚀 Iniciando servicios admin...
+time="2025-08-16T19:13:33-03:00" level=warning msg="D:\\dashboard-clinica\\clinic-admin-backend\\docker-compose.admin.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+unable to get image 'mongo:7.0': error during connect: Get "http://%2F%2F.%2Fpipe%2FdockerDesktopLinuxEngine/v1.48/images/mongo:7.0/json": open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.
+⏳ Esperando que los servicios estén listos...
+timeout: invalid time interval ‘/t’
+Try 'timeout --help' for more information.
+🔍 Verificando estado de servicios...
+time="2025-08-16T19:13:34-03:00" level=warning msg="D:\\dashboard-clinica\\clinic-admin-backend\\docker-compose.admin.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+error during connect: Get "http://%2F%2F.%2Fpipe%2FdockerDesktopLinuxEngine/v1.48/containers/json?filters=%7B%22label%22%3A%7B%22com.docker.compose.config-hash%22%3Atrue%2C%22com.docker.compose.oneoff%3DFalse%22%3Atrue%2C%22com.docker.compose.project%3Dclinic-admin-backend%22%3Atrue%7D%7D": open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.
+💚 Verificando salud del sistema...
+{"status":"healthy","service":"clinic-admin-backend","version":"1.0.0","database":"connected"}
+✅ SISTEMA ADMIN INICIADO
+=========================
+🖥️  Admin Dashboard: http://localhost:8000/admin
+🔧  Backend API:     http://localhost:8000/api  
+📚  API Docs:        http://localhost:8000/docs
+
+🔐 Credenciales Admin:
+   Usuario: admin
+   Contraseña: admin123
+
+📋 Comandos útiles:
+   Ver logs:     docker-compose -f docker-compose.admin.yml logs -f
+   Parar:        docker-compose -f docker-compose.admin.yml down
+   Reiniciar:    docker-compose -f docker-compose.admin.yml restart
+Presione una tecla para continuar . . . 
