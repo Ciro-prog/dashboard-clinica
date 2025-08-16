@@ -33,7 +33,7 @@ echo.
 echo 🏥 Iniciando SOLO Admin System...
 cd /d "%~dp0\..\clinic-admin-backend"
 docker-compose -f docker-compose.admin.yml up -d
-echo ✅ Admin System iniciado en http://localhost:8000/admin
+echo ✅ Admin System iniciado en http://localhost:60519/admin
 goto menu
 
 :start_client
@@ -41,7 +41,7 @@ echo.
 echo 👥 Iniciando SOLO Client Dashboard...
 cd /d "%~dp0\.."
 docker-compose up -d frontend-client
-echo ✅ Client Dashboard iniciado en http://localhost:8080
+echo ✅ Client Dashboard iniciado en http://localhost:60521
 goto menu
 
 :start_both
@@ -51,8 +51,8 @@ cd /d "%~dp0\..\clinic-admin-backend"
 docker-compose -f docker-compose.admin.yml up -d
 cd /d "%~dp0\.."
 docker-compose up -d frontend-client
-echo ✅ Admin System: http://localhost:8000/admin
-echo ✅ Client Dashboard: http://localhost:8080
+echo ✅ Admin System: http://localhost:60519/admin
+echo ✅ Client Dashboard: http://localhost:60521
 goto menu
 
 :status

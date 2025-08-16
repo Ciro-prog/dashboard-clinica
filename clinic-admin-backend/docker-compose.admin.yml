@@ -26,7 +26,7 @@ services:
     container_name: clinic-admin-system
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "60519:8000"
     environment:
       # Database
       MONGODB_URL: mongodb://admin:password123@mongodb:27017/clinic_admin?authSource=admin
@@ -40,8 +40,8 @@ services:
       API_KEY_DEV: test123456
       API_KEY_PROD: pampaserver2025enservermuA!
       
-      # CORS
-      ALLOWED_ORIGINS: "http://localhost:8000,https://yourdomain.com"
+      # CORS  
+      ALLOWED_ORIGINS: "http://localhost:60519,http://localhost:60521,http://localhost:60523,https://yourdomain.com"
       
       # Environment
       ENVIRONMENT: production

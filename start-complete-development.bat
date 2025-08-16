@@ -61,8 +61,8 @@ docker-compose ps frontend-client
 
 echo.
 echo 💚 Verificando health checks...
-curl -f http://localhost:8000/health 2>nul && echo ✅ Admin System OK || echo ⚠️ Admin System iniciando...
-curl -f http://localhost:8080 2>nul && echo ✅ Client Dashboard OK || echo ⚠️ Client Dashboard iniciando...
+curl -f http://localhost:60519/health 2>nul && echo ✅ Admin System OK || echo ⚠️ Admin System iniciando...
+curl -f http://localhost:60521 2>nul && echo ✅ Client Dashboard OK || echo ⚠️ Client Dashboard iniciando...
 
 echo.
 echo ✅ ENTORNO COMPLETO INICIADO
@@ -71,20 +71,20 @@ echo.
 echo 🖥️ URLs disponibles:
 echo.
 echo 🏥 ADMIN SYSTEM:
-echo    - Dashboard: http://localhost:8000/admin
-echo    - API:       http://localhost:8000/api
-echo    - Docs:      http://localhost:8000/docs
-echo    - Health:    http://localhost:8000/health
+echo    - Dashboard: http://localhost:60519/admin
+echo    - API:       http://localhost:60519/api
+echo    - Docs:      http://localhost:60519/docs
+echo    - Health:    http://localhost:60519/health
 echo.
 echo 👥 CLIENT DASHBOARD:
-echo    - Dashboard: http://localhost:8080
+echo    - Dashboard: http://localhost:60521
 echo.
 echo 🔐 Credenciales Admin:
 echo    - Usuario: admin
 echo    - Contraseña: admin123
 echo.
 echo 📋 Para acceder al ApiDocumentationModal:
-echo    1. Ir a http://localhost:8000/admin
+echo    1. Ir a http://localhost:60519/admin
 echo    2. Login con credenciales admin
 echo    3. Tab 'Clínicas' → Botón 'Documentación'
 echo.
@@ -97,8 +97,8 @@ echo.
 
 REM Abrir URLs automáticamente
 echo 🌐 Abriendo URLs en el navegador...
-start "" "http://localhost:8000/admin"
-start "" "http://localhost:8080"
+start "" "http://localhost:60519/admin"
+start "" "http://localhost:60521"
 
 echo.
 echo 🎉 LISTO! Los servicios están corriendo
