@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # Client Dashboard Frontend
+  client-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: clinic-client-dashboard
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      # API Configuration (points to admin system)
+      VITE_API_URL: http://localhost:8000/api
+      VITE_BACKEND_URL: http://localhost:8000
+      
+      # WAHA Configuration
+      VITE_WAHA_URL: http://pampaservers.com:60513
+      
+      # N8N Configuration  
+      VITE_N8N_URL: http://dev-n8n.pampaservers.com
+      
+      # Environment
+      NODE_ENV: production
+      
+    volumes:
+      - client_data:/app/data
+    networks:
+      - client-network
+
+  # Nginx proxy for client dashboard (optional)
+  nginx-client:
+    image: nginx:alpine
+    container_name: clinic-client-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/client.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - client-dashboard
+    networks:
+      - client-network
+
+volumes:
+  client_data:
+    driver: local
+
+networks:
+  client-network:
+    driver: bridge

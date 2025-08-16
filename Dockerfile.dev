@@ -1,0 +1,47 @@
+# ===========================================
+# Dockerfile para Frontend de Desarrollo
+# Hot Reload y Development Mode
+# ===========================================
+
+FROM node:18-alpine
+
+# Instalar curl para healthcheck
+RUN apk add --no-cache curl
+
+# Crear usuario no-root
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S react -u 1001
+
+# Establecer directorio de trabajo
+WORKDIR /app
+
+# Copiar package files
+COPY package*.json ./
+
+# Instalar dependencias
+RUN npm ci
+
+# Copiar archivos de configuración
+COPY vite.config.ts ./
+COPY tailwind.config.ts ./
+COPY tsconfig.json ./
+COPY postcss.config.js ./
+COPY index.html ./
+
+# Crear estructura de directorios
+RUN mkdir -p src public && \
+    chown -R react:nodejs /app
+
+# Cambiar a usuario no-root
+USER react
+
+# Variables de entorno para desarrollo
+ENV NODE_ENV=development
+ENV VITE_API_URL=http://localhost:60519
+ENV VITE_ADMIN_API_URL=http://localhost:60519/api
+
+# Exponer puerto de desarrollo
+EXPOSE 3000
+
+# Comando de desarrollo con hot reload
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]

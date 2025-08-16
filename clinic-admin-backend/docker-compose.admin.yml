@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: clinic-admin-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: clinic_admin
+    volumes:
+      - mongodb_data:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    networks:
+      - admin-network
+
+  # Admin Backend + Frontend
+  admin-system:
+    build:
+      context: .
+      dockerfile: Dockerfile.admin
+    container_name: clinic-admin-system
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Database
+      MONGODB_URL: mongodb://admin:password123@mongodb:27017/clinic_admin?authSource=admin
+      
+      # Admin Configuration
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: admin123
+      JWT_SECRET_KEY: your-super-secret-jwt-key-change-in-production
+      
+      # API Configuration
+      API_KEY_DEV: test123456
+      API_KEY_PROD: pampaserver2025enservermuA!
+      
+      # CORS
+      ALLOWED_ORIGINS: "http://localhost:8000,https://yourdomain.com"
+      
+      # Environment
+      ENVIRONMENT: production
+      DEBUG: false
+      
+    volumes:
+      - admin_uploads:/app/uploads
+    depends_on:
+      - mongodb
+    networks:
+      - admin-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  mongodb_data:
+    driver: local
+  admin_uploads:
+    driver: local
+
+networks:
+  admin-network:
+    driver: bridge

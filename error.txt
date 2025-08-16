@@ -1,16 +1,33 @@
- Ciro,  54 minutes ago (August 16, 2025 at 3:31 AM)
+ DEBUGGING SERVER ROUTES
+==================================================
 
-Elimina componentes y configuraciones del frontend relacionados con la administración, incluyendo AdminApp, AdminDashboard, AdminConfigModal y AdminLoginForm. Actualiza docker-compose.yml para eliminar el servicio frontend-client y ajusta las rutas en App.tsx para reflejar el nuevo puerto del backend. Se realizan cambios en error.txt para mejorar la claridad de los mensajes de inicio de sesión.
+🌐 Testing: http://localhost:8000/
+   Status: 200
+   Content-Type: application/json
+   Response: {'message': 'Clinic Admin Backend API', 'version': '1.0.0', 'docs': '/docs', 'redoc': '/redoc', 'health': '/health'}
 
-8 files changed, 30 insertions(+), 2102 deletions(-)
+🌐 Testing: http://localhost:8000/health
+   Status: 200
+   Content-Type: application/json
+   Response: {'status': 'healthy', 'service': 'clinic-admin-backend', 'version': '1.0.0', 'database': 'connected'}
 
-b40351f
+🌐 Testing: http://localhost:8000/admin
+   Status: 404
+   Error Response: {"detail":"Not Found"}
 
-Ciro Ciro,  2 hours ago (August 16, 2025 at 2:22 AM)
+🌐 Testing: http://localhost:8000/admin/
+   Status: 404
+   Error Response: {"detail":"Not Found"}
 
-Actualiza las rutas de la API de planes de suscripción en varios componentes del frontend para eliminar el prefijo 'admin'. Esto incluye cambios en ClinicEditor, Dashboard y SubscriptionPlanManager, asegurando que todas las solicitudes se dirijan a '/api/subscription-plans/'.
+🌐 Testing: http://localhost:8000/api/info
+   Status: 200
+   Content-Type: application/json
+   Response: {'name': 'Clinic Admin Backend', 'version': '1.0.0', 'database': 'clinica-dashboard', 'endpoints': {'auth': '/api/auth', 'clinics': '/api/clinics', 'patients': '/api/patients', 'professionals': '/api/professionals', 'admin': '/api/admin'}, 'frontend': None}
 
-4 files changed, 63 insertions(+), 91 deletions(-)
-
-4efe1e0
-Open on GitHub
+==================================================
+📋 INSTRUCTIONS:
+1. If connection failed: run 'python main.py' first
+2. If /admin returns 404: check static file mounting
+3. If /admin returns JSON error: SPA routing issue
+4. Expected: /admin should return HTML with title 'salud-inteligente-dashboard'
+(clinica) PS D:\dashboard-clinica\clinic-admin-backend> 

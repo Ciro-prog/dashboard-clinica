@@ -1,0 +1,129 @@
+# ===========================================
+# Dockerfile Multi-Stage para Backend Unificado
+# Frontend React + Backend FastAPI en un contenedor
+# ===========================================
+
+# ============================================
+# STAGE 1: Build React Frontend
+# ============================================
+FROM node:18-alpine AS frontend-builder
+
+WORKDIR /frontend
+
+# Copy package files
+COPY frontend-admin/package*.json ./
+RUN npm ci --only=production
+
+# Copy source code and config files
+COPY frontend-admin/src ./src/
+COPY frontend-admin/public ./public/
+COPY frontend-admin/index.html ./
+COPY frontend-admin/vite.config.ts ./
+COPY frontend-admin/tailwind.config.ts ./
+COPY frontend-admin/tsconfig.json ./
+COPY frontend-admin/postcss.config.js ./
+
+# Build for production
+ENV NODE_ENV=production
+RUN npm run build
+
+# ============================================
+# STAGE 2: Python Backend + Static Frontend
+# ============================================
+FROM python:3.11-slim AS backend-unified
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user for security
+RUN useradd --create-home --shell /bin/bash app
+
+# Set working directory
+WORKDIR /app
+
+# Copy Python requirements first for Docker layer caching
+COPY requirements.txt ./
+COPY requirements-minimal.txt ./
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy backend source code
+COPY . .
+
+# Copy built frontend from stage 1
+COPY --from=frontend-builder /frontend/dist ./static/admin/
+
+# Create necessary directories
+RUN mkdir -p /app/uploads /app/logs /app/static && \
+    chown -R app:app /app
+
+# Switch to non-root user
+USER app
+
+# Environment variables
+ENV PYTHONPATH=/app
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Production environment defaults
+ENV MONGODB_URL=mongodb://host.docker.internal:60516/clinic_dashboard
+ENV ADMIN_SECRET_KEY=clinic-admin-super-secret-key-2024
+ENV API_SECRET_KEY=clinic-api-secret-key-2024
+ENV ADMIN_SESSION_DURATION=24
+ENV CORS_ORIGINS=["*"]
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Create initialization script
+COPY --chmod=755 <<EOF /app/start-unified.sh
+#!/bin/bash
+set -e
+
+echo "🚀 Starting Clinic Admin Backend (UNIFIED)"
+echo "📊 MongoDB URL: \$MONGODB_URL"
+echo "🎨 Frontend: Serving from /static/admin/"
+
+# Verify MongoDB connection
+echo "🔍 Checking MongoDB connection..."
+python -c "
+import asyncio
+from app.core.database import connect_to_mongo
+try:
+    asyncio.run(connect_to_mongo())
+    print('✅ MongoDB connection successful')
+except Exception as e:
+    print(f'❌ MongoDB connection failed: {e}')
+    exit(1)
+"
+
+# Initialize test data if requested
+if [ "\$INIT_TEST_DATA" = "true" ]; then
+    echo "📝 Initializing test data..."
+    python init_db.py || echo "⚠️ Init data script failed (may be normal)"
+fi
+
+# Verify frontend build exists
+if [ -d "/app/static/admin" ] && [ "$(ls -A /app/static/admin)" ]; then
+    echo "✅ Frontend build found in /static/admin/"
+else
+    echo "⚠️ Frontend build not found. Run 'npm run build' in frontend-admin/"
+fi
+
+# Start FastAPI server
+echo "🎯 Starting FastAPI server on port 8000..."
+uvicorn main:app --host 0.0.0.0 --port 8000 --log-level info
+EOF
+
+# Start command
+CMD ["/app/start-unified.sh"]

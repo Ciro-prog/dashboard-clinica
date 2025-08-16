@@ -1,0 +1,17 @@
+{
+  "name": "clinic-admin-backend-unified",
+  "version": "2.0.0",
+  "description": "Backend unificado con frontend completo integrado",
+  "type": "module",
+  "scripts": {
+    "dev": "echo '❌ Use: python main.py para backend unificado' && echo '⚡ Para desarrollo: cd scripts && ./dev-start.sh'",
+    "start": "python main.py",
+    "build": "cd frontend-admin && npm run build && cp -r dist/* ../static/admin/",
+    "deploy": "cd scripts && ./prod-deploy.sh",
+    "dev-start": "cd scripts && ./dev-start.sh",
+    "dev-stop": "cd scripts && ./dev-stop.sh"
+  },
+  "keywords": ["fastapi", "react", "admin", "clinic", "unified"],
+  "author": "ClinicaAdmin",
+  "license": "MIT"
+}

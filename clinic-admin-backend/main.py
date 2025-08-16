@@ -17,6 +17,18 @@ async def lifespan(app: FastAPI):
     print("Starting Clinic Admin Backend...")
     await connect_to_mongo()
     print("SUCCESS: Application started successfully")
+    
+    # Admin frontend setup
+    admin_static_dir = "static/admin"
+    admin_index = os.path.join(admin_static_dir, "index.html")
+    print(f"Admin static dir exists: {os.path.exists(admin_static_dir)}")
+    print(f"Admin index exists: {os.path.exists(admin_index)}")
+    
+    # Check if running in admin-only mode
+    admin_only = os.getenv('ADMIN_ONLY', 'false').lower() == 'true'
+    if admin_only:
+        print("Running in ADMIN-ONLY mode")
+    
     yield
     # Shutdown
     print("Shutting down Clinic Admin Backend...")
@@ -110,24 +122,75 @@ if not os.path.exists(uploads_dir):
 # Mount static files for uploads
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
-# Mount frontend static files if they exist
-frontend_dist = "frontend/dist"
-if os.path.exists(frontend_dist):
-    app.mount("/admin", StaticFiles(directory=frontend_dist, html=True), name="admin")
-    print(f"Mounted frontend at /admin from {frontend_dist}")
-else:
-    print(f"Warning: Frontend dist directory not found at {frontend_dist}")
+# ===========================================
+# UNIFIED FRONTEND SERVING CONFIGURATION
+# ===========================================
 
-# Specific endpoint to serve admin app
-@app.get("/admin/")
-async def serve_admin():
-    """Serve the admin frontend application"""
-    from fastapi.responses import FileResponse
-    frontend_index = "frontend/dist/index.html"
-    if os.path.exists(frontend_index):
-        return FileResponse(frontend_index)
-    else:
-        raise HTTPException(status_code=404, detail="Admin frontend not built. Run 'npm run build' in frontend directory.")
+# Mount unified admin frontend static files
+admin_static_dir = "static/admin"
+legacy_frontend_dist = "frontend/dist"  # Legacy path for backward compatibility
+
+# Check for unified admin frontend (production)
+if os.path.exists(admin_static_dir):
+    print(f"Found UNIFIED frontend at {admin_static_dir}")
+    
+    # Mount static files for assets (CSS, JS, etc.)
+    app.mount("/admin/assets", StaticFiles(directory=f"{admin_static_dir}/assets"), name="admin-assets")
+    print(f"Mounted admin assets at /admin/assets")
+    
+    # Serve admin app at root of /admin  
+    @app.get("/admin")
+    async def serve_unified_admin_root():
+        """Serve the unified admin frontend application (without trailing slash)"""
+        admin_index = os.path.join(admin_static_dir, "index.html")
+        if os.path.exists(admin_index):
+            return FileResponse(admin_index)
+        else:
+            raise HTTPException(status_code=404, detail="Unified admin frontend not built")
+    
+    @app.get("/admin/")
+    async def serve_unified_admin():
+        """Serve the unified admin frontend application (with trailing slash)"""
+        admin_index = os.path.join(admin_static_dir, "index.html")
+        if os.path.exists(admin_index):
+            return FileResponse(admin_index)
+        else:
+            raise HTTPException(status_code=404, detail="Unified admin frontend not built")
+    
+    # Catch-all route for React Router (SPA routing) - must be last
+    @app.get("/admin/{path:path}")
+    async def serve_unified_admin_spa(path: str):
+        """Handle React Router SPA routing for admin frontend"""
+        # Serve static files if they exist
+        static_file_path = os.path.join(admin_static_dir, path)
+        if os.path.isfile(static_file_path):
+            return FileResponse(static_file_path)
+        
+        # For all non-asset routes, serve index.html (SPA routing)
+        admin_index = os.path.join(admin_static_dir, "index.html")
+        if os.path.exists(admin_index):
+            return FileResponse(admin_index)
+        else:
+            raise HTTPException(status_code=404, detail="Unified admin frontend not found")
+
+# Fallback to legacy frontend (development)
+elif os.path.exists(legacy_frontend_dist):
+    app.mount("/admin", StaticFiles(directory=legacy_frontend_dist, html=True), name="legacy-admin")
+    print(f"⚠️ Using LEGACY frontend at /admin from {legacy_frontend_dist}")
+    
+    @app.get("/admin/")
+    async def serve_legacy_admin():
+        """Serve the legacy admin frontend application"""
+        legacy_index = os.path.join(legacy_frontend_dist, "index.html")
+        if os.path.exists(legacy_index):
+            return FileResponse(legacy_index)
+        else:
+            raise HTTPException(status_code=404, detail="Legacy admin frontend not built. Run 'npm run build' in frontend directory.")
+
+else:
+    print(f"WARNING: No admin frontend found!")
+    print(f"   Expected: {admin_static_dir} (unified) or {legacy_frontend_dist} (legacy)")
+    print(f"   Run build process to create frontend files.")
 
 # Include routers
 app.include_router(auth.router, prefix="/api")
@@ -137,6 +200,17 @@ app.include_router(professionals.router, prefix="/api")
 app.include_router(admin_dashboard.router, prefix="/api")
 app.include_router(subscription_plans.router, prefix="/api")
 app.include_router(documents.router, prefix="/api")
+
+# Root redirect for admin-only mode
+@app.get("/", tags=["admin"])
+async def root_redirect():
+    """Redirect root to admin in admin-only mode"""
+    admin_only = os.getenv('ADMIN_ONLY', 'false').lower() == 'true'
+    if admin_only:
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url="/admin", status_code=302)
+    else:
+        return {"message": "Clinic Admin Backend", "admin_url": "/admin", "docs": "/docs"}
 
 # Health check endpoint
 @app.get("/health", tags=["health"])
@@ -530,17 +604,7 @@ async def temp_admin_clinics():
     except Exception as e:
         return {"error": str(e)}
 
-# Root endpoint
-@app.get("/")
-async def root():
-    """Root endpoint with API information"""
-    return {
-        "message": "Clinic Admin Backend API",
-        "version": "1.0.0",
-        "docs": "/docs",
-        "redoc": "/redoc",
-        "health": "/health"
-    }
+# Legacy root endpoint removed - using admin redirect above
 
 # API Info endpoint
 @app.get("/api/info")

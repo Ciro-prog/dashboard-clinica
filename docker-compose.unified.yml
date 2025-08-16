@@ -1,0 +1,141 @@
+# ===========================================
+# Docker Compose - Clinic Dashboard Unified
+# Dual-Mode: Development vs Production
+# ===========================================
+
+services:
+  # ===========================================
+  # DESARROLLO: Frontend separado con hot-reload
+  # ===========================================
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: clinic-frontend-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:60519
+      - VITE_ADMIN_API_URL=http://localhost:60519/api
+    volumes:
+      # Hot reload - monta código fuente
+      - ./src:/app/src:ro
+      - ./public:/app/public:ro
+      - /app/node_modules  # Evita conflictos con node_modules local
+    networks:
+      - clinic-network
+    restart: unless-stopped
+    depends_on:
+      - backend-api
+    profiles:
+      - development
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "service.name=frontend-dev"
+      - "service.mode=development"
+
+  # ===========================================
+  # BACKEND API: Común para ambos modos
+  # ===========================================
+  backend-api:
+    build:
+      context: ./clinic-admin-backend
+      dockerfile: Dockerfile
+    container_name: clinic-backend-api
+    ports:
+      - "60519:8000"
+    environment:
+      - PYTHONPATH=/app
+      - MONGODB_URL=mongodb://admin:PampaServers2025@mongodb:27017/clinica-dashboard?authSource=admin
+      - ADMIN_SECRET_KEY=${ADMIN_SECRET_KEY:-clinic-admin-super-secret-key-2024}
+      - API_SECRET_KEY=${API_SECRET_KEY:-clinic-api-secret-key-2024}
+      - ADMIN_SESSION_DURATION=${ADMIN_SESSION_DURATION:-24}
+      - CORS_ORIGINS=["http://localhost:3000","http://localhost:60519","http://host.docker.internal:3000","http://host.docker.internal:60519"]
+      - INIT_TEST_DATA=${INIT_TEST_DATA:-false}
+    networks:
+      - clinic-network
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    profiles:
+      - development
+      - production
+    volumes:
+      - backend-uploads:/app/uploads
+      - backend-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "service.name=backend-api"
+      - "service.mode=common"
+
+  # ===========================================
+  # PRODUCCIÓN: Backend unificado con frontend
+  # ===========================================
+  backend-unified:
+    build:
+      context: ./clinic-admin-backend
+      dockerfile: Dockerfile.unified
+    container_name: clinic-backend-unified
+    ports:
+      - "60519:8000"
+    environment:
+      - PYTHONPATH=/app
+      - MONGODB_URL=mongodb://admin:PampaServers2025@mongodb:27017/clinica-dashboard?authSource=admin
+      - ADMIN_SECRET_KEY=${ADMIN_SECRET_KEY:-clinic-admin-super-secret-key-2024}
+      - API_SECRET_KEY=${API_SECRET_KEY:-clinic-api-secret-key-2024}
+      - ADMIN_SESSION_DURATION=${ADMIN_SESSION_DURATION:-24}
+      - CORS_ORIGINS=["*"]
+      - INIT_TEST_DATA=${INIT_TEST_DATA:-false}
+    networks:
+      - clinic-network
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    profiles:
+      - production
+    volumes:
+      - backend-uploads:/app/uploads
+      - backend-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "service.name=backend-unified"
+      - "service.mode=production"
+      - "frontend.included=true"
+
+networks:
+  clinic-network:
+    driver: bridge
+    name: clinic-network
+
+volumes:
+  backend-uploads:
+    name: clinic-backend-uploads
+  backend-logs:
+    name: clinic-backend-logs
+
+# ===========================================
+# CONFIGURACIÓN DE PERFILES
+# ===========================================
+# Desarrollo: docker-compose -f docker-compose.unified.yml --profile development up
+# Producción:  docker-compose -f docker-compose.unified.yml --profile production up
+
+# ===========================================
+# VARIABLES DE ENTORNO COMUNES
+# ===========================================
+x-common-variables: &common-variables
+  TZ: America/Bogota
+  LANG: es_CO.UTF-8
+  LOG_LEVEL: info
