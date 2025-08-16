@@ -40,7 +40,7 @@ const Dashboard = () => {
     try {
       // First try the admin endpoint (with auth)
       const token = localStorage.getItem('admin_token');
-      let response = await fetch('/api/admin/subscription-plans/', {
+      let response = await fetch('/api/subscription-plans/', {
         headers: token ? {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

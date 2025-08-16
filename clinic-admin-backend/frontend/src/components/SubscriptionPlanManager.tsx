@@ -94,7 +94,7 @@ const SubscriptionPlanManager: React.FC<SubscriptionPlanManagerProps> = ({ onBac
   const loadPlans = async () => {
     try {
       const token = localStorage.getItem('admin_token');
-      const response = await fetch('/api/admin/subscription-plans/', {
+      const response = await fetch('/api/subscription-plans/', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -145,7 +145,7 @@ const SubscriptionPlanManager: React.FC<SubscriptionPlanManagerProps> = ({ onBac
 
     try {
       const token = localStorage.getItem('admin_token');
-      const response = await fetch('/api/admin/subscription-plans/', {
+      const response = await fetch('/api/subscription-plans/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -174,7 +174,7 @@ const SubscriptionPlanManager: React.FC<SubscriptionPlanManagerProps> = ({ onBac
     setIsSaving(true);
     try {
       const token = localStorage.getItem('admin_token');
-      const response = await fetch(`/api/admin/subscription-plans/${planId}`, {
+      const response = await fetch(`/api/subscription-plans/${planId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -201,7 +201,7 @@ const SubscriptionPlanManager: React.FC<SubscriptionPlanManagerProps> = ({ onBac
   const handleTogglePlanStatus = async (planId: string) => {
     try {
       const token = localStorage.getItem('admin_token');
-      const response = await fetch(`/api/admin/subscription-plans/${planId}/toggle-status`, {
+      const response = await fetch(`/api/subscription-plans/${planId}/toggle-status`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -228,7 +228,7 @@ const SubscriptionPlanManager: React.FC<SubscriptionPlanManagerProps> = ({ onBac
 
     try {
       const token = localStorage.getItem('admin_token');
-      const response = await fetch(`/api/admin/subscription-plans/${sourcePlanId}/duplicate?new_plan_id=${newPlanId}&new_name=${encodeURIComponent(newName)}`, {
+      const response = await fetch(`/api/subscription-plans/${sourcePlanId}/duplicate?new_plan_id=${newPlanId}&new_name=${encodeURIComponent(newName)}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -254,7 +254,7 @@ const SubscriptionPlanManager: React.FC<SubscriptionPlanManagerProps> = ({ onBac
 
     try {
       const token = localStorage.getItem('admin_token');
-      const response = await fetch(`/api/admin/subscription-plans/${planId}`, {
+      const response = await fetch(`/api/subscription-plans/${planId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

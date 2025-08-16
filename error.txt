@@ -1,84 +1,56 @@
-cirolinux@cirolinux:/opt/dashboard-clinica/clinic-admin-backend/frontend$ echo "🔍 DIAGNÓSTICO COMPLETO MONGODB Y USUARIO ADMIN" && echo "1. Verificando conexión a MongoDB:" && docker exec mongodb mongosh -u admin -p PampaServers2025 --authenticationDatabase admin --eval "db.runCommand({ping: 1})" && echo -e "\n2. Verificando base de datos clinica-dashboard:" && docker exec mongodb mongosh -u admin -p PampaServers2025 --authenticationDatabase admin --eval "use clinica-dashboard; print('Base de datos:', db.getName()); print('Colecciones:', db.getCollectionNames()); print('Documentos en admins:', db.admins.countDocuments({}));" && echo -e "\n3. Intentando crear usuario admin:" && docker exec mongodb mongosh -u admin -p PampaServers2025 --authenticationDatabase admin --eval "use clinica-dashboard; try { const result = db.admins.insertOne({username: 'admin', password_hash: '\$2b\$12\$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', email: 'admin@clinic.com', role: 'super_admin', is_active: true, created_at: new Date(), permissions: ['all'], full_name: 'Administrador Principal'}); print('✅ Usuario creado con ID:', result.insertedId); } catch (error) { print('❌ Error creando usuario:', error.message); }" && echo -e "\n4. Verificando usuario creado:" && docker exec mongodb mongosh -u admin -p PampaServers2025 --authenticationDatabase admin --eval "use clinica-dashboard; const admin = db.admins.findOne({username: 'admin'}); if (admin) { print('✅ Usuario admin encontrado:'); print('  Username:', admin.username); print('  Email:', admin.email); print('  Role:', admin.role); print('  Active:', admin.is_active); } else { print('❌ Usuario admin NO encontrado'); }" && echo -e "\n5. Probando login después de crear usuario:" && curl -X POST http://localhost:60519/api/auth/login -H "Content-Type: application/json" -d '{"username":"admin","password":"admin123","user_type":"admin"}' 2>/dev/null | head -3
-🔍 DIAGNÓSTICO COMPLETO MONGODB Y USUARIO ADMIN
-1. Verificando conexión a MongoDB:
-{ ok: 1 }
-
-2. Verificando base de datos clinica-dashboard:
-switched to db clinica-dashboard;
-
-3. Intentando crear usuario admin:
-switched to db clinica-dashboard;
-
-4. Verificando usuario creado:
-switched to db clinica-dashboard;
-
-5. Probando login después de crear usuario:
-{"detail":"Incorrect username or password"}cirolinux@cirolinux:/opt/dashboard-clinica/clinic-admin-backend/frontend$ ^C
-cirolinux@cirolinux:/opt/dashboard-clinica/clinic-admin-backend/frontend$ echo "🔐 Creando usuario admin (método simplificado)..." && echo "1. Estado actual de admins:" && docker exec mongodb mongosh -u admin -p PampaServers2025 --authenticationDatabase admin clinica-dashboard --eval "db.admins.countDocuments({})" && echo "2. Creando usuario admin:" && docker exec mongodb mongosh -u admin -p PampaServers2025 --authenticationDatabase admin clinica-dashboard --eval "db.admins.insertOne({username:'admin',password_hash:'\$2b\$12\$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW',email:'admin@clinic.com',role:'super_admin',is_active:true,created_at:new Date(),permissions:['all'],full_name:'Administrador Principal'})" && echo "3. Verificando creación:" && docker exec mongodb mongosh -u admin -p PampaServers2025 --authenticationDatabase admin clinica-dashboard --eval "db.admins.findOne({username:'admin'})" && echo "4. Probando login:" && curl -X POST http://localhost:60519/api/auth/login -H "Content-Type: application/json" -d '{"username":"admin","password":"admin123","user_type":"admin"}' 2>/dev/null
-🔐 Creando usuario admin (método simplificado)...
-1. Estado actual de admins:
-0
-2. Creando usuario admin:
-{
-  acknowledged: true,
-  insertedId: ObjectId('689fbac2b58669efd869e328')
-}
-3. Verificando creación:
-{
-  _id: ObjectId('689fbac2b58669efd869e328'),
-  username: 'admin',
-  password_hash: '$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW',
-  email: 'admin@clinic.com',
-  role: 'super_admin',
-  is_active: true,
-  created_at: ISODate('2025-08-15T22:54:58.275Z'),
-  permissions: [ 'all' ],
-  full_name: 'Administrador Principal'
-}
-4. Probando login:
-{"detail":"Incorrect username or password"}cirolinux@cirolinux:/opt/dashboard-clinica/clinic-admin-backend/frontend$ ^C
-cirolinux@cirolinux:/opt/dashboard-clinica/clinic-admin-backend/frontend$ ^C
-cirolinux@cirolinux:/opt/dashboard-clinica/clinic-admin-backend/frontend$ ^C
-cirolinux@cirolinux:/opt/dashboard-clinica/clinic-admin-backend/frontend$ echo "🔐 Corrigiendo hash de password para admin..." && echo "1. Generando hash correcto:" && NEW_HASH=$(docker exec clinic-backend-api python3 -c "from app.auth.security import get_password_hash; print(get_password_hash('admin123'))") && echo "Nuevo hash: $NEW_HASH" && echo "2. Actualizando usuario en MongoDB:" && docker exec mongodb mongosh -u admin -p PampaServers2025 --authenticationDatabase admin clinica-dashboard --eval "db.admins.updateOne({username: 'admin'}, {\$set: {password_hash: '$NEW_HASH'}})" && echo "3. Verificando usuario actualizado:" && docker exec mongodb mongosh -u admin -p PampaServers2025 --authenticationDatabase admin clinica-dashboard --eval "const admin = db.admins.findOne({username: 'admin'}); print('Password hash actualizado:', admin.password_hash.substring(0, 20) + '...');" && echo "4. Probando login con hash correcto:" && curl -X POST http://localhost:60519/api/auth/login -H "Content-Type: application/json" -d '{"username":"admin","password":"admin123","user_type":"admin"}' 2>/dev/null | head -3
-🔐 Corrigiendo hash de password para admin...
-1. Generando hash correcto:
-(trapped) error reading bcrypt version
-Traceback (most recent call last):
-  File "/usr/local/lib/python3.11/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
-    version = _bcrypt.__about__.__version__
-              ^^^^^^^^^^^^^^^^^
-AttributeError: module 'bcrypt' has no attribute '__about__'
-Nuevo hash: $2b$12$wm0xfpjDg6nABAAK7RlwQOYS3q6GW7DYF0cwpBB0nbot9UMkGYqmK
-2. Actualizando usuario en MongoDB:
-{
-  acknowledged: true,
-  insertedId: null,
-  matchedCount: 1,
-  modifiedCount: 1,
-  upsertedCount: 0
-}
-3. Verificando usuario actualizado:
-Password hash actualizado: $2b$12$wm0xfpjDg6nAB...
-4. Probando login con hash correcto:
-{"access_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImVtYWlsIjoiYWRtaW5AY2xpbmljLmNvbSIsInJvbGUiOiJzdXBlcl9hZG1pbiIsInR5cGUiOiJhZG1pbiIsImV4cCI6MTc1NTMwMDk5NX0.OFdUDhhOyBLqoJz6bzL65kBO-JAiIdirqokGgk7Io20","token_type":"bearer","user_type":"admin","user_data":{"id":"689fbac2b58669efd869e328","username":"admin","email":"admin@clinic.com","role":"super_admin"}}cirolinux@cirolinux:/opt/dashboard-clinica/clinic-admin-backend/frontend$
-LoginForm.tsx:27 🔐 Iniciando login de administrador: admin
-LoginForm.tsx:69 ❌ Error en login de admin: SyntaxError: Failed to execute 'json' on 'Response': Unexpected end of JSON input
-    at handleSubmit (LoginForm.tsx:43:35)
+✅ Admin login exitoso: admin
+Dashboard.tsx:186 🏥 Loaded clinics data: []
+Dashboard.tsx:234 ✅ Successfully loaded 0 clinics
+Dashboard.tsx:186 🏥 Loaded clinics data: []
+Dashboard.tsx:234 ✅ Successfully loaded 0 clinics
+Dashboard.tsx:156 Error loading subscription plans: TypeError: Failed to fetch
+    at loadSubscriptionPlans (Dashboard.tsx:43:28)
+    at Dashboard.tsx:23:5
+    at commitHookEffectListMount (chunk-WALXKXZM.js?v=2a7c13c0:16936:34)
+    at commitPassiveMountOnFiber (chunk-WALXKXZM.js?v=2a7c13c0:18184:19)
+    at commitPassiveMountEffects_complete (chunk-WALXKXZM.js?v=2a7c13c0:18157:17)
+    at commitPassiveMountEffects_begin (chunk-WALXKXZM.js?v=2a7c13c0:18147:15)
+    at commitPassiveMountEffects (chunk-WALXKXZM.js?v=2a7c13c0:18137:11)
+    at flushPassiveEffectsImpl (chunk-WALXKXZM.js?v=2a7c13c0:19518:11)
+    at flushPassiveEffects (chunk-WALXKXZM.js?v=2a7c13c0:19475:22)
+    at chunk-WALXKXZM.js?v=2a7c13c0:19356:17
 overrideMethod @ hook.js:608
-handleSubmit @ LoginForm.tsx:69
-await in handleSubmit
-callCallback2 @ chunk-WALXKXZM.js?v=83b5e5c2:3674
-invokeGuardedCallbackDev @ chunk-WALXKXZM.js?v=83b5e5c2:3699
-invokeGuardedCallback @ chunk-WALXKXZM.js?v=83b5e5c2:3733
-invokeGuardedCallbackAndCatchFirstError @ chunk-WALXKXZM.js?v=83b5e5c2:3736
-executeDispatch @ chunk-WALXKXZM.js?v=83b5e5c2:7016
-processDispatchQueueItemsInOrder @ chunk-WALXKXZM.js?v=83b5e5c2:7036
-processDispatchQueue @ chunk-WALXKXZM.js?v=83b5e5c2:7045
-dispatchEventsForPlugins @ chunk-WALXKXZM.js?v=83b5e5c2:7053
-(anonymous) @ chunk-WALXKXZM.js?v=83b5e5c2:7177
-batchedUpdates$1 @ chunk-WALXKXZM.js?v=83b5e5c2:18941
-batchedUpdates @ chunk-WALXKXZM.js?v=83b5e5c2:3579
-dispatchEventForPluginEventSystem @ chunk-WALXKXZM.js?v=83b5e5c2:7176
-dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WALXKXZM.js?v=83b5e5c2:5478
-dispatchEvent @ chunk-WALXKXZM.js?v=83b5e5c2:5472
-dispatchDiscreteEvent @ chunk-WALXKXZM.js?v=83b5e5c2:5449Understand this error
+loadSubscriptionPlans @ Dashboard.tsx:156
+await in loadSubscriptionPlans
+(anonymous) @ Dashboard.tsx:23
+commitHookEffectListMount @ chunk-WALXKXZM.js?v=2a7c13c0:16936
+commitPassiveMountOnFiber @ chunk-WALXKXZM.js?v=2a7c13c0:18184
+commitPassiveMountEffects_complete @ chunk-WALXKXZM.js?v=2a7c13c0:18157
+commitPassiveMountEffects_begin @ chunk-WALXKXZM.js?v=2a7c13c0:18147
+commitPassiveMountEffects @ chunk-WALXKXZM.js?v=2a7c13c0:18137
+flushPassiveEffectsImpl @ chunk-WALXKXZM.js?v=2a7c13c0:19518
+flushPassiveEffects @ chunk-WALXKXZM.js?v=2a7c13c0:19475
+(anonymous) @ chunk-WALXKXZM.js?v=2a7c13c0:19356
+workLoop @ chunk-WALXKXZM.js?v=2a7c13c0:197
+flushWork @ chunk-WALXKXZM.js?v=2a7c13c0:176
+performWorkUntilDeadline @ chunk-WALXKXZM.js?v=2a7c13c0:384Understand this error
+Dashboard.tsx:156 Error loading subscription plans: TypeError: Failed to fetch
+    at loadSubscriptionPlans (Dashboard.tsx:43:28)
+    at Dashboard.tsx:23:5
+    at commitHookEffectListMount (chunk-WALXKXZM.js?v=2a7c13c0:16936:34)
+    at invokePassiveEffectMountInDEV (chunk-WALXKXZM.js?v=2a7c13c0:18352:19)
+    at invokeEffectsInDev (chunk-WALXKXZM.js?v=2a7c13c0:19729:19)
+    at commitDoubleInvokeEffectsInDEV (chunk-WALXKXZM.js?v=2a7c13c0:19714:15)
+    at flushPassiveEffectsImpl (chunk-WALXKXZM.js?v=2a7c13c0:19531:13)
+    at flushPassiveEffects (chunk-WALXKXZM.js?v=2a7c13c0:19475:22)
+    at chunk-WALXKXZM.js?v=2a7c13c0:19356:17
+    at workLoop (chunk-WALXKXZM.js?v=2a7c13c0:197:42)
+overrideMethod @ hook.js:608
+loadSubscriptionPlans @ Dashboard.tsx:156
+await in loadSubscriptionPlans
+(anonymous) @ Dashboard.tsx:23
+commitHookEffectListMount @ chunk-WALXKXZM.js?v=2a7c13c0:16936
+invokePassiveEffectMountInDEV @ chunk-WALXKXZM.js?v=2a7c13c0:18352
+invokeEffectsInDev @ chunk-WALXKXZM.js?v=2a7c13c0:19729
+commitDoubleInvokeEffectsInDEV @ chunk-WALXKXZM.js?v=2a7c13c0:19714
+flushPassiveEffectsImpl @ chunk-WALXKXZM.js?v=2a7c13c0:19531
+flushPassiveEffects @ chunk-WALXKXZM.js?v=2a7c13c0:19475
+(anonymous) @ chunk-WALXKXZM.js?v=2a7c13c0:19356
+workLoop @ chunk-WALXKXZM.js?v=2a7c13c0:197
+flushWork @ chunk-WALXKXZM.js?v=2a7c13c0:176
+performWorkUntilDeadline @ chunk-WALXKXZM.js?v=2a7c13c0:384Understand this error

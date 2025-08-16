@@ -67,7 +67,7 @@ const ClinicEditor = ({ clinicId, onBack }: ClinicEditorProps) => {
 
   const loadSubscriptionPlans = async () => {
     try {
-      const response = await fetch('/api/admin/subscription-plans');
+      const response = await fetch('/api/subscription-plans/');
       if (response.ok) {
         const data = await response.json();
         setPlans(data);
