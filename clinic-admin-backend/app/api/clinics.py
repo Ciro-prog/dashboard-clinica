@@ -205,7 +205,7 @@ async def create_clinic(clinic: ClinicCreate, current_admin: AdminInDB = Depends
         clinic_data["whatsapp_session_name"] = clinic.suscriber or clinic_data["clinic_id"]
     
     result = await clinics_collection.insert_one(clinic_data)
-    clinic_data["_id"] = result.inserted_id
+    clinic_data["_id"] = str(result.inserted_id)  # Convert ObjectId to string
     
     clinic_db = ClinicInDB.from_mongo(clinic_data)
     return ClinicResponse(**clinic_db.model_dump())

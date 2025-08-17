@@ -151,7 +151,7 @@ async def create_patient(patient: PatientCreate, current_admin: AdminInDB = Depe
     # last_visit should be None until patient has an actual visit
     
     result = await patients_collection.insert_one(patient_data)
-    patient_data["_id"] = result.inserted_id
+    patient_data["_id"] = str(result.inserted_id)  # Convert ObjectId to string
     
     patient_db = PatientInDB.from_mongo(patient_data)
     return PatientResponse(**patient_db.model_dump())

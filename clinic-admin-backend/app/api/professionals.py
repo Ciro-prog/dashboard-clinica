@@ -168,7 +168,7 @@ async def create_professional(professional: ProfessionalCreate, current_admin: A
     professional_data["updated_at"] = datetime.utcnow()
     
     result = await professionals_collection.insert_one(professional_data)
-    professional_data["_id"] = result.inserted_id
+    professional_data["_id"] = str(result.inserted_id)  # Convert ObjectId to string
     
     professional_db = ProfessionalInDB.from_mongo(professional_data)
     return ProfessionalResponse(**professional_db.model_dump())

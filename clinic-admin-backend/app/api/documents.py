@@ -98,7 +98,7 @@ async def upload_document(
         }
         
         result = await documents_collection.insert_one(document_data)
-        document_data["_id"] = result.inserted_id
+        document_data["_id"] = str(result.inserted_id)  # Convert ObjectId to string
         
         document_db = DocumentInDB.from_mongo(document_data)
         return DocumentResponse(**document_db.model_dump())

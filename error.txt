@@ -1,78 +1,19 @@
-🧪 Post-deployment verification:
-Container status:
-NAMES                    STATUS                    PORTS
-clinic-admin-system      Up 30 seconds (healthy)   0.0.0.0:60519->8000/tcp, [::]:60519->8000/tcp
-clinic-frontend-client   Up 18 hours (healthy)     0.0.0.0:60521->80/tcp, [::]:60521->80/tcp
-cms-clinica              Up 3 days                 0.0.0.0:60520->1337/tcp, [::]:60520->1337/tcp
-
-Health checks:
-✅ Admin System: Healthy
-Response: {"status":"healthy","service":"clinic-admin-backend","version":"1.0.0","database":"connected"}
-
-🌐 Service URLs:
-🔧 Admin Dashboard: http://pampaservers.com:60519/admin
-📚 API Documentation: http://pampaservers.com:60519/docs
-⚡ Health Check: http://pampaservers.com:60519/health
-
-✅ Deployment completed!
-Check the URLs above to verify everything is working correctly.
-Press Enter to continue...
-cirolinux@cirolinux:/opt/dashboard-clinica/scripts$ production-monitor.sh
-production-monitor.sh: command not found
-cirolinux@cirolinux:/opt/dashboard-clinica/scripts$ ./production-monitor.sh
--bash: ./production-monitor.sh: Permission denied
-cirolinux@cirolinux:/opt/dashboard-clinica/scripts$ chmod +x ./production-monitor.sh
-cirolinux@cirolinux:/opt/dashboard-clinica/scripts$ ./production-monitor.sh
-
-📊 CLINIC SYSTEM - PRODUCTION MONITORING
-=========================================
-
-🐳 Container Status:
-NAMES                    STATUS                   PORTS                                           SIZE
-clinic-admin-system      Up 2 minutes (healthy)   0.0.0.0:60519->8000/tcp, [::]:60519->8000/tcp   481kB (virtual 958MB)
-clinic-frontend-client   Up 18 hours (healthy)    0.0.0.0:60521->80/tcp, [::]:60521->80/tcp       1.87kB (virtual 53.4MB)
-cms-clinica              Up 3 days                0.0.0.0:60520->1337/tcp, [::]:60520->1337/tcp   1.28kB (virtual 1.66GB)
-
-💾 Resource Usage:
-Memory usage:
-CONTAINER                CPU %     MEM USAGE / LIMIT     MEM %
-clinic-admin-system      0.25%     60.77MiB / 8.727GiB   0.68%
-clinic-frontend-client   0.00%     9.152MiB / 8.727GiB   0.10%
-cms-clinica              0.02%     71.34MiB / 8.727GiB   0.80%
-
-🌐 Service Health Checks:
-Admin System (60519): ✅ Healthy
-  Response: {"status":"healthy","service":"clinic-admin-backend","version":"1.0.0","database":"connected"}
-
-📋 Recent Logs (last 10 lines):
-
-=== ADMIN SYSTEM ===
-INFO:     127.0.0.1:52868 - "GET /health HTTP/1.1" 200 OK
-INFO:     172.23.0.1:43744 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50668 - "GET /health HTTP/1.1" 200 OK
-INFO:     181.209.36.52:56385 - "GET /admin HTTP/1.1" 200 OK
-INFO:     181.209.36.52:56385 - "GET /assets/index-CzOFjnr3.js HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:40792 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59546 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37328 - "GET /health HTTP/1.1" 200 OK
-INFO:     172.23.0.1:58984 - "GET /health HTTP/1.1" 200 OK
-INFO:     172.23.0.1:58986 - "GET /health HTTP/1.1" 200 OK
-
-🔍 Service Connectivity:
-MongoDB (192.168.1.23:60516): ✅ Reachable
-WAHA (pampaservers.com:60513): ⚠️ Check required
-
-📈 System Resources:
-Disk usage:
-  Root: 83% used, 7,9G available
-Memory usage:
-  RAM: 4,1Gi/8,7Gi (50% used)
-Load average:
-   2,04, 1,89, 1,75
-
-🕐 Uptime Information:
-Server uptime: up 4 weeks, 5 days, 1 hour, 11 minutes
-Admin container started: 2025-08-17T18:04:49.086920548Z
-
-✅ Monitoring completed!
-Press Enter to continue...
+✅ Planes cargados: [{…}]0: {plan_id: 'test-plan-9f1283', name: 'Test Plan', description: 'test', price: 100000, currency: 'USD', …}length: 1[[Prototype]]: Array(0)
+index-jzU3UsQ1.js:343 🏥 Creando nueva clínica: {formData: {…}, services: Array(4), schedule: {…}, contactInfo: {…}}contactInfo: address: "Av. Corrientes 355"email: "fedegarcia@clinicademo.com"maps_url: "https://maps.app.goo.gl/McGvbSw44ofr5ScY7"phone: "2604042017"website: "https://sync.pampaservers.com/"whatsapp: "2604042017"[[Prototype]]: ObjectformData: address: "Av. Corrientes 355"cell_phone: "2604042017"clinic_id: "clinica-clinicademov-680841s7b"domain_name: "clinicademovendedore"email: "fedegarcia@clinicademo.com"max_patients: 100max_professionals: 5n8n_folder_name: "Clinica - Demo Vendedores"name_clinic: "Clinica Demo Vendedores"password: "admin123"status_clinic: "active"subscription_expires: ""subscription_plan: "trial"subscription_status: "trial"suscriber: "Dr. Fede Garcia"whatsapp_session_name: "Dr. Fede Garcia"[[Prototype]]: Objectschedule: break_end: "16:00"break_start: "13:00"holiday_dates: []special_hours: {}timezone: "America/Bogota"working_hours: (12) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}][[Prototype]]: Objectservices: Array(4)0: base_price: 50000category: "Medicina General"currency: "COP"description: "Consulta médica general con evaluación completa"duration_minutes: 30is_active: truerequires_appointment: trueservice_id: "srv_general"service_type: "Consulta General"[[Prototype]]: Object1: base_price: 75000category: "Especialidades"currency: "COP"description: "Consulta con especialista médico"duration_minutes: 45is_active: truerequires_appointment: trueservice_id: "srv_specialist"service_type: "Consulta Especializada"[[Prototype]]: Object2: base_price: 150000category: "Cirugía"currency: "COP"description: "Procedimientos quirúrgicos menores ambulatorios"duration_minutes: 60is_active: truerequires_appointment: trueservice_id: "srv_minor_surgery"service_type: "Cirugía Menor"[[Prototype]]: Objectconstructor: ƒ Object()hasOwnProperty: ƒ hasOwnProperty()isPrototypeOf: ƒ isPrototypeOf()propertyIsEnumerable: ƒ propertyIsEnumerable()toLocaleString: ƒ toLocaleString()toString: ƒ toString()valueOf: ƒ valueOf()__defineGetter__: ƒ __defineGetter__()__defineSetter__: ƒ __defineSetter__()__lookupGetter__: ƒ __lookupGetter__()__lookupSetter__: ƒ __lookupSetter__()__proto__: (...)get __proto__: ƒ __proto__()set __proto__: ƒ __proto__()3: base_price: 80000category: "Urgencias"currency: "COP"description: "Atención médica de urgencias"duration_minutes: 45is_active: truerequires_appointment: falseservice_id: "srv_emergency"service_type: "Urgencia"[[Prototype]]: Objectlength: 4[[Prototype]]: Array(0)[[Prototype]]: Object
+index-jzU3UsQ1.js:343 ❌ Error creando clínica: 500 Internal Server Error
+overrideMethod @ hook.js:608
+A @ index-jzU3UsQ1.js:343
+await in A
+p1 @ index-jzU3UsQ1.js:37
+h1 @ index-jzU3UsQ1.js:37
+g1 @ index-jzU3UsQ1.js:37
+Hp @ index-jzU3UsQ1.js:37
+K0 @ index-jzU3UsQ1.js:37
+(anonymous) @ index-jzU3UsQ1.js:37
+vf @ index-jzU3UsQ1.js:40
+g0 @ index-jzU3UsQ1.js:37
+Ac @ index-jzU3UsQ1.js:37
+Wu @ index-jzU3UsQ1.js:37
+M1 @ index-jzU3UsQ1.js:37Understand this error
+index-jzU3UsQ1.js:343 ❌ Error en creación de clínica: Error: Error del servidor: 500
+    at A (index-jzU3UsQ1.js:343:39070)

@@ -285,7 +285,7 @@ async def create_clinic_admin(
     clinic_data["updated_at"] = datetime.utcnow()
     
     result = await clinics_collection.insert_one(clinic_data)
-    clinic_data["_id"] = result.inserted_id
+    clinic_data["_id"] = str(result.inserted_id)  # Convert ObjectId to string
     
     clinic_db = ClinicInDB.from_mongo(clinic_data)
     return ClinicResponse(**clinic_db.model_dump())
@@ -815,7 +815,7 @@ async def create_clinic_professional(
     })
     
     result = await professionals_collection.insert_one(professional_dict)
-    professional_dict["_id"] = result.inserted_id
+    professional_dict["_id"] = str(result.inserted_id)  # Convert ObjectId to string
     
     # Update clinic professional count
     await clinics_collection.update_one(
