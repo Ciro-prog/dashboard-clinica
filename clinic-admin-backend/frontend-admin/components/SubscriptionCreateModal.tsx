@@ -217,7 +217,7 @@ export default function SubscriptionCreateModal({ onSubscriptionCreated }: Subsc
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="price" className="text-slate-200">Precio Mensual (USD) *</Label>
+                <Label htmlFor="price" className="text-slate-200">Precio Mensual (ARS) *</Label>
                 <Input
                   id="price"
                   type="number"
