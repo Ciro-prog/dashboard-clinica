@@ -1,46 +1,47 @@
- ✔ Container clinic-admin-system  Started                                                                                                                                               2.4s
-Esperando que el servicio reinicie...
++] Building 1/1
+ ✔ clinic-admin-backend-admin-system  Built                                                                                                                                             0.0s
+Iniciando contenedor con nueva imagen...
+[+] Running 2/2
+ ✔ Network clinic-admin-backend_admin-network  Created                                                                                                                                  0.3s
+ ✔ Container clinic-admin-system               Started                                                                                                                                  3.0s
+Esperando que el servicio inicie completamente...
 
-🧪 VERIFICACIÓN POST-FIX
-========================
+🧪 VERIFICACIÓN COMPLETA (usando GET requests)
+============================================
 Estado del contenedor:
-NAMES                 STATUS                    PORTS
-clinic-admin-system   Up 15 seconds (healthy)   0.0.0.0:60519->8000/tcp, [::]:60519->8000/tcp
+NAMES                 STATUS                         PORTS
+clinic-admin-system   Restarting (1) 5 seconds ago
 
-Verificando health check:
-{"status":"healthy","service":"clinic-admin-backend","version":"1.0.0","database":"connected"}✅ Backend OK
+=== HEALTH CHECK ===
+❌ Backend Error
 
-Verificando admin frontend:
-❌ Admin frontend error: HTTP/1.1 405 Method Not Allowed
+=== ADMIN FRONTEND (GET request) ===
+❌ Admin frontend error: 000
 
-Verificando assets específicos:
-CSS asset:
-HTTP/1.1 404 Not Found
-JS asset:
-HTTP/1.1 404 Not Found
+=== ASSETS VERIFICATION (GET requests) ===
+Probando CSS asset:
+❌ CSS asset error: 000
+Probando JS asset:
+❌ JS asset error: 000
 
-Últimos logs (verificar montaje):
-Connected to MongoDB: clinica-dashboard
-SUCCESS: Application started successfully
-Admin static dir exists: True
-Admin index exists: True
-Running in ADMIN-ONLY mode
-INFO:     127.0.0.1:50728 - "GET /health HTTP/1.1" 200 OK
-INFO:     172.23.0.1:46148 - "GET /health HTTP/1.1" 200 OK
-INFO:     172.23.0.1:46158 - "HEAD /admin HTTP/1.1" 405 Method Not Allowed
-INFO:     172.23.0.1:46160 - "HEAD /assets/index-BAwUZWBE.css HTTP/1.1" 404 Not Found
-INFO:     172.23.0.1:46174 - "HEAD /assets/index-BoE4VRIg.js HTTP/1.1" 404 Not Found
+=== VERIFICACIÓN DE MOUNTS EN LOGS ===
+Buscando mensajes de mount en logs de inicio:
+No se encontraron mensajes de mount
 
-✅ FIX APLICADO
-===============
+=== LOGS RECIENTES ===
+Últimas 10 líneas:
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/main.py", line 46, in <module>
+    allow_origins=settings.allowed_origins,
+                  ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 991, in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+AttributeError: 'Settings' object has no attribute 'allowed_origins'
 
-🔧 Cambios realizados:
-   1. ✅ Agregado mount adicional: /assets → static/admin/assets
-   2. ✅ Mantenido mount original: /admin/assets → static/admin/assets
-   3. ✅ Contenedor reiniciado con nueva configuración
+❌ Algunos problemas persisten
+Ver logs arriba para diagnóstico adicional
 
-🌐 URLs para probar:
-   🔧 Admin Dashboard: http://localhost:60519/admin
-   📚 API Docs: http://localhost:60519/docs
-   ⚡ Health Check: http://localhost:60519/health
-
+Presiona Enter para continuar...
