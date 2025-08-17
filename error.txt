@@ -1,11 +1,29 @@
+cirolinux@cirolinux:/opt/dashboard-clinica/scripts$ ./production-complete-restart.sh
+
+🔄 CLINIC SYSTEM - PRODUCTION COMPLETE RESTART
+==============================================
+
+⚠️ IMPORTANTE: Este script aplicará TODAS las mejoras de reestructuración
+   - Detendrá servicios obsoletos
+   - Aplicará configuraciones de producción
+   - Conectará a DB externa: 192.168.1.23:60516
+   - Configurará URLs de producción: pampaservers.com
+
+¿Continuar con restart completo? (y/N): y
+
+📊 ESTADO ACTUAL:
+NAMES                    STATUS                          PORTS
+clinic-frontend-client   Restarting (1) 25 seconds ago
+cms-clinica              Up 3 days                       0.0.0.0:60520->1337/tcp, [::]:60520->1337/tcp
+
 🛑 PASO 1: Deteniendo TODOS los servicios clinic
 ================================================
 Deteniendo clinic-frontend-client...
 clinic-frontend-client
 Deteniendo clinic-backend-api...
-clinic-backend-api
+Ya detenido
 Deteniendo clinic-admin-frontend...
-clinic-admin-frontend
+Ya detenido
 Deteniendo clinic-admin-system...
 Ya detenido
 Deteniendo clinic-admin-mongodb...
@@ -14,12 +32,9 @@ Ya detenido
 🧹 PASO 2: Limpiando contenedores detenidos
 ============================================
 Deleted Containers:
-7abe668ef3f2d0b573ab9e6252f753cd5eecd8c3a6291c5449bbf32c598590f4
-5c132b5f04e302c6086f847a3a6599ccdb12c6c4b9868e372bfb7af4802d6a27
-4e29a53787416cb9f03a44061a528272a0eae81d67f1719ca761e5049d80b86d
-c729c1260a284cc357b46323d615f942216b2c43c905da726156056dd98478e8
+f82bcb5a26e30e85c58859ce1aa20c4d86f2a99b9cd2d1604140fba961c7e56d
 
-Total reclaimed space: 5.785MB
+Total reclaimed space: 1.867kB
 
 🔧 PASO 3: Verificando conectividad con DB de producción
 =======================================================
@@ -38,62 +53,52 @@ Creando docker-compose.production.yml...
 
 🚀 PASO 6: Iniciando Admin System con configuración de producción
 ==================================================================
-[+] Building 26.6s (16/23)
+[+] Building 210.1s (25/25) FINISHED
  => [internal] load local bake definitions                                                                                                                                              0.0s
  => => reading from stdin 595B                                                                                                                                                          0.0s
- => [internal] load build definition from Dockerfile.admin                                                                                                                              0.1s
- => => transferring dockerfile: 1.21kB                                                                                                                                                  0.0s
- => [internal] load metadata for docker.io/library/python:3.11-slim                                                                                                                     1.9s
- => [internal] load metadata for docker.io/library/node:18-alpine                                                                                                                       1.8s
+ => [internal] load build definition from Dockerfile.admin                                                                                                                              0.2s
+ => => transferring dockerfile: 1.20kB                                                                                                                                                  0.0s
+ => [internal] load metadata for docker.io/library/node:18-alpine                                                                                                                       1.6s
+ => [internal] load metadata for docker.io/library/python:3.11-slim                                                                                                                     1.6s
  => [auth] library/node:pull token for registry-1.docker.io                                                                                                                             0.0s
  => [auth] library/python:pull token for registry-1.docker.io                                                                                                                           0.0s
- => [internal] load .dockerignore                                                                                                                                                       0.1s
+ => [internal] load .dockerignore                                                                                                                                                       0.2s
  => => transferring context: 1.22kB                                                                                                                                                     0.0s
- => [internal] load build context                                                                                                                                                       0.3s
- => => transferring context: 1.34MB                                                                                                                                                     0.1s
  => CACHED [stage-1 1/9] FROM docker.io/library/python:3.11-slim@sha256:9e885f8239c31f8429448f933638dd13037c9119e2a362aeebdd37ec3bee7c85                                                0.0s
- => CACHED [frontend-builder 1/6] FROM docker.io/library/node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e                                         0.1s
- => CANCELED [stage-1 2/9] RUN apt-get update && apt-get install -y     gcc     curl     && rm -rf /var/lib/apt/lists/*                                                                23.5s
- => [frontend-builder 2/6] WORKDIR /app/frontend-admin                                                                                                                                  1.5s
- => [frontend-builder 3/6] COPY frontend-admin/package*.json ./                                                                                                                         1.0s
- => [frontend-builder 4/6] RUN npm ci --only=production                                                                                                                                15.6s
- => [frontend-builder 5/6] COPY frontend-admin/ ./                                                                                                                                      1.4s
- => ERROR [frontend-builder 6/6] RUN npm run build                                                                                                                                      2.8s
-------
- > [frontend-builder 6/6] RUN npm run build:
-1.872
-1.872 > vite_react_shadcn_ts@0.0.0 build
-1.872 > vite build
-1.872
-1.882 sh: vite: not found
-------
-Dockerfile.admin:11
-
---------------------
-
-   9 |
-
-  10 |     COPY frontend-admin/ ./
-
-  11 | >>> RUN npm run build
-
-  12 |
-
-  13 |     # Python backend with admin frontend
-
---------------------
-
-failed to solve: process "/bin/sh -c npm run build" did not complete successfully: exit code: 127
-
+ => [frontend-builder 1/6] FROM docker.io/library/node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e                                                0.0s
+ => [internal] load build context                                                                                                                                                       0.3s
+ => => transferring context: 10.36kB                                                                                                                                                    0.0s
+ => [stage-1 2/9] RUN apt-get update && apt-get install -y     gcc     curl     && rm -rf /var/lib/apt/lists/*                                                                         76.7s
+ => CACHED [frontend-builder 2/6] WORKDIR /app/frontend-admin                                                                                                                           0.0s
+ => CACHED [frontend-builder 3/6] COPY frontend-admin/package*.json ./                                                                                                                  0.0s
+ => [frontend-builder 4/6] RUN npm install                                                                                                                                             22.8s
+ => [frontend-builder 5/6] COPY frontend-admin/ ./                                                                                                                                      1.8s
+ => [frontend-builder 6/6] RUN npm run build                                                                                                                                           14.2s
+ => [stage-1 3/9] WORKDIR /app                                                                                                                                                          1.0s
+ => [stage-1 4/9] COPY requirements.txt .                                                                                                                                               1.0s
+ => [stage-1 5/9] RUN pip install --no-cache-dir -r requirements.txt                                                                                                                  106.9s
+ => [stage-1 6/9] COPY app/ ./app/                                                                                                                                                      0.9s
+ => [stage-1 7/9] COPY main.py .                                                                                                                                                        0.8s
+ => [stage-1 8/9] COPY --from=frontend-builder /app/frontend-admin/dist ./static/admin                                                                                                  1.3s
+ => [stage-1 9/9] RUN mkdir -p uploads                                                                                                                                                  1.5s
+ => exporting to image                                                                                                                                                                 16.3s
+ => => exporting layers                                                                                                                                                                15.8s
+ => => writing image sha256:dd86642371c3ea9af4c01106e28d44e4f35b5281bb3b6b60a1a4f5524f123057                                                                                            0.1s
+ => => naming to docker.io/library/clinic-admin-backend-admin-system                                                                                                                    0.1s
+ => resolving provenance for metadata file                                                                                                                                              0.0s
+[+] Running 4/4
+ ✔ clinic-admin-backend-admin-system            Built                                                                                                                                   0.0s
+ ✔ Network clinic-admin-backend_admin-network   Created                                                                                                                                 0.4s
+ ✔ Volume "clinic-admin-backend_admin_uploads"  Created                                                                                                                                 0.1s
+ ✔ Container clinic-admin-system                Started                                                                                                                                 3.5s
 
 ⏳ Esperando que el sistema esté listo...
 
 🚀 PASO 7: Iniciando Frontend Client con configuración de producción
 =====================================================================
 Actualizando configuración de frontend client...
-[+] Running 2/2
- ✔ Network dashboard-clinica_clinic-network  Created                                                                                                                                    0.3s
- ✔ Container clinic-frontend-client          Started                                                                                                                                    1.9s
+[+] Running 1/1
+ ✔ Container clinic-frontend-client  Started                                                                                                                                            2.2s
 
 ⏳ Esperando que frontend client esté listo...
 
@@ -102,6 +107,7 @@ Actualizando configuración de frontend client...
 === CONTENEDORES ACTIVOS ===
 NAMES                    STATUS                                  PORTS
 clinic-frontend-client   Restarting (1) Less than a second ago
+clinic-admin-system      Up 2 seconds (health: starting)         0.0.0.0:60519->8000/tcp, [::]:60519->8000/tcp
 cms-clinica              Up 3 days                               0.0.0.0:60520->1337/tcp, [::]:60520->1337/tcp
 
 === HEALTH CHECKS ===
@@ -110,5 +116,66 @@ Verificando Admin System (60519)...
 Verificando Frontend Client (60521)...
 ❌ Frontend Client Error
 
-=== CONECTIVIDAD DE PRODUCCIÓN ===
-Verificando API externa...
+=== CONECTIVIDAD INTERNA ===
+Verificando servicios internos...
+(Not all processes could be identified, non-owned process info
+ will not be shown, you would have to be root to see it all.)
+✅ Puerto 60519 abierto
+(Not all processes could be identified, non-owned process info
+ will not be shown, you would have to be root to see it all.)
+⚠️ Puerto 60521 no disponible
+
+✅ RESTART COMPLETO FINALIZADO
+==============================
+
+🌐 URLs DE PRODUCCIÓN:
+   🔧 API Backend:       http://pampaservers.com:60519
+   📚 API Docs:          http://pampaservers.com:60519/docs
+   🏥 Admin Dashboard:   http://pampaservers.com:60519/admin
+   👥 Client Dashboard:  http://pampaservers.com:60521
+
+🔐 Credenciales Admin:
+   Usuario: admin
+   Contraseña: admin123
+
+📋 Para acceder al ApiDocumentationModal:
+   1. Ir a http://pampaservers.com:60519/admin
+   2. Login con credenciales admin
+   3. Tab 'Clínicas' → Botón 'Documentación'
+
+🗄️ Base de datos:
+   Host: 192.168.1.23:60516
+   Usuario: root
+   Password: servermuenpampa2025A!
+   Comando: docker exec -it mongodb mongosh -u root -p servermuenpampa2025A! --authenticationDatabase admin
+
+📁 Archivos creados:
+   - clinic-admin-backend/.env.prod
+   - clinic-admin-backend/docker-compose.production.yml
+   - docker-compose.client-prod.yml
+
+🎉 TODOS LOS CAMBIOS DE REESTRUCTURACIÓN APLICADOS
+==================================================
+
+✅ Sistema completamente actualizado con:
+   - Conexión a DB externa de producción
+   - URLs de producción configuradas
+   - API Keys de producción
+   - CORS actualizado
+   - Todas las mejoras implementadas
+
+Presiona Enter para continuar...^C
+cirolinux@cirolinux:/opt/dashboard-clinica/scripts$ docker ps
+CONTAINER ID   IMAGE                                 COMMAND                  CREATED         STATUS                                  PORTS                                                     NAMES
+cdea9fcbf358   dashboard-clinica-frontend-client     "/docker-entrypoint.…"   3 minutes ago   Restarting (1) Less than a second ago                                                             clinic-frontend-client
+f61f67e9bd45   clinic-admin-backend-admin-system     "python -m uvicorn m…"   3 minutes ago   Restarting (3) 53 seconds ago                                                                     clinic-admin-system
+c9af56e9deea   docker.n8n.io/n8nio/n8n               "tini -- /docker-ent…"   2 days ago      Up 2 days                               0.0.0.0:60514->5678/tcp, [::]:60514->5678/tcp             n8n
+ef0301eab030   cms-clinica                           "docker-entrypoint.s…"   4 weeks ago     Up 3 days                               0.0.0.0:60520->1337/tcp, [::]:60520->1337/tcp             cms-clinica
+135bb8fca5e6   devlikeapro/waha-plus:latest          "/usr/bin/tini -- /e…"   6 weeks ago     Up 3 days (unhealthy)                   0.0.0.0:60513->3000/tcp, [::]:60513->3000/tcp             waha-plus
+fb6aab86fd12   mongo-express:1.0.2                   "/sbin/tini -- /dock…"   6 weeks ago     Up 3 days                               0.0.0.0:60517->8081/tcp, [::]:60517->8081/tcp             mongo-express
+abf54630e862   mongo:7.0                             "docker-entrypoint.s…"   6 weeks ago     Up 3 days                               0.0.0.0:60516->27017/tcp, [::]:60516->27017/tcp           mongodb
+f1322c2854a3   redis:7.2-alpine                      "docker-entrypoint.s…"   6 weeks ago     Up 3 days                               0.0.0.0:60515->6379/tcp, [::]:60515->6379/tcp             redis-standalone
+40eda66fd12c   ghcr.io/gitroomhq/postiz-app:latest   "docker-entrypoint.s…"   6 weeks ago     Up 3 days                               4200/tcp, 0.0.0.0:60518->5000/tcp, [::]:60518->5000/tcp   postiz
+3797af74915d   redis:7.2                             "docker-entrypoint.s…"   6 weeks ago     Up 3 days (healthy)                     6379/tcp                                                  postiz-redis
+263faa2bcb34   postgres:17-alpine                    "docker-entrypoint.s…"   6 weeks ago     Up 3 days (healthy)                     5432/tcp                                                  postiz-postgres
+cirolinux@cirolinux:/opt/dashboard-clinica/scripts$
