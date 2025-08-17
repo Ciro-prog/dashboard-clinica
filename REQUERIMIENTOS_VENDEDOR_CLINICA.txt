@@ -1,0 +1,487 @@
+================================================================================
+                    REQUERIMIENTOS DEL VENDEDOR - CARGA COMPLETA DE CLÍNICA
+                              Sistema de Gestión Médica - Dashboard Clínica
+================================================================================
+
+OBJETIVO: Definir todos los datos y procesos necesarios para que un vendedor 
+pueda realizar la carga completa de una clínica médica desde el panel de administración,
+asegurando el funcionamiento operativo inmediato del sistema.
+
+================================================================================
+                                1. INFORMACIÓN BÁSICA DE LA CLÍNICA
+================================================================================
+
+1.1 DATOS CORPORATIVOS
+----------------------
+□ Nombre de la clínica (completo y comercial)
+□ RUT/NIT/CUIT (identificación fiscal)
+□ Razón social (si difiere del nombre comercial)
+□ Tipo de clínica (privada, pública, mixta, especializada)
+□ Especialidades principales (general, dental, oftalmológica, etc.)
+□ Fecha de fundación
+□ Licencias médicas y habilitaciones sanitarias
+
+1.2 DATOS DE CONTACTO Y UBICACIÓN
+---------------------------------
+□ Dirección completa (calle, número, piso, depto)
+□ Ciudad, provincia/estado, código postal
+□ País y zona horaria
+□ Teléfono principal de la clínica
+□ Teléfono de emergencias (fuera de horario)
+□ Email corporativo principal
+□ Email de soporte técnico
+□ Sitio web oficial (si existe)
+□ Redes sociales (Facebook, Instagram, etc.)
+
+1.3 CONFIGURACIÓN DIGITAL
+--------------------------
+□ Dominio preferido para el sistema (subdominio.midominio.com)
+□ Logo de la clínica (formato PNG/SVG alta resolución)
+□ Colores corporativos (códigos hexadecimales)
+□ Imágenes corporativas (banners, fotos de instalaciones)
+□ Política de privacidad y términos de uso
+
+================================================================================
+                                2. PLAN DE SUSCRIPCIÓN Y FACTURACIÓN
+================================================================================
+
+2.1 SELECCIÓN DE PLAN
+---------------------
+□ Plan elegido (Trial, Basic, Premium, Enterprise)
+□ Duración del contrato (mensual, trimestral, anual)
+□ Fecha de inicio de facturación
+□ Descuentos aplicables
+□ Promociones vigentes
+
+2.2 LÍMITES DEL PLAN
+--------------------
+□ Cantidad máxima de profesionales permitidos
+□ Cantidad máxima de pacientes permitidos
+□ Cantidad de citas/turnos simultáneos
+□ Almacenamiento de archivos/imágenes permitido
+□ Integraciones incluidas (WhatsApp, Google Calendar, etc.)
+
+2.3 INFORMACIÓN DE FACTURACIÓN
+------------------------------
+□ Datos del responsable de facturación
+□ Dirección de facturación (si difiere de la clínica)
+□ Método de pago preferido (tarjeta, transferencia, etc.)
+□ Datos bancarios o de tarjeta
+□ Frecuencia de facturación
+□ Moneda de facturación
+
+================================================================================
+                                3. ADMINISTRADOR PRINCIPAL
+================================================================================
+
+3.1 DATOS DEL ADMINISTRADOR
+---------------------------
+□ Nombre completo del administrador principal
+□ Cargo en la clínica (director, gerente, etc.)
+□ Email personal (será el usuario principal)
+□ Teléfono móvil personal
+□ Contraseña inicial (temporal, debe cambiarla)
+□ Permisos administrativos completos
+
+3.2 USUARIOS ADICIONALES CON ACCESO ADMIN
+-----------------------------------------
+□ Lista de emails de usuarios con permisos de administración
+□ Roles específicos (administración, facturación, soporte)
+□ Nivel de acceso por cada usuario
+□ Período de vigencia de cada acceso
+
+================================================================================
+                                4. PROFESIONALES MÉDICOS
+================================================================================
+
+4.1 DATOS BÁSICOS DE CADA PROFESIONAL
+-------------------------------------
+□ Nombre completo
+□ Número de matrícula/licencia médica
+□ Especialidad principal
+□ Especialidades secundarias
+□ Título universitario y posgrados
+□ Email personal (para acceso al sistema)
+□ Teléfono móvil personal
+□ Fecha de nacimiento (opcional)
+□ Fotografía profesional
+
+4.2 INFORMACIÓN PROFESIONAL
+---------------------------
+□ Años de experiencia
+□ Biografía profesional (breve CV)
+□ Membresías en colegios médicos
+□ Certificaciones especiales
+□ Idiomas que maneja
+□ Consultorios donde atiende
+□ Estado del profesional (activo, inactivo, vacaciones)
+
+4.3 SERVICIOS MÉDICOS QUE OFRECE
+--------------------------------
+□ Lista de servicios por profesional:
+  - Consulta General
+  - Consulta de Control
+  - Implante Dental
+  - Limpieza Dental
+  - Ortodoncia
+  - Endodoncia
+  - Cirugía Oral
+  - Estética Dental
+  - Prótesis
+  - Radiografía
+  - Urgencia
+  - Evaluación Inicial
+  - Servicios personalizados específicos
+
+□ Precio de cada servicio
+□ Duración estimada de cada servicio (en minutos)
+□ Descripción detallada de cada servicio
+□ Preparación requerida del paciente
+□ Estado de cada servicio (activo/inactivo)
+
+================================================================================
+                                5. HORARIOS Y DISPONIBILIDAD
+================================================================================
+
+5.1 HORARIOS DE LA CLÍNICA
+---------------------------
+□ Horario general de atención
+□ Días de la semana que opera
+□ Horarios especiales por día:
+  - Lunes: apertura - cierre, descansos
+  - Martes: apertura - cierre, descansos
+  - Miércoles: apertura - cierre, descansos
+  - Jueves: apertura - cierre, descansos
+  - Viernes: apertura - cierre, descansos
+  - Sábado: apertura - cierre, descansos
+  - Domingo: apertura - cierre, descansos
+
+□ Horarios de atención telefónica
+□ Horarios de emergencia (si aplica)
+□ Feriados y días no laborables
+
+5.2 HORARIOS POR PROFESIONAL
+----------------------------
+□ Disponibilidad semanal de cada profesional
+□ Horarios específicos por día y profesional
+□ Bloques de tiempo para cada tipo de consulta
+□ Tiempo de descanso entre consultas
+□ Días de vacaciones programados
+□ Ausencias temporales conocidas
+□ Guardias o turnos especiales
+
+5.3 CONFIGURACIÓN DE TURNOS
+---------------------------
+□ Duración estándar por tipo de consulta
+□ Intervalo mínimo entre turnos
+□ Tiempo máximo de anticipación para reservar
+□ Tiempo mínimo de anticipación para reservar
+□ Política de cancelación de turnos
+□ Tiempo límite para cancelar sin penalización
+□ Número máximo de reagendamientos permitidos
+
+================================================================================
+                                6. PACIENTES INICIALES (OPCIONAL)
+================================================================================
+
+6.1 MIGRACIÓN DE PACIENTES EXISTENTES
+-------------------------------------
+□ Lista de pacientes actuales (si migran de otro sistema)
+□ Datos básicos: nombre, apellido, email, teléfono
+□ Fecha de nacimiento
+□ Documento de identidad
+□ Obra social/seguro médico
+□ Historial médico relevante (resumen)
+□ Alergias conocidas
+□ Medicamentos actuales
+□ Contacto de emergencia
+
+6.2 CONFIGURACIÓN DE HISTORIAS CLÍNICAS
+---------------------------------------
+□ Campos personalizados requeridos
+□ Plantillas de historia clínica por especialidad
+□ Consentimientos informados necesarios
+□ Documentos obligatorios por tipo de tratamiento
+
+================================================================================
+                                7. INTEGRACIÓN WHATSAPP BUSINESS
+================================================================================
+
+7.1 CONFIGURACIÓN WAHA
+----------------------
+□ Número de WhatsApp Business de la clínica
+□ Verificación de que es WhatsApp Business (no personal)
+□ Acceso al teléfono para escanear código QR
+□ Nombre del negocio en WhatsApp
+□ Descripción del negocio
+□ Horarios de atención en WhatsApp
+□ Categoría del negocio
+
+7.2 AUTOMATIZACIÓN DE MENSAJES
+------------------------------
+□ Mensaje de bienvenida automático
+□ Mensaje de fuera de horario
+□ Recordatorios de citas (24h, 2h antes)
+□ Confirmación de citas
+□ Mensajes de cancelación
+□ Mensajes de reagendamiento
+□ Respuestas automáticas frecuentes (FAQ)
+
+7.3 PLANTILLAS DE MENSAJES
+--------------------------
+□ Confirmación de turno
+□ Recordatorio de turno
+□ Cancelación de turno
+□ Reagendamiento de turno
+□ Resultado de estudios disponible
+□ Recordatorio de pago
+□ Información de preparación para consulta
+
+================================================================================
+                                8. CONFIGURACIÓN OPERATIVA
+================================================================================
+
+8.1 POLÍTICAS DE LA CLÍNICA
+---------------------------
+□ Política de cancelación de turnos
+□ Tiempo límite para cancelar (ej: 24 horas antes)
+□ Penalizaciones por no presentarse
+□ Política de reagendamiento
+□ Número máximo de reagendamientos
+□ Política de llegadas tardías
+□ Tiempo de tolerancia para llegada tarde
+□ Manejo de lista de espera
+
+8.2 CONFIGURACIÓN DE NOTIFICACIONES
+-----------------------------------
+□ Recordatorios por email (cuándo enviar)
+□ Recordatorios por SMS/WhatsApp (cuándo enviar)
+□ Notificaciones al personal médico
+□ Alertas de turnos cancelados
+□ Notificaciones de nuevos pacientes
+□ Alertas de pagos pendientes
+
+8.3 CONFIGURACIÓN DE REPORTES
+-----------------------------
+□ Frecuencia de reportes automáticos
+□ Destinatarios de cada tipo de reporte
+□ Métricas importantes para la clínica
+□ KPIs específicos a monitorear
+□ Horarios preferidos para envío de reportes
+
+================================================================================
+                                9. CONFIGURACIÓN TÉCNICA
+================================================================================
+
+9.1 INTEGRACIONES REQUERIDAS
+----------------------------
+□ Integración con Google Calendar (si se usa)
+□ Integración con software de facturación existente
+□ Integración con obra social/seguros médicos
+□ Integración con laboratorios externos
+□ Integración con sistemas de imagen médica
+□ APIs de terceros necesarias
+
+9.2 PERSONALIZACIÓN DEL SISTEMA
+-------------------------------
+□ Campos personalizados en formularios
+□ Flujos de trabajo específicos
+□ Tipos de documentos médicos utilizados
+□ Configuración de roles y permisos
+□ Idioma del sistema
+□ Zona horaria específica
+□ Formato de fecha y hora preferido
+□ Moneda local
+
+================================================================================
+                                10. CAPACITACIÓN Y SOPORTE
+================================================================================
+
+10.1 PLAN DE CAPACITACIÓN
+-------------------------
+□ Lista de usuarios que necesitan capacitación
+□ Nivel de conocimiento técnico de cada usuario
+□ Modalidad preferida (presencial, virtual, mixta)
+□ Horarios disponibles para capacitación
+□ Idioma de la capacitación
+□ Materiales de apoyo requeridos
+
+10.2 CONFIGURACIÓN DE SOPORTE
+-----------------------------
+□ Canal preferido de soporte (email, chat, teléfono)
+□ Horarios para recibir soporte
+□ Nivel de urgencia por tipo de consulta
+□ Contactos designados para soporte técnico
+□ Escalamiento en caso de emergencias
+
+================================================================================
+                                11. COMPLIANCE Y SEGURIDAD
+================================================================================
+
+11.1 CUMPLIMIENTO NORMATIVO
+---------------------------
+□ Normativas locales de protección de datos médicos
+□ Certificaciones de seguridad requeridas
+□ Políticas de retención de datos
+□ Procedimientos de backup y recuperación
+□ Auditorías de seguridad requeridas
+
+11.2 CONFIGURACIÓN DE PRIVACIDAD
+-------------------------------
+□ Configuración de privacidad de datos
+□ Permisos de acceso a información sensible
+□ Logs de auditoría requeridos
+□ Políticas de contraseñas
+□ Autenticación de dos factores
+
+================================================================================
+                                12. MÉTRICAS Y SEGUIMIENTO
+================================================================================
+
+12.1 KPIs IMPORTANTES PARA LA CLÍNICA
+-------------------------------------
+□ Número de consultas por día/semana/mes
+□ Tasa de no presentismo (no show)
+□ Tiempo promedio entre citas
+□ Satisfacción del paciente
+□ Tiempo de espera promedio
+□ Utilización de profesionales
+□ Ingresos por período
+□ Crecimiento de pacientes activos
+
+12.2 REPORTES AUTOMÁTICOS REQUERIDOS
+------------------------------------
+□ Reporte diario de citas
+□ Reporte semanal de actividad
+□ Reporte mensual financiero
+□ Reporte de satisfacción de pacientes
+□ Reporte de utilización de profesionales
+□ Reporte de métricas de WhatsApp
+
+================================================================================
+                                13. PROCESO DE VALIDACIÓN Y TESTING
+================================================================================
+
+13.1 VALIDACIÓN PRE-LANZAMIENTO
+-------------------------------
+□ Prueba de acceso de todos los usuarios
+□ Verificación de horarios y disponibilidad
+□ Prueba de reserva de turnos
+□ Prueba de cancelación y reagendamiento
+□ Verificación de notificaciones automáticas
+□ Prueba de integración WhatsApp
+□ Validación de reportes
+□ Verificación de permisos y roles
+
+13.2 PERÍODO DE PRUEBA
+---------------------
+□ Duración del período de prueba
+□ Métricas a evaluar durante la prueba
+□ Ajustes necesarios post-prueba
+□ Capacitación adicional requerida
+□ Fecha de go-live definitivo
+
+================================================================================
+                                14. FLUJO DE CARGA PASO A PASO
+================================================================================
+
+FASE 1: CONFIGURACIÓN INICIAL (Día 1)
+-------------------------------------
+1. Crear cuenta de clínica en el sistema admin
+2. Configurar plan de suscripción y límites
+3. Cargar información básica de la clínica
+4. Configurar administrador principal
+5. Cargar logo y branding básico
+
+FASE 2: CONFIGURACIÓN MÉDICA (Día 2-3)
+--------------------------------------
+1. Cargar profesionales médicos
+2. Configurar servicios médicos por profesional
+3. Establecer precios y duraciones
+4. Configurar horarios de la clínica
+5. Establecer horarios por profesional
+
+FASE 3: CONFIGURACIÓN OPERATIVA (Día 4-5)
+-----------------------------------------
+1. Configurar políticas de turnos
+2. Establecer tiempos de anticipación y cancelación
+3. Configurar notificaciones automáticas
+4. Configurar plantillas de mensajes
+5. Establecer flujos de trabajo
+
+FASE 4: INTEGRACIÓN WHATSAPP (Día 6)
+------------------------------------
+1. Configurar sesión de WhatsApp Business
+2. Escanear código QR con teléfono de la clínica
+3. Configurar mensajes automáticos
+4. Probar envío y recepción de mensajes
+5. Configurar horarios de atención WhatsApp
+
+FASE 5: MIGRACIÓN DE DATOS (Día 7-8)
+------------------------------------
+1. Migrar pacientes existentes (opcional)
+2. Configurar historias clínicas
+3. Cargar consentimientos y documentos
+4. Verificar integridad de datos
+5. Configurar campos personalizados
+
+FASE 6: TESTING Y CAPACITACIÓN (Día 9-10)
+-----------------------------------------
+1. Realizar pruebas integrales del sistema
+2. Capacitar al personal administrativo
+3. Capacitar a los profesionales médicos
+4. Realizar simulacros de uso
+5. Ajustar configuraciones según feedback
+
+FASE 7: GO-LIVE Y SEGUIMIENTO (Día 11+)
+---------------------------------------
+1. Activar sistema en producción
+2. Monitorear primeras operaciones
+3. Soporte intensivo primeros días
+4. Recolectar feedback de usuarios
+5. Realizar ajustes necesarios
+
+================================================================================
+                                15. CHECKLIST DE FINALIZACIÓN
+================================================================================
+
+□ Todos los datos de la clínica cargados y verificados
+□ Administrador principal con acceso funcional
+□ Todos los profesionales cargados con servicios y horarios
+□ WhatsApp Business conectado y funcionando
+□ Notificaciones automáticas configuradas y probadas
+□ Al menos un turno de prueba realizado exitosamente
+□ Personal capacitado en uso básico del sistema
+□ Documentación de usuario entregada
+□ Contactos de soporte técnico proporcionados
+□ Plan de facturación activado
+□ Métricas y reportes configurados
+□ Backup de configuración realizado
+□ Go-live oficial comunicado a todos los usuarios
+
+================================================================================
+                                16. CONTACTOS DE SEGUIMIENTO
+================================================================================
+
+□ Contacto técnico principal de la clínica
+□ Contacto administrativo para facturación
+□ Contacto para soporte de usuarios
+□ Horarios preferenciales para contacto
+□ Métodos de comunicación preferidos
+□ Escalamiento en caso de emergencias técnicas
+
+================================================================================
+
+NOTAS IMPORTANTES:
+- Este documento debe completarse ANTES de comenzar la carga en el sistema
+- Cada elemento marcado (□) debe verificarse como completado
+- La información debe ser validada con el cliente antes de la carga
+- El proceso completo puede tomar entre 10-15 días hábiles
+- Se recomienda un período de prueba de al menos 1 semana antes del go-live
+- Mantener backup de toda la información durante el proceso
+
+RESPONSABLE DE CARGA: _________________________ FECHA: _______________
+
+CLIENTE APRUEBA INFORMACIÓN: ___________________ FECHA: _______________
+
+================================================================================
