@@ -1,24 +1,78 @@
-chunk-R6S4VRB5.js?v=edc52f67:8446 Uncaught NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.
-    at insertBefore (chunk-R6S4VRB5.js?v=edc52f67:8446:26)
-    at insertOrAppendPlacementNode (chunk-R6S4VRB5.js?v=edc52f67:17432:15)
-    at insertOrAppendPlacementNode (chunk-R6S4VRB5.js?v=edc52f67:17440:15)
-    at insertOrAppendPlacementNode (chunk-R6S4VRB5.js?v=edc52f67:17440:15)
-    at commitPlacement (chunk-R6S4VRB5.js?v=edc52f67:17389:15)
-    at commitReconciliationEffects (chunk-R6S4VRB5.js?v=edc52f67:17906:15)
-    at commitMutationEffectsOnFiber (chunk-R6S4VRB5.js?v=edc52f67:17700:15)
-    at recursivelyTraverseMutationEffects (chunk-R6S4VRB5.js?v=edc52f67:17685:15)
-    at commitMutationEffectsOnFiber (chunk-R6S4VRB5.js?v=edc52f67:17737:15)
-    at recursivelyTraverseMutationEffects (chunk-R6S4VRB5.js?v=edc52f67:17685:15)
-    at commitMutationEffectsOnFiber (chunk-R6S4VRB5.js?v=edc52f67:17699:15)
-    at recursivelyTraverseMutationEffects (chunk-R6S4VRB5.js?v=edc52f67:17685:15)
-    at commitMutationEffectsOnFiber (chunk-R6S4VRB5.js?v=edc52f67:17737:15)
-    at recursivelyTraverseMutationEffects (chunk-R6S4VRB5.js?v=edc52f67:17685:15)
-    at commitMutationEffectsOnFiber (chunk-R6S4VRB5.js?v=edc52f67:17699:15)
-    at recursivelyTraverseMutationEffects (chunk-R6S4VRB5.js?v=edc52f67:17685:15)
-    at commitMutationEffectsOnFiber (chunk-R6S4VRB5.js?v=edc52f67:17737:15)
-    at recursivelyTraverseMutationEffects (chunk-R6S4VRB5.js?v=edc52f67:17685:15)
-    at commitMutationEffectsOnFiber (chunk-R6S4VRB5.js?v=edc52f67:17896:15)
-    at recursivelyTraverseMutationEffects (chunk-R6S4VRB5.js?v=edc52f67:17685:15)
-VM26:1 ❌ Error actualizando suscripción: 404 {"detail":"Not Found"}
-VM26:1 ❌ Error en actualización de suscripción: Error: Suscripción no encontrada
-    at handleSubmit (SubscriptionEditModal.tsx:150:17)
+🧪 Post-deployment verification:
+Container status:
+NAMES                    STATUS                    PORTS
+clinic-admin-system      Up 30 seconds (healthy)   0.0.0.0:60519->8000/tcp, [::]:60519->8000/tcp
+clinic-frontend-client   Up 18 hours (healthy)     0.0.0.0:60521->80/tcp, [::]:60521->80/tcp
+cms-clinica              Up 3 days                 0.0.0.0:60520->1337/tcp, [::]:60520->1337/tcp
+
+Health checks:
+✅ Admin System: Healthy
+Response: {"status":"healthy","service":"clinic-admin-backend","version":"1.0.0","database":"connected"}
+
+🌐 Service URLs:
+🔧 Admin Dashboard: http://pampaservers.com:60519/admin
+📚 API Documentation: http://pampaservers.com:60519/docs
+⚡ Health Check: http://pampaservers.com:60519/health
+
+✅ Deployment completed!
+Check the URLs above to verify everything is working correctly.
+Press Enter to continue...
+cirolinux@cirolinux:/opt/dashboard-clinica/scripts$ production-monitor.sh
+production-monitor.sh: command not found
+cirolinux@cirolinux:/opt/dashboard-clinica/scripts$ ./production-monitor.sh
+-bash: ./production-monitor.sh: Permission denied
+cirolinux@cirolinux:/opt/dashboard-clinica/scripts$ chmod +x ./production-monitor.sh
+cirolinux@cirolinux:/opt/dashboard-clinica/scripts$ ./production-monitor.sh
+
+📊 CLINIC SYSTEM - PRODUCTION MONITORING
+=========================================
+
+🐳 Container Status:
+NAMES                    STATUS                   PORTS                                           SIZE
+clinic-admin-system      Up 2 minutes (healthy)   0.0.0.0:60519->8000/tcp, [::]:60519->8000/tcp   481kB (virtual 958MB)
+clinic-frontend-client   Up 18 hours (healthy)    0.0.0.0:60521->80/tcp, [::]:60521->80/tcp       1.87kB (virtual 53.4MB)
+cms-clinica              Up 3 days                0.0.0.0:60520->1337/tcp, [::]:60520->1337/tcp   1.28kB (virtual 1.66GB)
+
+💾 Resource Usage:
+Memory usage:
+CONTAINER                CPU %     MEM USAGE / LIMIT     MEM %
+clinic-admin-system      0.25%     60.77MiB / 8.727GiB   0.68%
+clinic-frontend-client   0.00%     9.152MiB / 8.727GiB   0.10%
+cms-clinica              0.02%     71.34MiB / 8.727GiB   0.80%
+
+🌐 Service Health Checks:
+Admin System (60519): ✅ Healthy
+  Response: {"status":"healthy","service":"clinic-admin-backend","version":"1.0.0","database":"connected"}
+
+📋 Recent Logs (last 10 lines):
+
+=== ADMIN SYSTEM ===
+INFO:     127.0.0.1:52868 - "GET /health HTTP/1.1" 200 OK
+INFO:     172.23.0.1:43744 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50668 - "GET /health HTTP/1.1" 200 OK
+INFO:     181.209.36.52:56385 - "GET /admin HTTP/1.1" 200 OK
+INFO:     181.209.36.52:56385 - "GET /assets/index-CzOFjnr3.js HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40792 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59546 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37328 - "GET /health HTTP/1.1" 200 OK
+INFO:     172.23.0.1:58984 - "GET /health HTTP/1.1" 200 OK
+INFO:     172.23.0.1:58986 - "GET /health HTTP/1.1" 200 OK
+
+🔍 Service Connectivity:
+MongoDB (192.168.1.23:60516): ✅ Reachable
+WAHA (pampaservers.com:60513): ⚠️ Check required
+
+📈 System Resources:
+Disk usage:
+  Root: 83% used, 7,9G available
+Memory usage:
+  RAM: 4,1Gi/8,7Gi (50% used)
+Load average:
+   2,04, 1,89, 1,75
+
+🕐 Uptime Information:
+Server uptime: up 4 weeks, 5 days, 1 hour, 11 minutes
+Admin container started: 2025-08-17T18:04:49.086920548Z
+
+✅ Monitoring completed!
+Press Enter to continue...

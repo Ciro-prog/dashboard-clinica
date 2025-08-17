@@ -25,11 +25,29 @@ echo "Current commit: $(git log -1 --oneline)"
 echo ""
 echo -e "${BLUE}📥 Pulling latest changes:${NC}"
 
+# Check for local changes that might conflict
+if ! git diff-index --quiet HEAD --; then
+    echo -e "${YELLOW}⚠️ Local changes detected, stashing them...${NC}"
+    git stash push -m "Auto-stash before update $(date +%Y%m%d-%H%M%S)"
+fi
+
 # Pull latest changes
 git pull origin main
 if [ $? -ne 0 ]; then
     echo -e "${RED}❌ Git pull failed${NC}"
-    exit 1
+    echo "Attempting to resolve conflicts..."
+    
+    # Try stashing and pulling again
+    git stash
+    git pull origin main
+    
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Unable to resolve conflicts automatically${NC}"
+        echo "Manual intervention required. Exiting..."
+        exit 1
+    else
+        echo -e "${GREEN}✅ Conflicts resolved automatically${NC}"
+    fi
 fi
 
 echo "New commit: $(git log -1 --oneline)"
