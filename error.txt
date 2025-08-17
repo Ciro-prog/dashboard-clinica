@@ -1,67 +1,278 @@
-📋 Últimos logs del frontend client:
-2025/08/17 00:19:18 [notice] 1#1: OS: Linux 6.8.0-63-generic
-2025/08/17 00:19:18 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
-2025/08/17 00:19:18 [notice] 1#1: start worker processes
-2025/08/17 00:19:18 [notice] 1#1: start worker process 29
-2025/08/17 00:19:18 [notice] 1#1: start worker process 30
-2025/08/17 00:19:18 [notice] 1#1: start worker process 31
-2025/08/17 00:19:18 [notice] 1#1: start worker process 32
-2025/08/17 00:19:18 [notice] 1#1: start worker process 33
-2025/08/17 00:19:18 [notice] 1#1: start worker process 34
-127.0.0.1 - - [17/Aug/2025:00:19:23 +0000] "GET / HTTP/1.1" 200 1024 "-" "curl/8.14.1" "-"
-172.22.0.1 - - [17/Aug/2025:00:19:33 +0000] "GET / HTTP/1.1" 200 1024 "-" "curl/8.5.0" "-"
-127.0.0.1 - - [17/Aug/2025:00:19:53 +0000] "GET / HTTP/1.1" 200 1024 "-" "curl/8.14.1" "-"
-127.0.0.1 - - [17/Aug/2025:00:20:23 +0000] "GET / HTTP/1.1" 200 1024 "-" "curl/8.14.1" "-"
-127.0.0.1 - - [17/Aug/2025:00:20:53 +0000] "GET / HTTP/1.1" 200 1024 "-" "curl/8.14.1" "-"
-127.0.0.1 - - [17/Aug/2025:00:21:23 +0000] "GET / HTTP/1.1" 200 1024 "-" "curl/8.14.1" "-"
-127.0.0.1 - - [17/Aug/2025:00:21:54 +0000] "GET / HTTP/1.1" 200 1024 "-" "curl/8.14.1" "-"
-127.0.0.1 - - [17/Aug/2025:00:22:24 +0000] "GET / HTTP/1.1" 200 1024 "-" "curl/8.14.1" "-"
-127.0.0.1 - - [17/Aug/2025:00:22:54 +0000] "GET / HTTP/1.1" 200 1024 "-" "curl/8.14.1" "-"
-127.0.0.1 - - [17/Aug/2025:00:23:24 +0000] "GET / HTTP/1.1" 200 1024 "-" "curl/8.14.1" "-"
-127.0.0.1 - - [17/Aug/2025:00:23:54 +0000] "GET / HTTP/1.1" 200 1024 "-" "curl/8.14.1" "-"
+cirolinux@cirolinux:/opt/dashboard-clinica/scripts$   ./check-admin-frontend.sh
 
-🔍 Errores específicos:
+🔍 CLINIC SYSTEM - ADMIN FRONTEND DIAGNOSTIC
+=============================================
 
-🌐 CONECTIVIDAD EXTERNA
-=======================
-Verificando conectividad a MongoDB externa...
-✅ IP 192.168.1.23 accesible
+📊 Estado de contenedores:
+NAMES                    STATUS                    PORTS
+clinic-frontend-client   Up 10 minutes (healthy)   0.0.0.0:60521->80/tcp, [::]:60521->80/tcp
+clinic-admin-system      Up 10 minutes (healthy)   0.0.0.0:60519->8000/tcp, [::]:60519->8000/tcp
+cms-clinica              Up 3 days                 0.0.0.0:60520->1337/tcp, [::]:60520->1337/tcp
 
-Verificando puerto MongoDB (60516)...
-✅ Puerto 60516 abierto
+📋 LOGS ESPECÍFICOS DEL ADMIN SYSTEM
+=====================================
+Últimas 30 líneas del admin system:
+INFO:     181.209.36.52:54584 - "GET /admin HTTP/1.1" 200 OK
+INFO:     181.209.36.52:54584 - "GET /assets/index-BoE4VRIg.js HTTP/1.1" 404 Not Found
+INFO:     181.209.36.52:54583 - "GET /assets/index-BAwUZWBE.css HTTP/1.1" 404 Not Found
+INFO:     181.209.36.52:54597 - "GET /docs HTTP/1.1" 200 OK
+INFO:     181.209.36.52:54597 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     181.209.36.52:54624 - "GET /admin/ HTTP/1.1" 200 OK
+INFO:     181.209.36.52:54626 - "GET /assets/index-BAwUZWBE.css HTTP/1.1" 404 Not Found
+INFO:     181.209.36.52:54625 - "GET /assets/index-BoE4VRIg.js HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51946 - "GET /health HTTP/1.1" 200 OK
+INFO:     181.209.36.52:54659 - "GET /api HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53458 - "GET /health HTTP/1.1" 200 OK
+INFO:     181.209.36.52:54694 - "GET /docs HTTP/1.1" 200 OK
+INFO:     181.209.36.52:54694 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57444 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56376 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52548 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59694 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56754 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55332 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37442 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34884 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49952 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37888 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53042 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40632 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35766 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43860 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43542 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58954 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36348 - "GET /health HTTP/1.1" 200 OK
 
-Verificando conectividad MongoDB desde este servidor...
-⚠️ MongoDB no conecta (puede ser normal si mongosh no está instalado)
-
-🔍 ANÁLISIS DE CONFIGURACIONES
-===============================
-Verificando archivos de configuración creados...
-✅ .env.prod existe
-Contenido de MONGODB_URL:
-MONGODB_URL=mongodb://admin:PampaServers2025@192.168.1.23:60516/clinica-dashboard?authSource=admin
-
-✅ docker-compose.production.yml existe
-Verificando MONGODB_URL en docker-compose:
-      # Base de datos externa CORREGIDA
-      MONGODB_URL: mongodb://admin:PampaServers2025@192.168.1.23:60516/clinica-dashboard?authSource=admin
-
-
-📋 RECURSOS DEL SISTEMA
-=======================
-Memoria disponible:
-Usado: 4,2Gi/8,7Gi - Disponible: 4,5Gi
-
-Espacio en disco:
-Uso: 77% - Disponible: 11G
-
-Procesos usando puertos relevantes:
-tcp   LISTEN 0      4096               0.0.0.0:60519      0.0.0.0:*
-tcp   LISTEN 0      4096               0.0.0.0:60521      0.0.0.0:*
-tcp   LISTEN 0      4096                  [::]:60519         [::]:*
-tcp   LISTEN 0      4096                  [::]:60521         [::]:*
-
-💡 RECOMENDACIONES BASADAS EN ANÁLISIS:
+🔍 ERRORES ESPECÍFICOS EN ADMIN SYSTEM
 ======================================
 
-📋 SIGUIENTE PASO RECOMENDADO:
-Ejecutar: ./fix-restart-issues.sh (próximo script a crear)
+🌐 VERIFICACIÓN DE URLs ESPECÍFICAS
+===================================
+Probando API Docs (debería funcionar):
+HTTP/1.1 200 OK
+
+Probando API Health (debería funcionar):
+{"status":"healthy","service":"clinic-admin-backend","version":"1.0.0","database":"connected"}✅ Health OK
+
+Probando Frontend Admin (problema reportado):
+⚠️ Admin frontend respuesta: HTTP/1.1 405 Method Not Allowed
+
+Probando ruta de archivos estáticos admin:
+HTTP/1.1 404 Not Found
+
+📁 VERIFICACIÓN DE ARCHIVOS ESTÁTICOS
+=====================================
+Verificando estructura dentro del contenedor admin-system:
+total 16
+drwxr-xr-x 3 root root 4096 Aug 16 23:52 .
+drwxr-xr-x 1 root root 4096 Aug 17 00:18 ..
+drwxr-xr-x 3 root root 4096 Aug 16 23:50 admin
+
+Verificando archivos admin específicos:
+total 16
+drwxr-xr-x 3 root root 4096 Aug 16 23:50 .
+drwxr-xr-x 3 root root 4096 Aug 16 23:52 ..
+drwxr-xr-x 2 root root 4096 Aug 16 23:50 assets
+-rw-r--r-- 1 root root  822 Aug 16 23:50 index.html
+
+Verificando si index.html existe:
+-rw-r--r-- 1 root root 822 Aug 16 23:50 /app/static/admin/index.html
+✅ index.html existe
+
+🔧 VERIFICACIÓN DE CONFIGURACIÓN FASTAPI
+========================================
+Verificando configuración de archivos estáticos en main.py:
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from contextlib import asynccontextmanager
+import os
+
+from app.core.config import settings
+from app.core.database import connect_to_mongo, close_mongo_connection
+--
+    print("Starting Clinic Admin Backend...")
+    await connect_to_mongo()
+    print("SUCCESS: Application started successfully")
+
+    # Admin frontend setup
+    admin_static_dir = "static/admin"
+    admin_index = os.path.join(admin_static_dir, "index.html")
+    print(f"Admin static dir exists: {os.path.exists(admin_static_dir)}")
+    print(f"Admin index exists: {os.path.exists(admin_index)}")
+
+    # Check if running in admin-only mode
+    admin_only = os.getenv('ADMIN_ONLY', 'false').lower() == 'true'
+    if admin_only:
+--
+uploads_dir = "uploads"
+if not os.path.exists(uploads_dir):
+    os.makedirs(uploads_dir)
+    print(f"Created uploads directory: {uploads_dir}")
+
+# Mount static files for uploads
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
+# ===========================================
+# UNIFIED FRONTEND SERVING CONFIGURATION
+# ===========================================
+
+# Mount unified admin frontend static files
+admin_static_dir = "static/admin"
+legacy_frontend_dist = "frontend/dist"  # Legacy path for backward compatibility
+
+# Check for unified admin frontend (production)
+if os.path.exists(admin_static_dir):
+    print(f"Found UNIFIED frontend at {admin_static_dir}")
+
+    # Mount static files for assets (CSS, JS, etc.)
+    app.mount("/admin/assets", StaticFiles(directory=f"{admin_static_dir}/assets"), name="admin-assets")
+    print(f"Mounted admin assets at /admin/assets")
+
+    # Serve admin app at root of /admin
+    @app.get("/admin")
+    async def serve_unified_admin_root():
+        """Serve the unified admin frontend application (without trailing slash)"""
+        admin_index = os.path.join(admin_static_dir, "index.html")
+        if os.path.exists(admin_index):
+            return FileResponse(admin_index)
+        else:
+            raise HTTPException(status_code=404, detail="Unified admin frontend not built")
+
+    @app.get("/admin/")
+    async def serve_unified_admin():
+        """Serve the unified admin frontend application (with trailing slash)"""
+        admin_index = os.path.join(admin_static_dir, "index.html")
+        if os.path.exists(admin_index):
+            return FileResponse(admin_index)
+        else:
+            raise HTTPException(status_code=404, detail="Unified admin frontend not built")
+
+    # Catch-all route for React Router (SPA routing) - must be last
+    @app.get("/admin/{path:path}")
+    async def serve_unified_admin_spa(path: str):
+        """Handle React Router SPA routing for admin frontend"""
+        # Serve static files if they exist
+        static_file_path = os.path.join(admin_static_dir, path)
+        if os.path.isfile(static_file_path):
+            return FileResponse(static_file_path)
+
+        # For all non-asset routes, serve index.html (SPA routing)
+        admin_index = os.path.join(admin_static_dir, "index.html")
+        if os.path.exists(admin_index):
+            return FileResponse(admin_index)
+        else:
+            raise HTTPException(status_code=404, detail="Unified admin frontend not found")
+
+--
+        else:
+            raise HTTPException(status_code=404, detail="Legacy admin frontend not built. Run 'npm run build' in frontend directory.")
+
+else:
+    print(f"WARNING: No admin frontend found!")
+    print(f"   Expected: {admin_static_dir} (unified) or {legacy_frontend_dist} (legacy)")
+    print(f"   Run build process to create frontend files.")
+
+# Include routers
+app.include_router(auth.router, prefix="/api")
+app.include_router(clinics.router, prefix="/api")
+
+🏗️ VERIFICACIÓN DE BUILD DEL FRONTEND
+=====================================
+Verificando si el build del frontend se completó:
+
+Verificando archivos de build recientes:
+/app/static/admin/assets/index-BAwUZWBE.css
+/app/static/admin/assets/index-BoE4VRIg.js
+
+🔍 ANÁLISIS DE CONFIGURACIÓN DE RUTAS
+====================================
+Verificando configuración de rutas en FastAPI:
+"/admin"
+"/admin/"
+"/admin/{path}"
+"/api/auth/login"
+"/api/auth/clinic-login"
+"/api/auth/token"
+"/api/clinics/stats"
+"/api/clinics/public"
+"/api/clinics/"
+"/api/clinics/{clinic_id}"
+
+💡 DIAGNÓSTICO Y RECOMENDACIONES
+===============================
+✅ Frontend compilado existe
+🔧 PROBLEMA: Respuesta inesperada del servidor
+   Solución: Revisar configuración de rutas
+
+📋 COMANDOS PARA SOLUCIONAR:
+1. Revisar logs detallados: docker logs clinic-admin-system -f
+2. Verificar configuración FastAPI en main.py
+Presiona Enter para continuar...
+cirolinux@cirolinux:/opt/dashboard-clinica/scripts$
+
+
+
+cirolinux@cirolinux:/opt/dashboard-clinica/scripts$ docker logs clinic-admin-system -f
+INFO:     Started server process [1]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+Found UNIFIED frontend at static/admin
+Mounted admin assets at /admin/assets
+Starting Clinic Admin Backend...
+Connected to MongoDB: clinica-dashboard
+SUCCESS: Application started successfully
+Admin static dir exists: True
+Admin index exists: True
+Running in ADMIN-ONLY mode
+INFO:     127.0.0.1:50282 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55972 - "GET /health HTTP/1.1" 200 OK
+INFO:     172.23.0.1:36280 - "GET /health HTTP/1.1" 200 OK
+INFO:     181.209.36.52:54566 - "GET /admin HTTP/1.1" 200 OK
+INFO:     181.209.36.52:54566 - "GET /assets/index-BoE4VRIg.js HTTP/1.1" 404 Not Found
+INFO:     181.209.36.52:54565 - "GET /assets/index-BAwUZWBE.css HTTP/1.1" 404 Not Found
+INFO:     181.209.36.52:54580 - "GET /assets/index-BAwUZWBE.css HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59298 - "GET /health HTTP/1.1" 200 OK
+INFO:     181.209.36.52:54584 - "GET /admin HTTP/1.1" 200 OK
+INFO:     181.209.36.52:54584 - "GET /assets/index-BoE4VRIg.js HTTP/1.1" 404 Not Found
+INFO:     181.209.36.52:54583 - "GET /assets/index-BAwUZWBE.css HTTP/1.1" 404 Not Found
+INFO:     181.209.36.52:54597 - "GET /docs HTTP/1.1" 200 OK
+INFO:     181.209.36.52:54597 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     181.209.36.52:54624 - "GET /admin/ HTTP/1.1" 200 OK
+INFO:     181.209.36.52:54626 - "GET /assets/index-BAwUZWBE.css HTTP/1.1" 404 Not Found
+INFO:     181.209.36.52:54625 - "GET /assets/index-BoE4VRIg.js HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51946 - "GET /health HTTP/1.1" 200 OK
+INFO:     181.209.36.52:54659 - "GET /api HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53458 - "GET /health HTTP/1.1" 200 OK
+INFO:     181.209.36.52:54694 - "GET /docs HTTP/1.1" 200 OK
+INFO:     181.209.36.52:54694 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57444 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56376 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52548 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59694 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56754 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55332 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37442 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34884 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49952 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37888 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53042 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40632 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35766 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43860 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43542 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58954 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36348 - "GET /health HTTP/1.1" 200 OK
+INFO:     172.23.0.1:56410 - "HEAD /docs HTTP/1.1" 200 OK
+INFO:     172.23.0.1:56412 - "GET /health HTTP/1.1" 200 OK
+INFO:     172.23.0.1:56418 - "HEAD /admin HTTP/1.1" 405 Method Not Allowed
+INFO:     172.23.0.1:56434 - "HEAD / HTTP/1.1" 404 Not Found
+INFO:     172.23.0.1:56448 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     172.23.0.1:56458 - "HEAD /admin HTTP/1.1" 405 Method Not Allowed
+INFO:     127.0.0.1:50008 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59842 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46682 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54022 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46968 - "GET /health HTTP/1.1" 200 OK
