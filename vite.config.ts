@@ -29,9 +29,9 @@ export default defineConfig(({ mode }) => ({
           });
         },
       },
-      // ✅ Proxy para el backend MongoDB local
+      // ✅ Proxy para el backend (apunta a producción)
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://pampaservers.com:60519',
         changeOrigin: true,
         secure: false,
         configure: (proxy, options) => {

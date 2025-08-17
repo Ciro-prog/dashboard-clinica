@@ -7,7 +7,7 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
-    port: 8081,
+    port: 5173,
     proxy: {
       // ✅ Proxy para todas las operaciones WAHA (WhatsApp API)
       '^/api/(sessions|[a-zA-Z0-9_-]+/(start|stop|restart|auth))': {
@@ -28,9 +28,9 @@ export default defineConfig(({ mode }) => ({
           });
         },
       },
-      // ✅ Proxy para el backend MongoDB local
+      // ✅ Proxy para el backend (desarrollo apunta a producción)
       '/api': {
-        target: 'http://localhost:8000',
+        target: process.env.VITE_API_URL || 'http://pampaservers.com:60519',
         changeOrigin: true,
         secure: false,
         configure: (proxy, options) => {

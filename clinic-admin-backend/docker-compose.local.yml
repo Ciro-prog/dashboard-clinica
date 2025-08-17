@@ -1,0 +1,56 @@
+# Docker Compose para Desarrollo Local
+# Conecta a la misma base de datos de producción pero sirve en localhost
+
+services:
+  admin-system:
+    build:
+      context: .
+      dockerfile: Dockerfile.admin
+    container_name: clinic-admin-local
+    restart: unless-stopped
+    ports:
+      - "8000:8000"  # Puerto local estándar
+    environment:
+      # Base de datos de producción (misma que server)
+      MONGODB_URL: mongodb://admin:PampaServers2025@192.168.1.23:60516/clinica-dashboard?authSource=admin
+      
+      # Admin Configuration
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: admin123
+      JWT_SECRET_KEY: clinic-local-jwt-key-2024-secure
+      
+      # API Configuration
+      API_KEY_DEV: test123456
+      API_KEY_PROD: pampaserver2025enservermuA!
+      
+      # CORS para desarrollo local + producción
+      CORS_ORIGINS: "http://localhost:3000,http://localhost:8000,http://localhost:8001,http://pampaservers.com:60519,http://pampaservers.com:60521"
+      
+      # Environment
+      ENVIRONMENT: development
+      DEBUG: true
+      HOST: 0.0.0.0
+      PORT: 8000
+      
+      # URLs de servicios externos (producción)
+      WAHA_BASE_URL: http://pampaservers.com:60513
+      N8N_BASE_URL: http://dev-n8n.pampaservers.com
+      
+    volumes:
+      - local_uploads:/app/uploads
+    networks:
+      - local-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  local_uploads:
+    driver: local
+
+networks:
+  local-network:
+    driver: bridge

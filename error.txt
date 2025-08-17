@@ -1,47 +1,21 @@
-+] Building 1/1
- ✔ clinic-admin-backend-admin-system  Built                                                                                                                                             0.0s
-Iniciando contenedor con nueva imagen...
-[+] Running 2/2
- ✔ Network clinic-admin-backend_admin-network  Created                                                                                                                                  0.3s
- ✔ Container clinic-admin-system               Started                                                                                                                                  3.0s
-Esperando que el servicio inicie completamente...
+clinica) PS D:\dashboard-clinica> .\start-dual-dev.bat
 
-🧪 VERIFICACIÓN COMPLETA (usando GET requests)
-============================================
-Estado del contenedor:
-NAMES                 STATUS                         PORTS
-clinic-admin-system   Restarting (1) 5 seconds ago
+========================================
+ CLINIC SYSTEM - DESARROLLO DUAL
+========================================
 
-=== HEALTH CHECK ===
-❌ Backend Error
+Ô£à Admin Frontend: Puerto 5173
+Ô£à Cliente Frontend: Puerto 8080
+Ô£à Backend: pampaservers.com:60519
 
-=== ADMIN FRONTEND (GET request) ===
-❌ Admin frontend error: 000
+­ƒº¬ Verificando backend de producci├│n...
+{"status":"healthy","service":"clinic-admin-backend","version":"1.0.0","database":"connected"}Ô£à Backend producci├│n: OK
 
-=== ASSETS VERIFICATION (GET requests) ===
-Probando CSS asset:
-❌ CSS asset error: 000
-Probando JS asset:
-❌ JS asset error: 000
-
-=== VERIFICACIÓN DE MOUNTS EN LOGS ===
-Buscando mensajes de mount en logs de inicio:
-No se encontraron mensajes de mount
-
-=== LOGS RECIENTES ===
-Últimas 10 líneas:
-  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
-  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
-  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
-  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
-  File "/app/main.py", line 46, in <module>
-    allow_origins=settings.allowed_origins,
-                  ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 991, in __getattr__
-    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
-AttributeError: 'Settings' object has no attribute 'allowed_origins'
-
-❌ Algunos problemas persisten
-Ver logs arriba para diagnóstico adicional
-
-Presiona Enter para continuar...
+========================================
+ CONFIGURANDO ENTORNOS
+========================================
+Verificando Node.js...
+v22.16.0
+Verificando npm...
+11.4.2
+(clinica) PS D:\dashboard-clinica> 
