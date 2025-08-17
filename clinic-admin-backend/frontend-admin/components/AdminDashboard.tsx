@@ -70,15 +70,16 @@ interface Clinic {
 
 interface SubscriptionPlan {
   id: string;
+  plan_id: string;
   name: string;
-  description: string;
+  description?: string;
   price: number;
   duration_days: number;
   features: Record<string, boolean>;
   max_professionals: number;
   max_patients: number;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface DashboardStats {
@@ -979,7 +980,7 @@ export default function AdminDashboard({ adminUser, onLogout }: AdminDashboardPr
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => setSelectedSubscriptionForEdit({ ...plan, id: planId })}
+                                onClick={() => setSelectedSubscriptionForEdit(plan)}
                                 className="h-8 w-8 p-0 text-slate-400 hover:text-slate-200 hover:bg-slate-600"
                               >
                                 <Edit className="h-4 w-4" />
@@ -987,7 +988,7 @@ export default function AdminDashboard({ adminUser, onLogout }: AdminDashboardPr
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleDeleteSubscription(planId, plan.name)}
+                                onClick={() => handleDeleteSubscription(plan.id, plan.name)}
                                 className="h-8 w-8 p-0 text-red-400 hover:text-red-200 hover:bg-red-900/30"
                               >
                                 <Trash2 className="h-4 w-4" />

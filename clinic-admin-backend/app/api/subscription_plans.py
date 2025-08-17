@@ -182,16 +182,26 @@ async def update_subscription_plan(
     """Update a subscription plan"""
     plans_collection = await get_collection("subscription_plans")
     
-    # Find existing plan
+    # Try to find by plan_id first, then by MongoDB _id
     existing_plan = await plans_collection.find_one({"plan_id": plan_id})
+    if not existing_plan:
+        # Try finding by MongoDB ObjectId if plan_id doesn't work
+        try:
+            existing_plan = await plans_collection.find_one({"_id": ObjectId(plan_id)})
+        except:
+            pass
+    
     if not existing_plan:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Subscription plan not found"
         )
     
+    # Get the actual plan_id for system plan checks
+    actual_plan_id = existing_plan.get("plan_id")
+    
     # System plans have restrictions
-    if plan_id in SYSTEM_PLAN_IDS:
+    if actual_plan_id in SYSTEM_PLAN_IDS:
         # System plans can only update certain fields
         allowed_updates = {
             "name", "description", "price", "is_active", 
@@ -212,14 +222,19 @@ async def update_subscription_plan(
     
     update_dict["updated_at"] = datetime.utcnow()
     
-    # Update in database
-    await plans_collection.update_one(
-        {"plan_id": plan_id},
-        {"$set": update_dict}
-    )
-    
-    # Return updated plan
-    updated_plan = await plans_collection.find_one({"plan_id": plan_id})
+    # Update in database using the correct identifier
+    if "plan_id" in existing_plan:
+        await plans_collection.update_one(
+            {"plan_id": existing_plan["plan_id"]},
+            {"$set": update_dict}
+        )
+        updated_plan = await plans_collection.find_one({"plan_id": existing_plan["plan_id"]})
+    else:
+        await plans_collection.update_one(
+            {"_id": existing_plan["_id"]},
+            {"$set": update_dict}
+        )
+        updated_plan = await plans_collection.find_one({"_id": existing_plan["_id"]})
     
     # Convert ObjectId to string for Pydantic compatibility
     updated_plan_copy = updated_plan.copy()
@@ -228,16 +243,16 @@ async def update_subscription_plan(
     
     plan_db = SubscriptionPlanInDB(**updated_plan_copy)
     
-    # Calculate statistics
+    # Calculate statistics using the actual plan_id
     clinics_collection = await get_collection("clinics")
     clinics_count = await clinics_collection.count_documents({
-        "subscription_plan": plan_id
+        "subscription_plan": plan_db.plan_id
     })
     
     monthly_revenue = 0.0
     if plan_db.price > 0:
         active_clinics = await clinics_collection.count_documents({
-            "subscription_plan": plan_id,
+            "subscription_plan": plan_db.plan_id,
             "subscription_status": "active"
         })
         monthly_revenue = plan_db.price * active_clinics
@@ -258,16 +273,26 @@ async def delete_subscription_plan(
     plans_collection = await get_collection("subscription_plans")
     clinics_collection = await get_collection("clinics")
     
-    # Check if plan exists
+    # Try to find by plan_id first, then by MongoDB _id
     existing_plan = await plans_collection.find_one({"plan_id": plan_id})
+    if not existing_plan:
+        # Try finding by MongoDB ObjectId if plan_id doesn't work
+        try:
+            existing_plan = await plans_collection.find_one({"_id": ObjectId(plan_id)})
+        except:
+            pass
+    
     if not existing_plan:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Subscription plan not found"
         )
     
+    # Get the actual plan_id for system plan checks
+    actual_plan_id = existing_plan.get("plan_id")
+    
     # Cannot delete system plans
-    if plan_id in SYSTEM_PLAN_IDS:
+    if actual_plan_id in SYSTEM_PLAN_IDS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot delete system subscription plans"
@@ -275,7 +300,7 @@ async def delete_subscription_plan(
     
     # Check if any clinics are using this plan
     clinics_using_plan = await clinics_collection.count_documents({
-        "subscription_plan": plan_id
+        "subscription_plan": actual_plan_id
     })
     
     if clinics_using_plan > 0:
@@ -284,8 +309,11 @@ async def delete_subscription_plan(
             detail=f"Cannot delete plan. {clinics_using_plan} clinics are currently using this plan"
         )
     
-    # Delete plan
-    await plans_collection.delete_one({"plan_id": plan_id})
+    # Delete plan using the correct identifier
+    if "plan_id" in existing_plan:
+        await plans_collection.delete_one({"plan_id": existing_plan["plan_id"]})
+    else:
+        await plans_collection.delete_one({"_id": existing_plan["_id"]})
     
     return {"message": "Subscription plan deleted successfully"}
 

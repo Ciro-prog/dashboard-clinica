@@ -1,21 +1,24 @@
-clinica) PS D:\dashboard-clinica> .\start-dual-dev.bat
-
-========================================
- CLINIC SYSTEM - DESARROLLO DUAL
-========================================
-
-Ô£à Admin Frontend: Puerto 5173
-Ô£à Cliente Frontend: Puerto 8080
-Ô£à Backend: pampaservers.com:60519
-
-­ƒº¬ Verificando backend de producci├│n...
-{"status":"healthy","service":"clinic-admin-backend","version":"1.0.0","database":"connected"}Ô£à Backend producci├│n: OK
-
-========================================
- CONFIGURANDO ENTORNOS
-========================================
-Verificando Node.js...
-v22.16.0
-Verificando npm...
-11.4.2
-(clinica) PS D:\dashboard-clinica> 
+chunk-R6S4VRB5.js?v=edc52f67:8446 Uncaught NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.
+    at insertBefore (chunk-R6S4VRB5.js?v=edc52f67:8446:26)
+    at insertOrAppendPlacementNode (chunk-R6S4VRB5.js?v=edc52f67:17432:15)
+    at insertOrAppendPlacementNode (chunk-R6S4VRB5.js?v=edc52f67:17440:15)
+    at insertOrAppendPlacementNode (chunk-R6S4VRB5.js?v=edc52f67:17440:15)
+    at commitPlacement (chunk-R6S4VRB5.js?v=edc52f67:17389:15)
+    at commitReconciliationEffects (chunk-R6S4VRB5.js?v=edc52f67:17906:15)
+    at commitMutationEffectsOnFiber (chunk-R6S4VRB5.js?v=edc52f67:17700:15)
+    at recursivelyTraverseMutationEffects (chunk-R6S4VRB5.js?v=edc52f67:17685:15)
+    at commitMutationEffectsOnFiber (chunk-R6S4VRB5.js?v=edc52f67:17737:15)
+    at recursivelyTraverseMutationEffects (chunk-R6S4VRB5.js?v=edc52f67:17685:15)
+    at commitMutationEffectsOnFiber (chunk-R6S4VRB5.js?v=edc52f67:17699:15)
+    at recursivelyTraverseMutationEffects (chunk-R6S4VRB5.js?v=edc52f67:17685:15)
+    at commitMutationEffectsOnFiber (chunk-R6S4VRB5.js?v=edc52f67:17737:15)
+    at recursivelyTraverseMutationEffects (chunk-R6S4VRB5.js?v=edc52f67:17685:15)
+    at commitMutationEffectsOnFiber (chunk-R6S4VRB5.js?v=edc52f67:17699:15)
+    at recursivelyTraverseMutationEffects (chunk-R6S4VRB5.js?v=edc52f67:17685:15)
+    at commitMutationEffectsOnFiber (chunk-R6S4VRB5.js?v=edc52f67:17737:15)
+    at recursivelyTraverseMutationEffects (chunk-R6S4VRB5.js?v=edc52f67:17685:15)
+    at commitMutationEffectsOnFiber (chunk-R6S4VRB5.js?v=edc52f67:17896:15)
+    at recursivelyTraverseMutationEffects (chunk-R6S4VRB5.js?v=edc52f67:17685:15)
+VM26:1 ❌ Error actualizando suscripción: 404 {"detail":"Not Found"}
+VM26:1 ❌ Error en actualización de suscripción: Error: Suscripción no encontrada
+    at handleSubmit (SubscriptionEditModal.tsx:150:17)

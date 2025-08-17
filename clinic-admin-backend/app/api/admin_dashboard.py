@@ -13,7 +13,10 @@ from ..models.professional import (
     ProfessionalCreate, ProfessionalUpdate, ProfessionalResponse, ProfessionalInDB,
     ProfessionalCredentialsUpdate
 )
-from ..models.subscription_plan import SubscriptionPlanInDB
+from ..models.subscription_plan import (
+    SubscriptionPlanInDB, SubscriptionPlanCreate, SubscriptionPlanUpdate, 
+    SubscriptionPlanResponse, SYSTEM_PLAN_IDS
+)
 from ..utils.email_generator import (
     generate_professional_email, generate_clinic_email_domain, 
     validate_email_uniqueness, get_n8n_folder_name
@@ -52,12 +55,16 @@ async def get_subscription_plans():
                 print(f"[PLANS] Parsed plan data: {plan.plan_id}")
                 
                 plans[plan.plan_id] = {
+                    "id": str(plan_doc["_id"]),  # MongoDB ObjectId as string
+                    "plan_id": plan.plan_id,      # Logical plan ID
                     "name": plan.name,
                     "price": plan.price,
                     "duration_days": plan.duration_days,
                     "features": plan.features.model_dump(),
                     "max_professionals": plan.max_professionals,
-                    "max_patients": plan.max_patients
+                    "max_patients": plan.max_patients,
+                    "created_at": plan.created_at.isoformat() if plan.created_at else None,
+                    "updated_at": plan.updated_at.isoformat() if plan.updated_at else None
                 }
                 plan_counter += 1
                 print(f"[PLANS] Added plan to response")
@@ -1003,3 +1010,186 @@ async def delete_clinic_professional(
         )
     
     return {"message": "Professional deactivated successfully"}
+
+
+# ============================================================================
+# SUBSCRIPTION PLANS ADMIN ROUTES
+# ============================================================================
+
+@router.post("/subscription-plans", response_model=SubscriptionPlanResponse, status_code=status.HTTP_201_CREATED)
+async def create_subscription_plan_admin(
+    plan_data: SubscriptionPlanCreate,
+    current_admin: AdminInDB = Depends(get_super_admin_hybrid)
+):
+    """Create a new subscription plan (admin endpoint)"""
+    from ..core.uuid_generator import UUIDGenerator
+    
+    plans_collection = await get_collection("subscription_plans")
+    
+    # Prepare plan document
+    plan_dict = plan_data.model_dump()
+    
+    # Generate unique plan_id if not provided
+    if not plan_dict.get("plan_id") or plan_dict["plan_id"] == "":
+        plan_dict["plan_id"] = UUIDGenerator.generate_plan_id(plan_data.name)
+    
+    # Ensure plan_id is unique
+    plan_dict["plan_id"] = await UUIDGenerator.ensure_unique_plan_id(plan_dict["plan_id"])
+    
+    plan_dict.update({
+        "_id": ObjectId(),
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow(),
+        "created_by": current_admin.username,
+        "is_custom": True
+    })
+    
+    # Insert into database
+    result = await plans_collection.insert_one(plan_dict)
+    plan_dict["_id"] = str(result.inserted_id)
+    
+    plan_db = SubscriptionPlanInDB(**plan_dict)
+    return SubscriptionPlanResponse(**plan_db.model_dump(), clinics_count=0, monthly_revenue=0.0)
+
+
+@router.put("/subscription-plans/{plan_id}", response_model=SubscriptionPlanResponse)
+async def update_subscription_plan_admin(
+    plan_id: str,
+    plan_data: SubscriptionPlanUpdate,
+    current_admin: AdminInDB = Depends(get_super_admin_hybrid)
+):
+    """Update a subscription plan (admin endpoint)"""
+    plans_collection = await get_collection("subscription_plans")
+    
+    # Try to find by plan_id first, then by MongoDB _id
+    existing_plan = await plans_collection.find_one({"plan_id": plan_id})
+    if not existing_plan:
+        # Try finding by MongoDB ObjectId if plan_id doesn't work
+        try:
+            existing_plan = await plans_collection.find_one({"_id": ObjectId(plan_id)})
+        except:
+            pass
+    
+    if not existing_plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Subscription plan not found"
+        )
+    
+    # Get the actual plan_id for system plan checks
+    actual_plan_id = existing_plan.get("plan_id")
+    
+    # System plans have restrictions
+    if actual_plan_id in SYSTEM_PLAN_IDS:
+        allowed_updates = {
+            "name", "description", "price", "is_active", 
+            "display_order", "color", "highlight", "notes"
+        }
+        update_dict = {k: v for k, v in plan_data.model_dump(exclude_unset=True).items() 
+                      if k in allowed_updates and v is not None}
+    else:
+        update_dict = {k: v for k, v in plan_data.model_dump(exclude_unset=True).items() 
+                      if v is not None}
+    
+    if not update_dict:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No valid updates provided"
+        )
+    
+    update_dict["updated_at"] = datetime.utcnow()
+    
+    # Update in database using the correct identifier
+    if "plan_id" in existing_plan:
+        await plans_collection.update_one(
+            {"plan_id": existing_plan["plan_id"]},
+            {"$set": update_dict}
+        )
+        updated_plan = await plans_collection.find_one({"plan_id": existing_plan["plan_id"]})
+    else:
+        await plans_collection.update_one(
+            {"_id": existing_plan["_id"]},
+            {"$set": update_dict}
+        )
+        updated_plan = await plans_collection.find_one({"_id": existing_plan["_id"]})
+    
+    # Convert ObjectId to string for Pydantic compatibility
+    updated_plan_copy = updated_plan.copy()
+    if "_id" in updated_plan_copy:
+        updated_plan_copy["_id"] = str(updated_plan_copy["_id"])
+    
+    plan_db = SubscriptionPlanInDB(**updated_plan_copy)
+    
+    # Calculate statistics
+    clinics_collection = await get_collection("clinics")
+    clinics_count = await clinics_collection.count_documents({
+        "subscription_plan": plan_db.plan_id
+    })
+    
+    monthly_revenue = 0.0
+    if plan_db.price > 0:
+        active_clinics = await clinics_collection.count_documents({
+            "subscription_plan": plan_db.plan_id,
+            "subscription_status": "active"
+        })
+        monthly_revenue = plan_db.price * active_clinics
+    
+    return SubscriptionPlanResponse(
+        **plan_db.model_dump(),
+        clinics_count=clinics_count,
+        monthly_revenue=monthly_revenue
+    )
+
+
+@router.delete("/subscription-plans/{plan_id}")
+async def delete_subscription_plan_admin(
+    plan_id: str,
+    current_admin: AdminInDB = Depends(get_super_admin_hybrid)
+):
+    """Delete a subscription plan (admin endpoint)"""
+    plans_collection = await get_collection("subscription_plans")
+    clinics_collection = await get_collection("clinics")
+    
+    # Try to find by plan_id first, then by MongoDB _id
+    existing_plan = await plans_collection.find_one({"plan_id": plan_id})
+    if not existing_plan:
+        # Try finding by MongoDB ObjectId if plan_id doesn't work
+        try:
+            existing_plan = await plans_collection.find_one({"_id": ObjectId(plan_id)})
+        except:
+            pass
+    
+    if not existing_plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Subscription plan not found"
+        )
+    
+    # Get the actual plan_id for system plan checks
+    actual_plan_id = existing_plan.get("plan_id")
+    
+    # Cannot delete system plans
+    if actual_plan_id in SYSTEM_PLAN_IDS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot delete system subscription plans"
+        )
+    
+    # Check if any clinics are using this plan
+    clinics_using_plan = await clinics_collection.count_documents({
+        "subscription_plan": actual_plan_id
+    })
+    
+    if clinics_using_plan > 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot delete plan. {clinics_using_plan} clinics are currently using this plan"
+        )
+    
+    # Delete plan using the correct identifier
+    if "plan_id" in existing_plan:
+        await plans_collection.delete_one({"plan_id": existing_plan["plan_id"]})
+    else:
+        await plans_collection.delete_one({"_id": existing_plan["_id"]})
+    
+    return {"message": "Subscription plan deleted successfully"}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building2, Loader2, X, Clock, DollarSign, Users, Calendar, Plus, Trash2, Settings, Palette, Zap, UserCheck } from 'lucide-react';
 import { generateClinicId } from '@/lib/uniqueId';
+import { subscriptionPlansApi } from '@/lib/clinicApi';
 
 interface ClinicCreateModalProps {
   onClinicCreated: () => void;
@@ -166,6 +167,7 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('basic');
+  const [availablePlans, setAvailablePlans] = useState<any[]>([]);
   
   const [formData, setFormData] = useState({
     clinic_id: '',
@@ -225,6 +227,30 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
   ]);
   
   const [customPatientFields, setCustomPatientFields] = useState<PatientField[]>([]);
+
+  // Load available subscription plans
+  useEffect(() => {
+    const loadPlans = async () => {
+      try {
+        const plans = await subscriptionPlansApi.getAll();
+        setAvailablePlans(plans);
+        console.log('✅ Planes cargados:', plans);
+      } catch (error) {
+        console.error('❌ Error cargando planes:', error);
+        // Fallback a planes hardcodeados si la API falla
+        setAvailablePlans([
+          { plan_id: 'trial', name: 'Trial', price: 0, description: 'Gratuito' },
+          { plan_id: 'basic', name: 'Básico', price: 29.99, description: 'Plan básico' },
+          { plan_id: 'premium', name: 'Premium', price: 59.99, description: 'Plan premium' },
+          { plan_id: 'enterprise', name: 'Empresarial', price: 99.99, description: 'Plan empresarial' }
+        ]);
+      }
+    };
+
+    if (open) {
+      loadPlans();
+    }
+  }, [open]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -718,10 +744,20 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
                               required
                               disabled={loading}
                             >
-                              <option value="trial">Trial (Gratuito)</option>
-                              <option value="basic">Básico ($29.99/mes)</option>
-                              <option value="premium">Premium ($59.99/mes)</option>
-                              <option value="enterprise">Empresarial ($99.99/mes)</option>
+                              {availablePlans.length > 0 ? (
+                                availablePlans.map((plan) => (
+                                  <option key={plan.plan_id} value={plan.plan_id}>
+                                    {plan.name} ({plan.price > 0 ? `$${plan.price}/mes` : 'Gratuito'})
+                                  </option>
+                                ))
+                              ) : (
+                                <>
+                                  <option value="trial">Trial (Gratuito)</option>
+                                  <option value="basic">Básico ($29.99/mes)</option>
+                                  <option value="premium">Premium ($59.99/mes)</option>
+                                  <option value="enterprise">Empresarial ($99.99/mes)</option>
+                                </>
+                              )}
                             </select>
                           </div>
 
