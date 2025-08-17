@@ -1,181 +1,118 @@
-cirolinux@cirolinux:/opt/dashboard-clinica/scripts$ ./production-complete-restart.sh
+🚨 CLINIC SYSTEM - RESTART LOOP DIAGNOSTIC
+============================================
 
-🔄 CLINIC SYSTEM - PRODUCTION COMPLETE RESTART
-==============================================
-
-⚠️ IMPORTANTE: Este script aplicará TODAS las mejoras de reestructuración
-   - Detendrá servicios obsoletos
-   - Aplicará configuraciones de producción
-   - Conectará a DB externa: 192.168.1.23:60516
-   - Configurará URLs de producción: pampaservers.com
-
-¿Continuar con restart completo? (y/N): y
-
-📊 ESTADO ACTUAL:
+📊 Estado actual de contenedores:
 NAMES                    STATUS                          PORTS
-clinic-frontend-client   Restarting (1) 25 seconds ago
+clinic-frontend-client   Restarting (1) 39 seconds ago
+clinic-admin-system      Restarting (3) 17 seconds ago
 cms-clinica              Up 3 days                       0.0.0.0:60520->1337/tcp, [::]:60520->1337/tcp
 
-🛑 PASO 1: Deteniendo TODOS los servicios clinic
-================================================
-Deteniendo clinic-frontend-client...
-clinic-frontend-client
-Deteniendo clinic-backend-api...
-Ya detenido
-Deteniendo clinic-admin-frontend...
-Ya detenido
-Deteniendo clinic-admin-system...
-Ya detenido
-Deteniendo clinic-admin-mongodb...
-Ya detenido
+🔍 DIAGNÓSTICO ADMIN SYSTEM
+============================
+📋 Últimos logs del admin system:
+  File "/usr/local/lib/python3.11/site-packages/pymongo/auth.py", line 257, in _authenticate_scram
+    res = conn.command(source, cmd)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymongo/helpers.py", line 322, in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymongo/pool.py", line 968, in command
+    return command(
+           ^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pymongo/network.py", line 192, in command
+    helpers._check_command_response(
+  File "/usr/local/lib/python3.11/site-packages/pymongo/helpers.py", line 230, in _check_command_response
+    raise OperationFailure(errmsg, code, response, max_wire_version)
+pymongo.errors.OperationFailure: Authentication failed., full error: {'ok': 0.0, 'errmsg': 'Authentication failed.', 'code': 18, 'codeName': 'AuthenticationFailed'}
 
-🧹 PASO 2: Limpiando contenedores detenidos
-============================================
-Deleted Containers:
-f82bcb5a26e30e85c58859ce1aa20c4d86f2a99b9cd2d1604140fba961c7e56d
+ERROR:    Application startup failed. Exiting.
+Found UNIFIED frontend at static/admin
+Mounted admin assets at /admin/assets
+Starting Clinic Admin Backend...
+Error connecting to MongoDB: Authentication failed., full error: {'ok': 0.0, 'errmsg': 'Authentication failed.', 'code': 18, 'codeName': 'AuthenticationFailed'}
 
-Total reclaimed space: 1.867kB
+🔍 Errores específicos:
+ERROR:    Application startup failed. Exiting.
+Error connecting to MongoDB: Authentication failed., full error: {'ok': 0.0, 'errmsg': 'Authentication failed.', 'code': 18, 'codeName': 'AuthenticationFailed'}
+ERROR:    Traceback (most recent call last):
+pymongo.errors.OperationFailure: Authentication failed., full error: {'ok': 0.0, 'errmsg': 'Authentication failed.', 'code': 18, 'codeName': 'AuthenticationFailed'}
+ERROR:    Application startup failed. Exiting.
+Error connecting to MongoDB: Authentication failed., full error: {'ok': 0.0, 'errmsg': 'Authentication failed.', 'code': 18, 'codeName': 'AuthenticationFailed'}
+ERROR:    Traceback (most recent call last):
+pymongo.errors.OperationFailure: Authentication failed., full error: {'ok': 0.0, 'errmsg': 'Authentication failed.', 'code': 18, 'codeName': 'AuthenticationFailed'}
+ERROR:    Application startup failed. Exiting.
+Error connecting to MongoDB: Authentication failed., full error: {'ok': 0.0, 'errmsg': 'Authentication failed.', 'code': 18, 'codeName': 'AuthenticationFailed'}
 
-🔧 PASO 3: Verificando conectividad con DB de producción
-=======================================================
-Verificando conexión a 192.168.1.23:60516...
-✅ IP accesible
+🔧 Variables de entorno del contenedor:
+Error response from daemon: Container f61f67e9bd458da9715340a26be497a33232c01f59642008af43ead105e7c3e3 is restarting, wait until the container is running
+No se puede acceder - contenedor reiniciando
 
-📝 PASO 4: Configurando variables de producción
-===============================================
-Creando .env de producción...
-✅ Configuración de producción creada
+🔍 DIAGNÓSTICO FRONTEND CLIENT
+===============================
+📋 Últimos logs del frontend client:
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
+10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs from the packaged version
+/docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
+/docker-entrypoint.sh: Configuration complete; ready for start up
+2025/08/17 00:02:24 [emerg] 1#1: host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:31
+nginx: [emerg] host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:31
+/docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
+/docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
+10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs from the packaged version
+/docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
+/docker-entrypoint.sh: Configuration complete; ready for start up
+2025/08/17 00:03:25 [emerg] 1#1: host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:31
+nginx: [emerg] host not found in upstream "host.docker.internal" in /etc/nginx/conf.d/default.conf:31
 
-🔧 PASO 5: Actualizando docker-compose para producción
-======================================================
-Creando docker-compose.production.yml...
-✅ docker-compose.production.yml creado
+🔍 Errores específicos:
 
-🚀 PASO 6: Iniciando Admin System con configuración de producción
-==================================================================
-[+] Building 210.1s (25/25) FINISHED
- => [internal] load local bake definitions                                                                                                                                              0.0s
- => => reading from stdin 595B                                                                                                                                                          0.0s
- => [internal] load build definition from Dockerfile.admin                                                                                                                              0.2s
- => => transferring dockerfile: 1.20kB                                                                                                                                                  0.0s
- => [internal] load metadata for docker.io/library/node:18-alpine                                                                                                                       1.6s
- => [internal] load metadata for docker.io/library/python:3.11-slim                                                                                                                     1.6s
- => [auth] library/node:pull token for registry-1.docker.io                                                                                                                             0.0s
- => [auth] library/python:pull token for registry-1.docker.io                                                                                                                           0.0s
- => [internal] load .dockerignore                                                                                                                                                       0.2s
- => => transferring context: 1.22kB                                                                                                                                                     0.0s
- => CACHED [stage-1 1/9] FROM docker.io/library/python:3.11-slim@sha256:9e885f8239c31f8429448f933638dd13037c9119e2a362aeebdd37ec3bee7c85                                                0.0s
- => [frontend-builder 1/6] FROM docker.io/library/node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e                                                0.0s
- => [internal] load build context                                                                                                                                                       0.3s
- => => transferring context: 10.36kB                                                                                                                                                    0.0s
- => [stage-1 2/9] RUN apt-get update && apt-get install -y     gcc     curl     && rm -rf /var/lib/apt/lists/*                                                                         76.7s
- => CACHED [frontend-builder 2/6] WORKDIR /app/frontend-admin                                                                                                                           0.0s
- => CACHED [frontend-builder 3/6] COPY frontend-admin/package*.json ./                                                                                                                  0.0s
- => [frontend-builder 4/6] RUN npm install                                                                                                                                             22.8s
- => [frontend-builder 5/6] COPY frontend-admin/ ./                                                                                                                                      1.8s
- => [frontend-builder 6/6] RUN npm run build                                                                                                                                           14.2s
- => [stage-1 3/9] WORKDIR /app                                                                                                                                                          1.0s
- => [stage-1 4/9] COPY requirements.txt .                                                                                                                                               1.0s
- => [stage-1 5/9] RUN pip install --no-cache-dir -r requirements.txt                                                                                                                  106.9s
- => [stage-1 6/9] COPY app/ ./app/                                                                                                                                                      0.9s
- => [stage-1 7/9] COPY main.py .                                                                                                                                                        0.8s
- => [stage-1 8/9] COPY --from=frontend-builder /app/frontend-admin/dist ./static/admin                                                                                                  1.3s
- => [stage-1 9/9] RUN mkdir -p uploads                                                                                                                                                  1.5s
- => exporting to image                                                                                                                                                                 16.3s
- => => exporting layers                                                                                                                                                                15.8s
- => => writing image sha256:dd86642371c3ea9af4c01106e28d44e4f35b5281bb3b6b60a1a4f5524f123057                                                                                            0.1s
- => => naming to docker.io/library/clinic-admin-backend-admin-system                                                                                                                    0.1s
- => resolving provenance for metadata file                                                                                                                                              0.0s
-[+] Running 4/4
- ✔ clinic-admin-backend-admin-system            Built                                                                                                                                   0.0s
- ✔ Network clinic-admin-backend_admin-network   Created                                                                                                                                 0.4s
- ✔ Volume "clinic-admin-backend_admin_uploads"  Created                                                                                                                                 0.1s
- ✔ Container clinic-admin-system                Started                                                                                                                                 3.5s
+🌐 CONECTIVIDAD EXTERNA
+=======================
+Verificando conectividad a MongoDB externa...
+✅ IP 192.168.1.23 accesible
 
-⏳ Esperando que el sistema esté listo...
+Verificando puerto MongoDB (60516)...
+✅ Puerto 60516 abierto
 
-🚀 PASO 7: Iniciando Frontend Client con configuración de producción
-=====================================================================
-Actualizando configuración de frontend client...
-[+] Running 1/1
- ✔ Container clinic-frontend-client  Started                                                                                                                                            2.2s
+Verificando conectividad MongoDB desde este servidor...
+⚠️ MongoDB no conecta (puede ser normal si mongosh no está instalado)
 
-⏳ Esperando que frontend client esté listo...
+🔍 ANÁLISIS DE CONFIGURACIONES
+===============================
+Verificando archivos de configuración creados...
+✅ .env.prod existe
+Contenido de MONGODB_URL:
+MONGODB_URL=mongodb://root:servermuenpampa2025A!@192.168.1.23:60516/clinic_admin?authSource=admin
 
-📊 PASO 8: Verificando estado final
-===================================
-=== CONTENEDORES ACTIVOS ===
-NAMES                    STATUS                                  PORTS
-clinic-frontend-client   Restarting (1) Less than a second ago
-clinic-admin-system      Up 2 seconds (health: starting)         0.0.0.0:60519->8000/tcp, [::]:60519->8000/tcp
-cms-clinica              Up 3 days                               0.0.0.0:60520->1337/tcp, [::]:60520->1337/tcp
+✅ docker-compose.production.yml existe
+Verificando MONGODB_URL en docker-compose:
+      # Base de datos externa
+      MONGODB_URL: mongodb://root:servermuenpampa2025A!@192.168.1.23:60516/clinic_admin?authSource=admin
 
-=== HEALTH CHECKS ===
-Verificando Admin System (60519)...
-❌ Admin System Error
-Verificando Frontend Client (60521)...
-❌ Frontend Client Error
 
-=== CONECTIVIDAD INTERNA ===
-Verificando servicios internos...
-(Not all processes could be identified, non-owned process info
- will not be shown, you would have to be root to see it all.)
-✅ Puerto 60519 abierto
-(Not all processes could be identified, non-owned process info
- will not be shown, you would have to be root to see it all.)
-⚠️ Puerto 60521 no disponible
+📋 RECURSOS DEL SISTEMA
+=======================
+Memoria disponible:
+Usado: 4,3Gi/8,7Gi - Disponible: 4,4Gi
 
-✅ RESTART COMPLETO FINALIZADO
-==============================
+Espacio en disco:
+Uso: 77% - Disponible: 11G
 
-🌐 URLs DE PRODUCCIÓN:
-   🔧 API Backend:       http://pampaservers.com:60519
-   📚 API Docs:          http://pampaservers.com:60519/docs
-   🏥 Admin Dashboard:   http://pampaservers.com:60519/admin
-   👥 Client Dashboard:  http://pampaservers.com:60521
+Procesos usando puertos relevantes:
+Ningún proceso en puertos relevantes
 
-🔐 Credenciales Admin:
-   Usuario: admin
-   Contraseña: admin123
+💡 RECOMENDACIONES BASADAS EN ANÁLISIS:
+======================================
+🔧 PROBLEMA DETECTADO: Error de conexión a MongoDB
+   Solución: Verificar configuración de MONGODB_URL y conectividad
 
-📋 Para acceder al ApiDocumentationModal:
-   1. Ir a http://pampaservers.com:60519/admin
-   2. Login con credenciales admin
-   3. Tab 'Clínicas' → Botón 'Documentación'
-
-🗄️ Base de datos:
-   Host: 192.168.1.23:60516
-   Usuario: root
-   Password: servermuenpampa2025A!
-   Comando: docker exec -it mongodb mongosh -u root -p servermuenpampa2025A! --authenticationDatabase admin
-
-📁 Archivos creados:
-   - clinic-admin-backend/.env.prod
-   - clinic-admin-backend/docker-compose.production.yml
-   - docker-compose.client-prod.yml
-
-🎉 TODOS LOS CAMBIOS DE REESTRUCTURACIÓN APLICADOS
-==================================================
-
-✅ Sistema completamente actualizado con:
-   - Conexión a DB externa de producción
-   - URLs de producción configuradas
-   - API Keys de producción
-   - CORS actualizado
-   - Todas las mejoras implementadas
-
-Presiona Enter para continuar...^C
-cirolinux@cirolinux:/opt/dashboard-clinica/scripts$ docker ps
-CONTAINER ID   IMAGE                                 COMMAND                  CREATED         STATUS                                  PORTS                                                     NAMES
-cdea9fcbf358   dashboard-clinica-frontend-client     "/docker-entrypoint.…"   3 minutes ago   Restarting (1) Less than a second ago                                                             clinic-frontend-client
-f61f67e9bd45   clinic-admin-backend-admin-system     "python -m uvicorn m…"   3 minutes ago   Restarting (3) 53 seconds ago                                                                     clinic-admin-system
-c9af56e9deea   docker.n8n.io/n8nio/n8n               "tini -- /docker-ent…"   2 days ago      Up 2 days                               0.0.0.0:60514->5678/tcp, [::]:60514->5678/tcp             n8n
-ef0301eab030   cms-clinica                           "docker-entrypoint.s…"   4 weeks ago     Up 3 days                               0.0.0.0:60520->1337/tcp, [::]:60520->1337/tcp             cms-clinica
-135bb8fca5e6   devlikeapro/waha-plus:latest          "/usr/bin/tini -- /e…"   6 weeks ago     Up 3 days (unhealthy)                   0.0.0.0:60513->3000/tcp, [::]:60513->3000/tcp             waha-plus
-fb6aab86fd12   mongo-express:1.0.2                   "/sbin/tini -- /dock…"   6 weeks ago     Up 3 days                               0.0.0.0:60517->8081/tcp, [::]:60517->8081/tcp             mongo-express
-abf54630e862   mongo:7.0                             "docker-entrypoint.s…"   6 weeks ago     Up 3 days                               0.0.0.0:60516->27017/tcp, [::]:60516->27017/tcp           mongodb
-f1322c2854a3   redis:7.2-alpine                      "docker-entrypoint.s…"   6 weeks ago     Up 3 days                               0.0.0.0:60515->6379/tcp, [::]:60515->6379/tcp             redis-standalone
-40eda66fd12c   ghcr.io/gitroomhq/postiz-app:latest   "docker-entrypoint.s…"   6 weeks ago     Up 3 days                               4200/tcp, 0.0.0.0:60518->5000/tcp, [::]:60518->5000/tcp   postiz
-3797af74915d   redis:7.2                             "docker-entrypoint.s…"   6 weeks ago     Up 3 days (healthy)                     6379/tcp                                                  postiz-redis
-263faa2bcb34   postgres:17-alpine                    "docker-entrypoint.s…"   6 weeks ago     Up 3 days (healthy)                     5432/tcp                                                  postiz-postgres
-cirolinux@cirolinux:/opt/dashboard-clinica/scripts$
+📋 SIGUIENTE PASO RECOMENDADO:
+Ejecutar: ./fix-restart-issues.sh (próximo script a crear)
+Presiona Enter para continuar...
