@@ -39,6 +39,7 @@ import ClinicCreateModal from './ClinicCreateModal';
 import ClinicEditModal from './ClinicEditModal';
 import ProfessionalManagementModal from './ProfessionalManagementModal';
 import SubscriptionCreateModal from './SubscriptionCreateModal';
+import SimpleSubscriptionCreateModal from './SimpleSubscriptionCreateModal';
 import SubscriptionEditModal from './SubscriptionEditModal';
 import EnhancedSubscriptionUpgradeModal from './EnhancedSubscriptionUpgradeModal';
 import EnhancedPaymentManagementModal from './EnhancedPaymentManagementModal';
@@ -954,6 +955,7 @@ export default function AdminDashboard({ adminUser, onLogout }: AdminDashboardPr
                     </CardDescription>
                   </div>
                   <SubscriptionCreateModal onSubscriptionCreated={handleSubscriptionCreated} />
+                  <SimpleSubscriptionCreateModal onSubscriptionCreated={handleSubscriptionCreated} />
                 </div>
               </CardHeader>
               <CardContent>
