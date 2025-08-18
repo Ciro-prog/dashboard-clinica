@@ -1075,7 +1075,7 @@ export default function AdminDashboard({ adminUser, onLogout }: AdminDashboardPr
       )}
 
       {/* Enhanced Subscription Upgrade Modal */}
-      {selectedClinicForUpgrade && (
+      {selectedClinicForUpgrade && plans[selectedClinicForUpgrade.subscription_plan] && (
         <EnhancedSubscriptionUpgradeModal
           clinic={selectedClinicForUpgrade}
           currentPlan={plans[selectedClinicForUpgrade.subscription_plan]}
@@ -1084,6 +1084,27 @@ export default function AdminDashboard({ adminUser, onLogout }: AdminDashboardPr
           onClose={() => setSelectedClinicForUpgrade(null)}
           onUpgradeCompleted={handleUpgradeCompleted}
         />
+      )}
+      
+      {/* Error state cuando no existe el plan */}
+      {selectedClinicForUpgrade && !plans[selectedClinicForUpgrade.subscription_plan] && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-slate-800 p-6 rounded-lg border border-slate-600 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-slate-100 mb-2">Error de Plan</h3>
+            <p className="text-slate-300 text-sm mb-4">
+              El plan de suscripción "{selectedClinicForUpgrade.subscription_plan}" no existe o no se ha cargado correctamente.
+            </p>
+            <p className="text-slate-400 text-xs mb-4">
+              Planes disponibles: {Object.keys(plans).join(', ') || 'Ninguno'}
+            </p>
+            <Button
+              onClick={() => setSelectedClinicForUpgrade(null)}
+              className="w-full bg-medical-500 hover:bg-medical-600"
+            >
+              Cerrar
+            </Button>
+          </div>
+        </div>
       )}
 
       {/* Enhanced Payment Management Modal */}

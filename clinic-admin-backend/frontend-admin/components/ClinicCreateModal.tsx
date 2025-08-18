@@ -71,6 +71,7 @@ interface BrandingData {
 }
 
 interface PatientField {
+  id?: string; // Unique identifier for React key stability
   field_name: string;
   field_label: string;
   field_type: string;
@@ -328,11 +329,29 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
       setLoading(true);
       setError(null);
       
-      console.log('🏥 Creando nueva clínica:', { formData, services, schedule, contactInfo });
+      console.log('🏥 Iniciando creación de clínica...');
+      console.log('📋 FormData:', formData);
+      console.log('⚕️ Services:', services);
+      console.log('📅 Schedule:', schedule);
+      console.log('📞 ContactInfo:', contactInfo);
       
       const token = localStorage.getItem('admin_token');
       if (!token) {
         throw new Error('Token de administrador no encontrado');
+      }
+
+      // Validate required fields
+      if (!formData.name_clinic || !formData.clinic_id || !formData.email) {
+        throw new Error('Campos requeridos faltantes: nombre de clínica, ID y email son obligatorios');
+      }
+
+      // Validate custom patient fields
+      const incompleteFields = customPatientFields.filter(field => 
+        field.field_name.trim() === '' || field.field_label.trim() === ''
+      );
+      
+      if (incompleteFields.length > 0) {
+        console.warn('⚠️ Campos de pacientes incompletos encontrados, serán filtrados:', incompleteFields);
       }
 
       // Create clinic with all data
@@ -345,19 +364,24 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
         subscription_features: subscriptionFeatures,
         branding,
         patient_form_fields: patientFields,
-        custom_patient_fields: customPatientFields.map(field => ({
-          field_name: field.field_name,
-          field_label: field.field_label,
-          field_type: field.field_type,
-          is_required: field.is_required,
-          is_visible: field.is_visible,
-          validation_rules: {},
-          options: field.options || null,
-          placeholder: field.placeholder || null,
-          help_text: field.help_text || null,
-          order: 0
-        }))
+        custom_patient_fields: customPatientFields
+          .filter(field => field.field_name.trim() !== '' && field.field_label.trim() !== '') // Filter empty fields
+          .map(field => ({
+            field_name: field.field_name.trim(),
+            field_label: field.field_label.trim(),
+            field_type: field.field_type,
+            is_required: field.is_required,
+            is_visible: field.is_visible,
+            validation_rules: {},
+            options: field.options || null,
+            placeholder: field.placeholder?.trim() || null,
+            help_text: field.help_text?.trim() || null,
+            order: 0
+          }))
       };
+
+      console.log('📤 Enviando datos al backend:', JSON.stringify(clinicData, null, 2));
+      console.log('📊 Tamaño del payload:', new Blob([JSON.stringify(clinicData)]).size, 'bytes');
 
       const response = await fetch('/api/admin/clinics', {
         method: 'POST',
@@ -371,9 +395,11 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
       if (!response.ok) {
         const errorData = await response.text();
         console.error('❌ Error creando clínica:', response.status, errorData);
+        console.error('❌ Response headers:', [...response.headers.entries()]);
         
         try {
           const errorJson = JSON.parse(errorData);
+          console.error('❌ Parsed error:', errorJson);
           
           // Handle limit errors specifically
           if (errorJson.detail && errorJson.detail.includes('limit reached')) {
@@ -384,7 +410,12 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
           if (errorJson.detail) {
             throw new Error(errorJson.detail);
           }
+          
+          // Use detailed error message from backend if available
+          throw new Error(errorJson.message || `Error ${response.status} del servidor`);
+          
         } catch (parseError) {
+          console.error('❌ Error parsing response:', parseError);
           // If JSON parsing fails, fall back to current logic
         }
         
@@ -392,6 +423,8 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
           throw new Error('Datos inválidos o clínica ya existe con ese ID/email');
         } else if (response.status === 401) {
           throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente');
+        } else if (response.status === 500) {
+          throw new Error('Error interno del servidor (500). Verifica que todos los campos estén completados correctamente y que el backend esté funcionando');
         } else {
           throw new Error(`Error del servidor: ${response.status}`);
         }
@@ -566,7 +599,9 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
   };
   
   const addCustomPatientField = () => {
+    const fieldId = `field_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const newField: PatientField = {
+      id: fieldId,
       field_name: `custom_${Date.now()}`,
       field_label: '',
       field_type: 'text',
@@ -1381,30 +1416,43 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
                             </Button>
                           </div>
                           
-                          {customPatientFields.map((field, index) => (
-                            <div key={`custom-field-${index}-${field.field_name || 'unnamed'}`} className="p-3 bg-slate-800 rounded-lg border border-slate-600">
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                <div className="space-y-2">
-                                  <Label className="text-slate-200 text-sm">Nombre del Campo</Label>
-                                  <Input
-                                    value={field.field_name}
-                                    onChange={(e) => updateCustomPatientField(index, 'field_name', e.target.value)}
-                                    placeholder="campo_personalizado"
-                                    className="bg-slate-700 border-slate-600 text-slate-100"
-                                    disabled={loading}
-                                  />
-                                </div>
-                                
-                                <div className="space-y-2">
-                                  <Label className="text-slate-200 text-sm">Etiqueta</Label>
-                                  <Input
-                                    value={field.field_label}
-                                    onChange={(e) => updateCustomPatientField(index, 'field_label', e.target.value)}
-                                    placeholder="Campo Personalizado"
-                                    className="bg-slate-700 border-slate-600 text-slate-100"
-                                    disabled={loading}
-                                  />
-                                </div>
+                          {customPatientFields.map((field, index) => {
+                            const hasEmptyName = field.field_name.trim() === '';
+                            const hasEmptyLabel = field.field_label.trim() === '';
+                            const isIncomplete = hasEmptyName || hasEmptyLabel;
+                            
+                            return (
+                              <div key={field.id || `custom-field-${index}`} className={`p-3 rounded-lg border ${isIncomplete ? 'bg-red-900/20 border-red-500/50' : 'bg-slate-800 border-slate-600'}`}>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                  <div className="space-y-2">
+                                    <Label className="text-slate-200 text-sm">
+                                      Nombre del Campo
+                                      {hasEmptyName && <span className="text-red-400 ml-1">*</span>}
+                                    </Label>
+                                    <Input
+                                      value={field.field_name}
+                                      onChange={(e) => updateCustomPatientField(index, 'field_name', e.target.value)}
+                                      placeholder="campo_personalizado"
+                                      className={`bg-slate-700 text-slate-100 ${hasEmptyName ? 'border-red-500 focus:border-red-400' : 'border-slate-600'}`}
+                                      disabled={loading}
+                                    />
+                                    {hasEmptyName && <p className="text-red-400 text-xs">Campo requerido</p>}
+                                  </div>
+                                  
+                                  <div className="space-y-2">
+                                    <Label className="text-slate-200 text-sm">
+                                      Etiqueta
+                                      {hasEmptyLabel && <span className="text-red-400 ml-1">*</span>}
+                                    </Label>
+                                    <Input
+                                      value={field.field_label}
+                                      onChange={(e) => updateCustomPatientField(index, 'field_label', e.target.value)}
+                                      placeholder="Campo Personalizado"
+                                      className={`bg-slate-700 text-slate-100 ${hasEmptyLabel ? 'border-red-500 focus:border-red-400' : 'border-slate-600'}`}
+                                      disabled={loading}
+                                    />
+                                    {hasEmptyLabel && <p className="text-red-400 text-xs">Campo requerido</p>}
+                                  </div>
                                 
                                 <div className="space-y-2">
                                   <Label className="text-slate-200 text-sm">Tipo</Label>
@@ -1450,7 +1498,8 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
                                 </div>
                               </div>
                             </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </CardContent>
                     </Card>

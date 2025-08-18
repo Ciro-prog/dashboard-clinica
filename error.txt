@@ -1,23 +1,26 @@
-index-tPC9xF-F.js:40 TypeError: Cannot read properties of undefined (reading 'name')
-    at bT (index-tPC9xF-F.js:349:39331)
-    at df (index-tPC9xF-F.js:38:16998)
-    at Kg (index-tPC9xF-F.js:40:44030)
-    at Vg (index-tPC9xF-F.js:40:39766)
-    at KN (index-tPC9xF-F.js:40:39694)
-    at ml (index-tPC9xF-F.js:40:39547)
-    at Zd (index-tPC9xF-F.js:40:35914)
-    at wm (index-tPC9xF-F.js:40:36717)
-    at Ur (index-tPC9xF-F.js:38:3274)
-    at index-tPC9xF-F.js:40:34246
-index-tPC9xF-F.js:349 Uncaught TypeError: Cannot read properties of undefined (reading 'name')
-    at bT (index-tPC9xF-F.js:349:39331)
-    at df (index-tPC9xF-F.js:38:16998)
-    at Kg (index-tPC9xF-F.js:40:44030)
-    at Vg (index-tPC9xF-F.js:40:39766)
-    at KN (index-tPC9xF-F.js:40:39694)
-    at ml (index-tPC9xF-F.js:40:39547)
-    at Zd (index-tPC9xF-F.js:40:35914)
-    at wm (index-tPC9xF-F.js:40:36717)
-    at Ur (index-tPC9xF-F.js:38:3274)
-    at index-tPC9xF-F.js:40:34246
+index-D4G6SDTs.js:349 ❌ EnhancedSubscriptionUpgradeModal: Missing required props 
+{clinic: true, currentPlan: false, availablePlans: true}
+bT	@	index-D4G6SDTs.js:349
+df	@	index-D4G6SDTs.js:38
+Kg	@	index-D4G6SDTs.js:40
+Hg	@	index-D4G6SDTs.js:40
+KN	@	index-D4G6SDTs.js:40
+ml	@	index-D4G6SDTs.js:40
+wm	@	index-D4G6SDTs.js:40
+Ur	@	index-D4G6SDTs.js:38
+(anonymous)	@	index-D4G6SDTs.js:40
+
+index-D4G6SDTs.js:349 ❌ EnhancedSubscriptionUpgradeModal: Missing required props 
+{clinic: true, currentPlan: false, availablePlans: true}
+index-D4G6SDTs.js:349 ❌ EnhancedSubscriptionUpgradeModal: Missing required props 
+{clinic: true, currentPlan: false, availablePlans: true}
 ﻿
+-------------------------------- y log de creacion de cuenta
+
+🏥 Creando nueva clínica: Object
+api/admin/clinics:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)Understand this error
+index-D4G6SDTs.js:343 ❌ Error creando clínica: 500 Internal Server Error
+I @ index-D4G6SDTs.js:343Understand this error
+index-D4G6SDTs.js:343 ❌ Error en creación de clínica: Error: Error del servidor: 500
+    at I (index-D4G6SDTs.js:343:39367)
+I @ index-D4G6SDTs.js:343Understand this error
