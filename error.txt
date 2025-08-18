@@ -1,25 +1,186 @@
-index-DtZg82sx.js:40 NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.
-    at Yd (index-DtZg82sx.js:40:25586)
-    at Yd (index-DtZg82sx.js:40:25661)
-    at Yd (index-DtZg82sx.js:40:25661)
-    at hn (index-DtZg82sx.js:40:30812)
-    at Lg (index-DtZg82sx.js:40:27650)
-    at Kt (index-DtZg82sx.js:40:27529)
-    at Lg (index-DtZg82sx.js:40:27839)
-    at Kt (index-DtZg82sx.js:40:27529)
-    at Lg (index-DtZg82sx.js:40:27642)
-    at Kt (index-DtZg82sx.js:40:27529)
-
-index-DtZg82sx.js:40 Uncaught NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.
-    at Yd (index-DtZg82sx.js:40:25586)
-    at Yd (index-DtZg82sx.js:40:25661)
-    at Yd (index-DtZg82sx.js:40:25661)
-    at hn (index-DtZg82sx.js:40:30812)
-    at Lg (index-DtZg82sx.js:40:27650)
-    at Kt (index-DtZg82sx.js:40:27529)
-    at Lg (index-DtZg82sx.js:40:27839)
-    at Kt (index-DtZg82sx.js:40:27529)
-    at Lg (index-DtZg82sx.js:40:27642)
-    at Kt (index-DtZg82sx.js:40:27529)
-index-DtZg82sx.js:349 ✅ Suscripción creada exitosamente: 
-{plan_id: 'ciro-71f2d0', name: 'ciro', description: 'freee', 
+🔄 PASO 1: Iniciando guardado...
+index-cb-XM8bf.js:40 NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.
+    at Yd (index-cb-XM8bf.js:40:25586)
+    at Yd (index-cb-XM8bf.js:40:25661)
+    at Yd (index-cb-XM8bf.js:40:25661)
+    at hn (index-cb-XM8bf.js:40:30812)
+    at Lg (index-cb-XM8bf.js:40:27650)
+    at Wt (index-cb-XM8bf.js:40:27529)
+    at Lg (index-cb-XM8bf.js:40:27839)
+    at Wt (index-cb-XM8bf.js:40:27529)
+    at Lg (index-cb-XM8bf.js:40:27642)
+    at Wt (index-cb-XM8bf.js:40:27529)
+overrideMethod @ hook.js:608
+Bd @ index-cb-XM8bf.js:40
+n.callback @ index-cb-XM8bf.js:40
+tm @ index-cb-XM8bf.js:38
+xm @ index-cb-XM8bf.js:40
+$g @ index-cb-XM8bf.js:40
+VN @ index-cb-XM8bf.js:40
+qN @ index-cb-XM8bf.js:40
+Qr @ index-cb-XM8bf.js:40
+wm @ index-cb-XM8bf.js:40
+Ur @ index-cb-XM8bf.js:38
+(anonymous) @ index-cb-XM8bf.js:40Understand this error
+index-cb-XM8bf.js:40 Uncaught NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.
+    at Yd (index-cb-XM8bf.js:40:25586)
+    at Yd (index-cb-XM8bf.js:40:25661)
+    at Yd (index-cb-XM8bf.js:40:25661)
+    at hn (index-cb-XM8bf.js:40:30812)
+    at Lg (index-cb-XM8bf.js:40:27650)
+    at Wt (index-cb-XM8bf.js:40:27529)
+    at Lg (index-cb-XM8bf.js:40:27839)
+    at Wt (index-cb-XM8bf.js:40:27529)
+    at Lg (index-cb-XM8bf.js:40:27642)
+    at Wt (index-cb-XM8bf.js:40:27529)
+Yd @ index-cb-XM8bf.js:40
+Yd @ index-cb-XM8bf.js:40
+Yd @ index-cb-XM8bf.js:40
+hn @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+Wt @ index-cb-XM8bf.js:40
+Lg @ index-cb-XM8bf.js:40
+qN @ index-cb-XM8bf.js:40
+Qr @ index-cb-XM8bf.js:40
+wm @ index-cb-XM8bf.js:40
+Ur @ index-cb-XM8bf.js:38
+(anonymous) @ index-cb-XM8bf.js:40Understand this error
+index-cb-XM8bf.js:349 ✅ Suscripción creada exitosamente: {plan_id: 'frewww-b01bad', name: 'frewww', description: 'ffreee', price: 12, currency: 'USD', …}
+index-cb-XM8bf.js:349 ⏳ PASO 2: Esperando finalización del guardado...
+index-cb-XM8bf.js:349 🧹 PASO 3: Limpiando formulario...
+index-cb-XM8bf.js:349 🔄 PASO 4: Refrescando datos de suscripciones...
+index-cb-XM8bf.js:465 ✅ Suscripción creada - refrescando en segundo plano...
+index-cb-XM8bf.js:467 🔄 Actualizando datos silenciosamente...
+index-cb-XM8bf.js:349 ⏳ PASO 5: Esperando actualización de datos...
+index-cb-XM8bf.js:467 ✅ Datos actualizados silenciosamente
+index-cb-XM8bf.js:349 ❌ PASO 6: Cerrando modal...

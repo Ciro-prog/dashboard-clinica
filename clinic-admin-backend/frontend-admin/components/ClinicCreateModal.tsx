@@ -316,8 +316,13 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent | React.MouseEvent) => {
+    // Prevenir cualquier comportamiento por defecto
     e.preventDefault();
+    e.stopPropagation();
+    
+    // Evitar doble click
+    if (loading) return;
     
     try {
       setLoading(true);
@@ -623,7 +628,7 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
 
             {/* Contenido del formulario con tabs */}
             <div className="p-6">
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
                 {error && (
                   <Alert variant="destructive" className="bg-red-900/30 border-red-800 text-red-200">
                     <AlertDescription>{error}</AlertDescription>
@@ -1448,7 +1453,12 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
                     Cancelar
                   </Button>
                   <Button
-                    type="submit"
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleSubmit(e as any);
+                    }}
                     disabled={loading}
                     className="bg-medical-500 hover:bg-medical-600"
                   >

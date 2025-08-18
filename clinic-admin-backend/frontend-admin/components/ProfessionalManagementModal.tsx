@@ -150,10 +150,15 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
     }
   };
 
-  const handleCreateProfessional = async (e: React.FormEvent) => {
+  const handleCreateProfessional = async (e: React.FormEvent | React.MouseEvent) => {
+    // Prevenir cualquier comportamiento por defecto
     e.preventDefault();
+    e.stopPropagation();
     
     if (!isMountedRef.current) return;
+    
+    // Evitar doble click
+    if (creating) return;
     
     console.log('🔍 Form submission triggered, current formData:', formData);
     
@@ -308,10 +313,15 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
     setShowCreateForm(true);
   };
 
-  const handleUpdateProfessional = async (e: React.FormEvent) => {
+  const handleUpdateProfessional = async (e: React.FormEvent | React.MouseEvent) => {
+    // Prevenir cualquier comportamiento por defecto
     e.preventDefault();
+    e.stopPropagation();
     
     if (!editingProfessional || !isMountedRef.current) return;
+    
+    // Evitar doble click
+    if (updating) return;
     
     try {
       setCreating(true);
@@ -541,7 +551,7 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <form onSubmit={editingProfessional ? handleUpdateProfessional : handleCreateProfessional} className="space-y-4">
+                <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="first_name" className="text-slate-200">Nombre *</Label>
@@ -700,7 +710,13 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
                       Cancelar
                     </Button>
                     <Button
-                      type="submit"
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const handler = editingProfessional ? handleUpdateProfessional : handleCreateProfessional;
+                        handler(e as any);
+                      }}
                       disabled={creating}
                       className="bg-medical-500 hover:bg-medical-600"
                     >
