@@ -378,8 +378,27 @@ export default function AdminDashboard({ adminUser, onLogout }: AdminDashboardPr
     const clinicsCount = clinicsUsingPlan.length;
     
     if (clinicsCount > 0) {
-      const clinicsNames = clinicsUsingPlan.map(clinic => clinic.name_clinic).join(', ');
-      alert(`❌ No se puede eliminar este plan\n\nEste plan está siendo usado por ${clinicsCount} clínica${clinicsCount > 1 ? 's' : ''}:\n${clinicsNames}\n\nPara eliminar este plan, primero cambie estas clínicas a otro plan.`);
+      const clinicsNames = clinicsUsingPlan.map(clinic => clinic.name_clinic).join('\n• ');
+      const availablePlansForUpgrade = Object.entries(plans)
+        .filter(([planId, plan]) => planId !== subscriptionId)
+        .map(([planId, plan]) => `${plan.name} ($${plan.price}/mes)`)
+        .join('\n• ');
+      
+      const upgradeMessage = availablePlansForUpgrade 
+        ? `\n\n📈 Planes disponibles para upgrade:\n• ${availablePlansForUpgrade}\n\n💡 Recomendación: Haz upgrade de las clínicas a otro plan y luego podrás eliminar este plan.`
+        : '\n\n⚠️ No hay otros planes disponibles para hacer upgrade.';
+        
+      const confirmMessage = `❌ No se puede eliminar el plan "${subscriptionName}"\n\n🏥 Este plan está siendo usado por ${clinicsCount} clínica${clinicsCount > 1 ? 's' : ''}:\n• ${clinicsNames}${upgradeMessage}`;
+      
+      // Show detailed modal instead of simple alert
+      if (confirm(`${confirmMessage}\n\n¿Quieres ir al panel de clínicas para hacer upgrade ahora?`)) {
+        // Switch to clinics tab to show upgrade options
+        setActiveTab('clinics');
+        // Highlight the first clinic that needs upgrade
+        if (clinicsUsingPlan.length > 0) {
+          setSelectedClinicForUpgrade(clinicsUsingPlan[0]);
+        }
+      }
       return;
     }
     
@@ -413,7 +432,24 @@ export default function AdminDashboard({ adminUser, onLogout }: AdminDashboardPr
           if (errorJson.detail && errorJson.detail.includes('Cannot delete plan')) {
             const clinicsMatch = errorJson.detail.match(/(\d+) clinics? are currently using/);
             const clinicsCount = clinicsMatch ? clinicsMatch[1] : 'algunas';
-            throw new Error(`No se puede eliminar este plan porque ${clinicsCount} clínica${clinicsCount !== '1' ? 's' : ''} lo está${clinicsCount !== '1' ? 'n' : ''} usando actualmente. Para eliminar este plan, primero cambie las clínicas a otro plan.`);
+            
+            // Get clinics using this plan from frontend data
+            const planId = subscriptionId;
+            const clinicsUsingPlan = clinics.filter(clinic => clinic.subscription_plan === planId);
+            const clinicsNames = clinicsUsingPlan.map(clinic => clinic.name_clinic).join('\n• ');
+            
+            const availablePlansForUpgrade = Object.entries(plans)
+              .filter(([id, plan]) => id !== planId)
+              .map(([id, plan]) => `${plan.name} ($${plan.price}/mes)`)
+              .join('\n• ');
+            
+            const upgradeMessage = availablePlansForUpgrade 
+              ? `\n\n📈 Planes disponibles para upgrade:\n• ${availablePlansForUpgrade}\n\n💡 Recomendación: Haz upgrade de las clínicas a otro plan primero.`
+              : '\n\n⚠️ No hay otros planes disponibles.';
+            
+            const detailedError = `❌ No se puede eliminar este plan\n\n🏥 Clínicas que lo están usando:\n• ${clinicsNames}${upgradeMessage}`;
+            
+            throw new Error(detailedError);
           }
           
           // Use backend message if available
