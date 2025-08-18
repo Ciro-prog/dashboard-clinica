@@ -1,179 +1,23 @@
-🔄 PASO 1: Iniciando guardado...
-index-tPC9xF-F.js:40 NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.
-    at Yd (index-tPC9xF-F.js:40:25586)
-    at Yd (index-tPC9xF-F.js:40:25661)
-    at Yd (index-tPC9xF-F.js:40:25661)
-    at hn (index-tPC9xF-F.js:40:30812)
-    at Lg (index-tPC9xF-F.js:40:27650)
-    at Wt (index-tPC9xF-F.js:40:27529)
-    at Lg (index-tPC9xF-F.js:40:27839)
-    at Wt (index-tPC9xF-F.js:40:27529)
-    at Lg (index-tPC9xF-F.js:40:27642)
-    at Wt (index-tPC9xF-F.js:40:27529)
-overrideMethod @ hook.js:608
-Bd @ index-tPC9xF-F.js:40
-n.callback @ index-tPC9xF-F.js:40
-tm @ index-tPC9xF-F.js:38
-xm @ index-tPC9xF-F.js:40
-$g @ index-tPC9xF-F.js:40
-VN @ index-tPC9xF-F.js:40
-qN @ index-tPC9xF-F.js:40
-Qr @ index-tPC9xF-F.js:40
-wm @ index-tPC9xF-F.js:40
-Ur @ index-tPC9xF-F.js:38
-(anonymous) @ index-tPC9xF-F.js:40Understand this error
-index-tPC9xF-F.js:40 Uncaught NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.
-    at Yd (index-tPC9xF-F.js:40:25586)
-    at Yd (index-tPC9xF-F.js:40:25661)
-    at Yd (index-tPC9xF-F.js:40:25661)
-    at hn (index-tPC9xF-F.js:40:30812)
-    at Lg (index-tPC9xF-F.js:40:27650)
-    at Wt (index-tPC9xF-F.js:40:27529)
-    at Lg (index-tPC9xF-F.js:40:27839)
-    at Wt (index-tPC9xF-F.js:40:27529)
-    at Lg (index-tPC9xF-F.js:40:27642)
-    at Wt (index-tPC9xF-F.js:40:27529)
-Yd @ index-tPC9xF-F.js:40
-Yd @ index-tPC9xF-F.js:40
-Yd @ index-tPC9xF-F.js:40
-hn @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-Wt @ index-tPC9xF-F.js:40
-Lg @ index-tPC9xF-F.js:40
-qN @ index-tPC9xF-F.js:40
-Qr @ index-tPC9xF-F.js:40
-wm @ index-tPC9xF-F.js:40
-Ur @ index-tPC9xF-F.js:38
-(anonymous) @ index-tPC9xF-F.js:40Understand this error
-index-tPC9xF-F.js:349 ✅ Suscripción creada exitosamente: {plan_id: 'asd-106f8d', name: 'asd', description: 'freee', price: 1, currency: 'USD', …}
-index-tPC9xF-F.js:349 ⏳ PASO 2: Esperando finalización del guardado...
+index-tPC9xF-F.js:40 TypeError: Cannot read properties of undefined (reading 'name')
+    at bT (index-tPC9xF-F.js:349:39331)
+    at df (index-tPC9xF-F.js:38:16998)
+    at Kg (index-tPC9xF-F.js:40:44030)
+    at Vg (index-tPC9xF-F.js:40:39766)
+    at KN (index-tPC9xF-F.js:40:39694)
+    at ml (index-tPC9xF-F.js:40:39547)
+    at Zd (index-tPC9xF-F.js:40:35914)
+    at wm (index-tPC9xF-F.js:40:36717)
+    at Ur (index-tPC9xF-F.js:38:3274)
+    at index-tPC9xF-F.js:40:34246
+index-tPC9xF-F.js:349 Uncaught TypeError: Cannot read properties of undefined (reading 'name')
+    at bT (index-tPC9xF-F.js:349:39331)
+    at df (index-tPC9xF-F.js:38:16998)
+    at Kg (index-tPC9xF-F.js:40:44030)
+    at Vg (index-tPC9xF-F.js:40:39766)
+    at KN (index-tPC9xF-F.js:40:39694)
+    at ml (index-tPC9xF-F.js:40:39547)
+    at Zd (index-tPC9xF-F.js:40:35914)
+    at wm (index-tPC9xF-F.js:40:36717)
+    at Ur (index-tPC9xF-F.js:38:3274)
+    at index-tPC9xF-F.js:40:34246
+﻿

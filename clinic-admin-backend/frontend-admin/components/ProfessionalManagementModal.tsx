@@ -236,6 +236,13 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
             throw new Error('El número de matrícula ya está registrado. Usa un número diferente.');
           }
           
+          // Handle professional limit errors specifically
+          if (errorJson.detail && errorJson.detail.includes('Professional limit reached')) {
+            const match = errorJson.detail.match(/Professional limit reached \((\d+)\)/);
+            const currentLimit = match ? match[1] : 'límite';
+            throw new Error(`Has alcanzado el límite de profesionales de tu plan (${currentLimit}). Para agregar más profesionales, necesitas actualizar tu suscripción a un plan superior.`);
+          }
+          
           // Handle other specific errors
           if (errorJson.detail) {
             throw new Error(errorJson.detail);
@@ -358,6 +365,25 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
       if (!response.ok) {
         const errorData = await response.text();
         console.error('❌ Error actualizando profesional:', response.status, errorData);
+        
+        try {
+          const errorJson = JSON.parse(errorData);
+          
+          // Handle professional limit errors specifically
+          if (errorJson.detail && errorJson.detail.includes('Professional limit reached')) {
+            const match = errorJson.detail.match(/Professional limit reached \((\d+)\)/);
+            const currentLimit = match ? match[1] : 'límite';
+            throw new Error(`Has alcanzado el límite de profesionales de tu plan (${currentLimit}). Para agregar más profesionales, necesitas actualizar tu suscripción a un plan superior.`);
+          }
+          
+          // Handle other specific errors
+          if (errorJson.detail) {
+            throw new Error(errorJson.detail);
+          }
+        } catch (parseError) {
+          // If JSON parsing fails, fall back to generic error
+        }
+        
         throw new Error(`Error del servidor: ${response.status}`);
       }
 

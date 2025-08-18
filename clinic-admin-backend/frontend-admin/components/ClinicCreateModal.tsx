@@ -372,6 +372,22 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
         const errorData = await response.text();
         console.error('❌ Error creando clínica:', response.status, errorData);
         
+        try {
+          const errorJson = JSON.parse(errorData);
+          
+          // Handle limit errors specifically
+          if (errorJson.detail && errorJson.detail.includes('limit reached')) {
+            throw new Error(`Has alcanzado el límite de tu plan actual. Para agregar más elementos, necesitas actualizar tu suscripción a un plan superior.`);
+          }
+          
+          // Handle other specific errors
+          if (errorJson.detail) {
+            throw new Error(errorJson.detail);
+          }
+        } catch (parseError) {
+          // If JSON parsing fails, fall back to current logic
+        }
+        
         if (response.status === 400) {
           throw new Error('Datos inválidos o clínica ya existe con ese ID/email');
         } else if (response.status === 401) {
