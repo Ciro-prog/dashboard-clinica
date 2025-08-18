@@ -397,43 +397,34 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
         // Don't fail the entire operation
       }
       
-      // Enhanced DOM cleanup to prevent React reconciliation issues
-      const cleanupDOM = () => {
-        try {
-          // Force blur active element
-          if (document.activeElement && document.activeElement !== document.body) {
-            (document.activeElement as HTMLElement).blur();
-          }
-          
-          // Remove focus from form elements
-          const formElements = document.querySelectorAll('input, textarea, select, button');
-          formElements.forEach(element => {
-            if (element === document.activeElement) {
-              (element as HTMLElement).blur();
-            }
-          });
-        } catch (cleanupError) {
-          console.warn('⚠️ DOM cleanup warning:', cleanupError);
-        }
-      };
+      // PASO 2: Esperar finalización del guardado
+      console.log('⏳ PASO 2: Esperando finalización del guardado...');
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      cleanupDOM();
+      // PASO 3: Limpiar formulario
+      console.log('🧹 PASO 3: Limpiando formulario...');
+      resetForm();
       
-      // Use setTimeout to ensure DOM cleanup completes before state changes
-      setTimeout(() => {
-        // Cerrar modal y limpiar formulario
-        setOpen(false);
-        resetForm();
-        
-        // Notificar al componente padre para refrescar la lista
-        onClinicCreated();
-      }, 50); // Small delay to ensure DOM operations complete
+      // PASO 4: Notificar al padre para refrescar datos ANTES de cerrar modal
+      console.log('🔄 PASO 4: Refrescando datos de clínicas...');
+      onClinicCreated();
+      
+      // PASO 5: Esperar que se actualicen los datos
+      console.log('⏳ PASO 5: Esperando actualización de datos...');
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // PASO 6: Finalmente cerrar modal
+      console.log('❌ PASO 6: Cerrando modal...');
+      setOpen(false);
       
     } catch (err) {
       console.error('❌ Error en creación de clínica:', err);
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
-      setLoading(false);
+      // Solo quitar loading después de todo el proceso
+      setTimeout(() => {
+        setLoading(false);
+      }, 100);
     }
   };
 

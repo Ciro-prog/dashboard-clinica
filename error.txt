@@ -1,178 +1,25 @@
-💳 Creando nueva suscripción: {name: 'ciro', description: 'Free', price: '11', duration_days: '356', max_professionals: '1', …}
-index-DR4bjk3f.js:40 NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.
-    at Yd (index-DR4bjk3f.js:40:25586)
-    at Yd (index-DR4bjk3f.js:40:25661)
-    at Yd (index-DR4bjk3f.js:40:25661)
-    at hn (index-DR4bjk3f.js:40:30812)
-    at Lg (index-DR4bjk3f.js:40:27650)
-    at Wt (index-DR4bjk3f.js:40:27529)
-    at Lg (index-DR4bjk3f.js:40:27839)
-    at Wt (index-DR4bjk3f.js:40:27529)
-    at Lg (index-DR4bjk3f.js:40:27642)
-    at Wt (index-DR4bjk3f.js:40:27529)
-overrideMethod @ hook.js:608
-Bd @ index-DR4bjk3f.js:40
-n.callback @ index-DR4bjk3f.js:40
-tm @ index-DR4bjk3f.js:38
-xm @ index-DR4bjk3f.js:40
-$g @ index-DR4bjk3f.js:40
-VN @ index-DR4bjk3f.js:40
-qN @ index-DR4bjk3f.js:40
-Qr @ index-DR4bjk3f.js:40
-wm @ index-DR4bjk3f.js:40
-Ur @ index-DR4bjk3f.js:38
-(anonymous) @ index-DR4bjk3f.js:40Understand this error
-index-DR4bjk3f.js:40 Uncaught NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.
-    at Yd (index-DR4bjk3f.js:40:25586)
-    at Yd (index-DR4bjk3f.js:40:25661)
-    at Yd (index-DR4bjk3f.js:40:25661)
-    at hn (index-DR4bjk3f.js:40:30812)
-    at Lg (index-DR4bjk3f.js:40:27650)
-    at Wt (index-DR4bjk3f.js:40:27529)
-    at Lg (index-DR4bjk3f.js:40:27839)
-    at Wt (index-DR4bjk3f.js:40:27529)
-    at Lg (index-DR4bjk3f.js:40:27642)
-    at Wt (index-DR4bjk3f.js:40:27529)
-Yd @ index-DR4bjk3f.js:40
-Yd @ index-DR4bjk3f.js:40
-Yd @ index-DR4bjk3f.js:40
-hn @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-Wt @ index-DR4bjk3f.js:40
-Lg @ index-DR4bjk3f.js:40
-qN @ index-DR4bjk3f.js:40
-Qr @ index-DR4bjk3f.js:40
-wm @ index-DR4bjk3f.js:40
-Ur @ index-DR4bjk3f.js:38
-(anonymous) @ index-DR4bjk3f.js:40Understand this error
-index-DR4bjk3f.js:349 ✅ Suscripción creada exitosamente: {plan_id: 'ciro-c85c1f', name: 'ciro', description: 'Free', price: 11, currency: 'USD', …}
+index-DtZg82sx.js:40 NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.
+    at Yd (index-DtZg82sx.js:40:25586)
+    at Yd (index-DtZg82sx.js:40:25661)
+    at Yd (index-DtZg82sx.js:40:25661)
+    at hn (index-DtZg82sx.js:40:30812)
+    at Lg (index-DtZg82sx.js:40:27650)
+    at Kt (index-DtZg82sx.js:40:27529)
+    at Lg (index-DtZg82sx.js:40:27839)
+    at Kt (index-DtZg82sx.js:40:27529)
+    at Lg (index-DtZg82sx.js:40:27642)
+    at Kt (index-DtZg82sx.js:40:27529)
+
+index-DtZg82sx.js:40 Uncaught NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.
+    at Yd (index-DtZg82sx.js:40:25586)
+    at Yd (index-DtZg82sx.js:40:25661)
+    at Yd (index-DtZg82sx.js:40:25661)
+    at hn (index-DtZg82sx.js:40:30812)
+    at Lg (index-DtZg82sx.js:40:27650)
+    at Kt (index-DtZg82sx.js:40:27529)
+    at Lg (index-DtZg82sx.js:40:27839)
+    at Kt (index-DtZg82sx.js:40:27529)
+    at Lg (index-DtZg82sx.js:40:27642)
+    at Kt (index-DtZg82sx.js:40:27529)
+index-DtZg82sx.js:349 ✅ Suscripción creada exitosamente: 
+{plan_id: 'ciro-71f2d0', name: 'ciro', description: 'freee', 

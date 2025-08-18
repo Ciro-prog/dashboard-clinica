@@ -85,34 +85,9 @@ export default function SubscriptionCreateModal({ onSubscriptionCreated }: Subsc
         features: formData.features
       };
 
-      // Enhanced DOM cleanup strategy before any operations
-      const cleanupDOM = () => {
-        try {
-          // Force blur active element
-          if (document.activeElement && document.activeElement !== document.body) {
-            (document.activeElement as HTMLElement).blur();
-          }
-          
-          // Clear any pending React updates
-          setTimeout(() => {
-            // Force garbage collection of React fibers
-            if (typeof window !== 'undefined' && (window as any).React) {
-              // Trigger React reconciler cleanup
-            }
-          }, 0);
-          
-          // Remove focus from form elements
-          const formElements = document.querySelectorAll('input, textarea, select, button');
-          formElements.forEach(element => {
-            if (element === document.activeElement) {
-              (element as HTMLElement).blur();
-            }
-          });
-        } catch (cleanupError) {
-          console.warn('⚠️ DOM cleanup warning:', cleanupError);
-        }
-      };
-
+      // PASO 1: Mostrar loading y procesar guardado
+      console.log('🔄 PASO 1: Iniciando guardado...');
+      
       // Simular respuesta del backend para desarrollo
       try {
         const response = await fetch('/api/admin/subscription-plans', {
@@ -130,9 +105,6 @@ export default function SubscriptionCreateModal({ onSubscriptionCreated }: Subsc
 
         const newSubscription = await response.json();
         console.log('✅ Suscripción creada exitosamente:', newSubscription);
-        
-        // Enhanced DOM cleanup after successful creation
-        cleanupDOM();
       } catch (fetchError) {
         // Simular respuesta exitosa para desarrollo
         const mockSubscription = {
@@ -143,12 +115,14 @@ export default function SubscriptionCreateModal({ onSubscriptionCreated }: Subsc
         };
         console.log('📝 Simulando creación de suscripción:', mockSubscription);
         console.log('✅ Suscripción simulada exitosamente (backend no implementado)');
-        
-        // Enhanced DOM cleanup after simulated creation
-        cleanupDOM();
       }
       
-      // Resetear formulario
+      // PASO 2: Esperar un momento para que se complete el guardado
+      console.log('⏳ PASO 2: Esperando finalización del guardado...');
+      await new Promise(resolve => setTimeout(resolve, 500)); // Esperar 500ms
+      
+      // PASO 3: Resetear formulario 
+      console.log('🧹 PASO 3: Limpiando formulario...');
       setFormData({
         name: '',
         description: '',
@@ -168,21 +142,26 @@ export default function SubscriptionCreateModal({ onSubscriptionCreated }: Subsc
         }
       });
       
-      // Additional cleanup before closing modal to prevent React reconciliation issues
-      cleanupDOM();
+      // PASO 4: Notificar al padre para refrescar datos ANTES de cerrar modal
+      console.log('🔄 PASO 4: Refrescando datos de suscripciones...');
+      onSubscriptionCreated();
       
-      // Use setTimeout to ensure DOM cleanup completes before state changes
-      setTimeout(() => {
-        // Cerrar modal y notificar al padre
-        setOpen(false);
-        onSubscriptionCreated();
-      }, 50); // Small delay to ensure DOM operations complete
+      // PASO 5: Esperar que se actualicen los datos
+      console.log('⏳ PASO 5: Esperando actualización de datos...');
+      await new Promise(resolve => setTimeout(resolve, 300)); // Esperar 300ms más
+      
+      // PASO 6: Finalmente cerrar modal
+      console.log('❌ PASO 6: Cerrando modal...');
+      setOpen(false);
       
     } catch (err) {
       console.error('❌ Error en creación de suscripción:', err);
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
-      setLoading(false);
+      // Solo quitar loading después de todo el proceso
+      setTimeout(() => {
+        setLoading(false);
+      }, 100);
     }
   };
 
@@ -380,7 +359,7 @@ export default function SubscriptionCreateModal({ onSubscriptionCreated }: Subsc
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creando...
+                    Procesando y actualizando datos...
                   </>
                 ) : (
                   <>
