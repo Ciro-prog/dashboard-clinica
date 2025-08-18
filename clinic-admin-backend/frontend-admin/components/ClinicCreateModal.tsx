@@ -354,15 +354,27 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
         console.warn('⚠️ Campos de pacientes incompletos encontrados, serán filtrados:', incompleteFields);
       }
 
+      // Clean optional fields (send null instead of empty strings)
+      const cleanContactInfo = {
+        ...contactInfo,
+        website: contactInfo.website.trim() || null,
+        maps_url: contactInfo.maps_url.trim() || null
+      };
+      
+      const cleanBranding = {
+        ...branding,
+        logo_url: branding.logo_url.trim() || null
+      };
+
       // Create clinic with all data
       const clinicData = {
         ...formData,
         services,
         schedule,
-        contact_info: contactInfo,
+        contact_info: cleanContactInfo,
         specialties,
         subscription_features: subscriptionFeatures,
-        branding,
+        branding: cleanBranding,
         patient_form_fields: patientFields,
         custom_patient_fields: customPatientFields
           .filter(field => field.field_name.trim() !== '' && field.field_label.trim() !== '') // Filter empty fields
@@ -382,6 +394,12 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
 
       console.log('📤 Enviando datos al backend:', JSON.stringify(clinicData, null, 2));
       console.log('📊 Tamaño del payload:', new Blob([JSON.stringify(clinicData)]).size, 'bytes');
+      console.log('🔍 Campos opcionales verificados:');
+      console.log('  - Website URL:', cleanContactInfo.website || '❌ NULL (correcto)');
+      console.log('  - Maps URL:', cleanContactInfo.maps_url || '❌ NULL (correcto)');
+      console.log('  - Logo URL:', cleanBranding.logo_url || '❌ NULL (correcto)');
+      console.log('🧹 Contact info limpia:', JSON.stringify(cleanContactInfo, null, 2));
+      console.log('🎨 Branding limpio:', JSON.stringify(cleanBranding, null, 2));
 
       const response = await fetch('/api/admin/clinics', {
         method: 'POST',
@@ -424,7 +442,21 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
         } else if (response.status === 401) {
           throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente');
         } else if (response.status === 500) {
-          throw new Error('Error interno del servidor (500). Verifica que todos los campos estén completados correctamente y que el backend esté funcionando');
+          // For 500 errors, try to extract useful info from HTML response
+          console.error('❌ Error 500 - Respuesta HTML del servidor:', errorData.substring(0, 500));
+          
+          // Try to extract error info from HTML title or common patterns
+          let serverError = 'Error interno del servidor (500)';
+          if (errorData.includes('<title>')) {
+            const titleMatch = errorData.match(/<title>(.*?)<\/title>/i);
+            if (titleMatch) serverError += ` - ${titleMatch[1]}`;
+          }
+          
+          if (errorData.includes('ValidationError') || errorData.includes('validation')) {
+            serverError += '. Posible problema de validación de campos opcionales (URL web, logo, ubicación).';
+          }
+          
+          throw new Error(`${serverError}\n\n💡 Tip: Los campos de URL (website, logo, maps) son opcionales y pueden dejarse vacíos.`);
         } else {
           throw new Error(`Error del servidor: ${response.status}`);
         }

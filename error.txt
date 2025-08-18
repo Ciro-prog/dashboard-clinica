@@ -1,29 +1,34 @@
-🔄 PASO 1: Iniciando guardado...
-index-Di3Oao5B.js:349  POST http://pampaservers.com:60519/api/admin/subscription-plans 422 (Unprocessable Entity)
-p @ index-Di3Oao5B.js:349
-onClick @ index-Di3Oao5B.js:349
-p1 @ index-Di3Oao5B.js:37
-h1 @ index-Di3Oao5B.js:37
-g1 @ index-Di3Oao5B.js:37
-Hp @ index-Di3Oao5B.js:37
-K0 @ index-Di3Oao5B.js:37
-(anonymous) @ index-Di3Oao5B.js:37
-vf @ index-Di3Oao5B.js:40
-g0 @ index-Di3Oao5B.js:37
-Ic @ index-Di3Oao5B.js:37
-Wu @ index-Di3Oao5B.js:37
-M1 @ index-Di3Oao5B.js:37Understand this error
-index-Di3Oao5B.js:349 📝 Simulando creación de suscripción: {id: 'plan_1755504513923', name: 'asd', description: 'asdasd', price: 12312, duration_days: 123, …}
-index-Di3Oao5B.js:349 ✅ Suscripción simulada exitosamente (backend no implementado)
-index-Di3Oao5B.js:349 ⏳ PASO 2: Esperando finalización del guardado...
-index-Di3Oao5B.js:349 🧹 PASO 3: Limpiando formulario...
-index-Di3Oao5B.js:349 🔄 PASO 4: Refrescando datos de suscripciones...
-index-Di3Oao5B.js:465 ✅ Suscripción creada - refrescando en segundo plano...
-index-Di3Oao5B.js:467 🔄 Actualizando datos silenciosamente...
-index-Di3Oao5B.js:349 ⏳ PASO 5: Esperando actualización de datos...
-index-Di3Oao5B.js:467 ✅ Datos actualizados silenciosamente
-index-Di3Oao5B.js:349 ❌ PASO 6: Cerrando modal...
-index-Di3Oao5B.js:442 🔄 Refrescando datos...
-index-Di3Oao5B.js:442 🔐 Cargando datos del admin dashboard...
-index-Di3Oao5B.js:442 📊 Obteniendo estadísticas...
-index-Di3Oao5B.js:442 ✅ Datos obtenidos: {stats: {…}, clinics: 1, plans: 2}
+index-BHNqTOkf.js:343 ❌ Error parsing response: SyntaxError: Unexpected token 'I', "Internal S"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at I (index-BHNqTOkf.js:343:39714)
+I	@	index-BHNqTOkf.js:343
+await in I		
+onClick	@	index-BHNqTOkf.js:343
+p1	@	index-BHNqTOkf.js:37
+h1	@	index-BHNqTOkf.js:37
+g1	@	index-BHNqTOkf.js:37
+Wp	@	index-BHNqTOkf.js:37
+G0	@	index-BHNqTOkf.js:37
+(anonymous)	@	index-BHNqTOkf.js:37
+yf	@	index-BHNqTOkf.js:40
+x0	@	index-BHNqTOkf.js:37
+Dc	@	index-BHNqTOkf.js:37
+Ku	@	index-BHNqTOkf.js:37
+M1	@	index-BHNqTOkf.js:37
+index-BHNqTOkf.js:343 ❌ Error en creación de clínica: Error: Error interno del servidor (500). Verifica que todos los campos estén completados correctamente y que el backend esté funcionando
+    at I (index-BHNqTOkf.js:343:40283)
+I	@	index-BHNqTOkf.js:343
+await in I		
+onClick	@	index-BHNqTOkf.js:343
+p1	@	index-BHNqTOkf.js:37
+h1	@	index-BHNqTOkf.js:37
+g1	@	index-BHNqTOkf.js:37
+Wp	@	index-BHNqTOkf.js:37
+G0	@	index-BHNqTOkf.js:37
+(anonymous)	@	index-BHNqTOkf.js:37
+yf	@	index-BHNqTOkf.js:40
+x0	@	index-BHNqTOkf.js:37
+Dc	@	index-BHNqTOkf.js:37
+Ku	@	index-BHNqTOkf.js:37
+M1	@	index-BHNqTOkf.js:37
+﻿
