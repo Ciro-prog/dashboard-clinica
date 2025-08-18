@@ -158,10 +158,10 @@ class ProfessionalBase(BaseModel):
 ### Test del Backend
 ```bash
 # Health check
-curl http://localhost:8000/health
+curl http://pampaservers.com:60519/health
 
 # Login test
-curl -X POST http://localhost:8000/api/auth/login \
+curl -X POST http://pampaservers.com:60519/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "username": "demo@clinica-dashboard.com",

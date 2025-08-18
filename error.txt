@@ -1,9 +1,26 @@
-✅ Planes cargados: [{…}]0: {plan_id: 'test-plan-9f1283', name: 'Test Plan', description: 'test', price: 100000, currency: 'USD', …}length: 1[[Prototype]]: Array(0)
-index-jzU3UsQ1.js:343 🏥 Creando nueva clínica: {formData: {…}, services: Array(4), schedule: {…}, contactInfo: {…}}contactInfo: address: "Av. Corrientes 355"email: "fedegarcia@clinicademo.com"maps_url: "https://maps.app.goo.gl/McGvbSw44ofr5ScY7"phone: "2604042017"website: "https://sync.pampaservers.com/"whatsapp: "2604042017"[[Prototype]]: ObjectformData: address: "Av. Corrientes 355"cell_phone: "2604042017"clinic_id: "clinica-clinicademov-680841s7b"domain_name: "clinicademovendedore"email: "fedegarcia@clinicademo.com"max_patients: 100max_professionals: 5n8n_folder_name: "Clinica - Demo Vendedores"name_clinic: "Clinica Demo Vendedores"password: "admin123"status_clinic: "active"subscription_expires: ""subscription_plan: "trial"subscription_status: "trial"suscriber: "Dr. Fede Garcia"whatsapp_session_name: "Dr. Fede Garcia"[[Prototype]]: Objectschedule: break_end: "16:00"break_start: "13:00"holiday_dates: []special_hours: {}timezone: "America/Bogota"working_hours: (12) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}][[Prototype]]: Objectservices: Array(4)0: base_price: 50000category: "Medicina General"currency: "COP"description: "Consulta médica general con evaluación completa"duration_minutes: 30is_active: truerequires_appointment: trueservice_id: "srv_general"service_type: "Consulta General"[[Prototype]]: Object1: base_price: 75000category: "Especialidades"currency: "COP"description: "Consulta con especialista médico"duration_minutes: 45is_active: truerequires_appointment: trueservice_id: "srv_specialist"service_type: "Consulta Especializada"[[Prototype]]: Object2: base_price: 150000category: "Cirugía"currency: "COP"description: "Procedimientos quirúrgicos menores ambulatorios"duration_minutes: 60is_active: truerequires_appointment: trueservice_id: "srv_minor_surgery"service_type: "Cirugía Menor"[[Prototype]]: Objectconstructor: ƒ Object()hasOwnProperty: ƒ hasOwnProperty()isPrototypeOf: ƒ isPrototypeOf()propertyIsEnumerable: ƒ propertyIsEnumerable()toLocaleString: ƒ toLocaleString()toString: ƒ toString()valueOf: ƒ valueOf()__defineGetter__: ƒ __defineGetter__()__defineSetter__: ƒ __defineSetter__()__lookupGetter__: ƒ __lookupGetter__()__lookupSetter__: ƒ __lookupSetter__()__proto__: (...)get __proto__: ƒ __proto__()set __proto__: ƒ __proto__()3: base_price: 80000category: "Urgencias"currency: "COP"description: "Atención médica de urgencias"duration_minutes: 45is_active: truerequires_appointment: falseservice_id: "srv_emergency"service_type: "Urgencia"[[Prototype]]: Objectlength: 4[[Prototype]]: Array(0)[[Prototype]]: Object
-index-jzU3UsQ1.js:343 ❌ Error creando clínica: 500 Internal Server Error
+
+  ese curl desde /docs funciona
+curl -X 'GET' \
+  'http://pampaservers.com:60519/api/clinics/clinica-clinicademo-240994tr1/services' \
+  -H 'accept: application/json' \
+  -H 'X-API-Key: test123456'
+
+
+✅ Datos obtenidos: {stats: {…}, clinics: 1, plans: 1}
+index-jzU3UsQ1.js:442 Error copying to clipboard: TypeError: Cannot read properties of undefined (reading 'writeText')
+    at d (index-jzU3UsQ1.js:442:298)
+    at onClick (index-jzU3UsQ1.js:442:4194)
+    at Object.p1 (index-jzU3UsQ1.js:37:9855)
+    at h1 (index-jzU3UsQ1.js:37:10009)
+    at g1 (index-jzU3UsQ1.js:37:10066)
+    at Hp (index-jzU3UsQ1.js:37:31446)
+    at K0 (index-jzU3UsQ1.js:37:31863)
+    at index-jzU3UsQ1.js:37:36776
+    at vf (index-jzU3UsQ1.js:40:36935)
+    at g0 (index-jzU3UsQ1.js:37:8991)
 overrideMethod @ hook.js:608
-A @ index-jzU3UsQ1.js:343
-await in A
+d @ index-jzU3UsQ1.js:442
+onClick @ index-jzU3UsQ1.js:442
 p1 @ index-jzU3UsQ1.js:37
 h1 @ index-jzU3UsQ1.js:37
 g1 @ index-jzU3UsQ1.js:37
@@ -15,5 +32,4 @@ g0 @ index-jzU3UsQ1.js:37
 Ac @ index-jzU3UsQ1.js:37
 Wu @ index-jzU3UsQ1.js:37
 M1 @ index-jzU3UsQ1.js:37Understand this error
-index-jzU3UsQ1.js:343 ❌ Error en creación de clínica: Error: Error del servidor: 500
-    at A (index-jzU3UsQ1.js:343:39070)
+

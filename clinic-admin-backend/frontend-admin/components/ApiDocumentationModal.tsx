@@ -58,7 +58,7 @@ const API_ENDPOINTS: ApiEndpoint[] = [
     category: 'Clínicas',
     parameters: ['clinic_id: ID de la clínica'],
     curl: `curl -X 'GET' \\
-  'http://localhost:8000/api/clinics/{clinic_id}/services' \\
+  'http://pampaservers.com:60519/api/clinics/{clinic_id}/services' \\
   -H 'accept: application/json' \\
   -H 'X-API-Key: test123456'`,
     example_response: '{"clinic_id": "...", "clinic_name": "...", "services": [...], "schedule": {...}, "contact_info": {...}}'
@@ -72,7 +72,7 @@ const API_ENDPOINTS: ApiEndpoint[] = [
     category: 'Clínicas',
     parameters: ['clinic_id: ID de la clínica'],
     curl: `curl -X 'GET' \\
-  'http://localhost:8000/api/clinics/{clinic_id}' \\
+  'http://pampaservers.com:60519/api/clinics/{clinic_id}' \\
   -H 'accept: application/json' \\
   -H 'X-API-Key: test123456'`
   },
@@ -85,7 +85,7 @@ const API_ENDPOINTS: ApiEndpoint[] = [
     category: 'Clínicas',
     parameters: ['clinic_id: ID de la clínica', 'services: Array de servicios'],
     curl: `curl -X 'PUT' \\
-  'http://localhost:8000/api/clinics/{clinic_id}/services' \\
+  'http://pampaservers.com:60519/api/clinics/{clinic_id}/services' \\
   -H 'accept: application/json' \\
   -H 'X-API-Key: test123456' \\
   -H 'Content-Type: application/json' \\
@@ -109,7 +109,7 @@ const API_ENDPOINTS: ApiEndpoint[] = [
     category: 'Clínicas',
     parameters: ['clinic_id: ID de la clínica', 'schedule: Configuración de horarios'],
     curl: `curl -X 'PUT' \\
-  'http://localhost:8000/api/clinics/{clinic_id}/schedule' \\
+  'http://pampaservers.com:60519/api/clinics/{clinic_id}/schedule' \\
   -H 'accept: application/json' \\
   -H 'X-API-Key: test123456' \\
   -H 'Content-Type: application/json' \\
@@ -132,7 +132,7 @@ const API_ENDPOINTS: ApiEndpoint[] = [
     category: 'Clínicas',
     parameters: ['clinic_id: ID de la clínica', 'contact_info: Información de contacto'],
     curl: `curl -X 'PUT' \\
-  'http://localhost:8000/api/clinics/{clinic_id}/contact-info' \\
+  'http://pampaservers.com:60519/api/clinics/{clinic_id}/contact-info' \\
   -H 'accept: application/json' \\
   -H 'X-API-Key: test123456' \\
   -H 'Content-Type: application/json' \\
@@ -154,7 +154,7 @@ const API_ENDPOINTS: ApiEndpoint[] = [
     category: 'Clínicas',
     parameters: ['clinic_id: ID de la clínica'],
     curl: `curl -X 'POST' \\
-  'http://localhost:8000/api/clinics/{clinic_id}/services/initialize' \\
+  'http://pampaservers.com:60519/api/clinics/{clinic_id}/services/initialize' \\
   -H 'accept: application/json' \\
   -H 'X-API-Key: test123456'`
   },
@@ -169,7 +169,7 @@ const API_ENDPOINTS: ApiEndpoint[] = [
     category: 'Pacientes',
     parameters: ['clinic_id: ID de la clínica'],
     curl: `curl -X 'GET' \\
-  'http://localhost:8000/api/patients/clinic/{clinic_id}' \\
+  'http://pampaservers.com:60519/api/patients/clinic/{clinic_id}' \\
   -H 'accept: application/json' \\
   -H 'X-API-Key: test123456'`
   },
@@ -182,7 +182,7 @@ const API_ENDPOINTS: ApiEndpoint[] = [
     category: 'Pacientes',
     parameters: ['dni: Número de documento'],
     curl: `curl -X 'GET' \\
-  'http://localhost:8000/api/patients/search/by-dni?dni=12345678' \\
+  'http://pampaservers.com:60519/api/patients/search/by-dni?dni=12345678' \\
   -H 'accept: application/json' \\
   -H 'X-API-Key: test123456'`
   },
@@ -195,7 +195,7 @@ const API_ENDPOINTS: ApiEndpoint[] = [
     category: 'Pacientes',
     parameters: ['patient_data: Datos del paciente'],
     curl: `curl -X 'POST' \\
-  'http://localhost:8000/api/patients' \\
+  'http://pampaservers.com:60519/api/patients' \\
   -H 'accept: application/json' \\
   -H 'X-API-Key: test123456' \\
   -H 'Content-Type: application/json' \\
@@ -219,7 +219,7 @@ const API_ENDPOINTS: ApiEndpoint[] = [
     category: 'Pacientes',
     parameters: ['patient_id: ID del paciente'],
     curl: `curl -X 'GET' \\
-  'http://localhost:8000/api/patients/{patient_id}/history' \\
+  'http://pampaservers.com:60519/api/patients/{patient_id}/history' \\
   -H 'accept: application/json' \\
   -H 'X-API-Key: test123456'`
   },
@@ -232,7 +232,7 @@ const API_ENDPOINTS: ApiEndpoint[] = [
     category: 'Pacientes',
     parameters: ['clinic_id: ID de la clínica', 'appointment_data: Datos de la cita'],
     curl: `curl -X 'POST' \\
-  'http://localhost:8000/api/patients/clinic/{clinic_id}/appointment' \\
+  'http://pampaservers.com:60519/api/patients/clinic/{clinic_id}/appointment' \\
   -H 'accept: application/json' \\
   -H 'X-API-Key: test123456' \\
   -H 'Content-Type: application/json' \\
@@ -256,7 +256,7 @@ const API_ENDPOINTS: ApiEndpoint[] = [
     category: 'Profesionales',
     parameters: ['clinic_id: ID de la clínica'],
     curl: `curl -X 'GET' \\
-  'http://localhost:8000/api/professionals/clinic/{clinic_id}' \\
+  'http://pampaservers.com:60519/api/professionals/clinic/{clinic_id}' \\
   -H 'accept: application/json' \\
   -H 'X-API-Key: test123456'`
   },
@@ -269,7 +269,7 @@ const API_ENDPOINTS: ApiEndpoint[] = [
     category: 'Profesionales',
     parameters: ['clinic_id: ID de la clínica'],
     curl: `curl -X 'GET' \\
-  'http://localhost:8000/api/professionals/clinic/{clinic_id}/stats' \\
+  'http://pampaservers.com:60519/api/professionals/clinic/{clinic_id}/stats' \\
   -H 'accept: application/json' \\
   -H 'X-API-Key: test123456'`
   },
@@ -284,7 +284,7 @@ const API_ENDPOINTS: ApiEndpoint[] = [
     category: 'Público',
     parameters: ['limit: Número máximo de resultados (opcional)'],
     curl: `curl -X 'GET' \\
-  'http://localhost:8000/api/clinics/public?limit=10' \\
+  'http://pampaservers.com:60519/api/clinics/public?limit=10' \\
   -H 'accept: application/json'`
   },
   {
@@ -296,7 +296,7 @@ const API_ENDPOINTS: ApiEndpoint[] = [
     category: 'Público',
     parameters: [],
     curl: `curl -X 'GET' \\
-  'http://localhost:8000/api/subscription-plans/public' \\
+  'http://pampaservers.com:60519/api/subscription-plans/public' \\
   -H 'accept: application/json'`
   }
 ];
@@ -316,11 +316,30 @@ export default function ApiDocumentationModal({ open, onClose, clinicId, clinicN
   const copyToClipboard = async (text: string, id: string) => {
     try {
       const processedText = replacePlaceholders(text);
-      await navigator.clipboard.writeText(processedText);
+      
+      // Try modern clipboard API first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(processedText);
+      } else {
+        // Fallback for older browsers or non-HTTPS contexts
+        const textArea = document.createElement('textarea');
+        textArea.value = processedText;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 2000);
     } catch (err) {
       console.error('Error copying to clipboard:', err);
+      // Show user-friendly error message
+      alert('Error al copiar al portapapeles. Por favor, copia manualmente el comando.');
     }
   };
 

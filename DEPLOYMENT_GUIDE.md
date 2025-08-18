@@ -233,6 +233,9 @@ cd /opt/dashboard-clinica/scripts
 
 # Ejecutar actualización
 ./production-update.sh
+
+# ⚠️ SI HAY PROBLEMAS DE ASSETS 404, usar también:
+./fix-assets-production.sh
 ```
 
 **¿Qué hace?**
@@ -265,7 +268,31 @@ cd /opt/dashboard-clinica/scripts
 
 ---
 
-#### **3. 📊 `scripts/production-monitor.sh` - MONITOREO**
+#### **3. 🔧 `scripts/fix-assets-production.sh` - CORRECCIÓN DE ASSETS**
+**Para resolver errores 404 de archivos CSS/JS**
+
+```bash
+cd /opt/dashboard-clinica/scripts
+./fix-assets-production.sh
+```
+
+**¿Qué hace?**
+- 🗑️ Limpia builds anteriores de frontend
+- 🔧 Configura main.py con múltiples mount points de assets
+- 🐳 Rebuild completo del sistema
+- ✅ Verifica que assets sean accesibles en todas las rutas
+- 🧪 Validación exhaustiva post-deployment
+
+**⚠️ Usar cuando:**
+- Admin dashboard muestra errores 404 para JS/CSS
+- Frontend no carga correctamente
+- Assets no se encuentran en `/assets/` o `/admin/assets/`
+
+**⏱️ Tiempo estimado:** 3-5 minutos
+
+---
+
+#### **4. 📊 `scripts/production-monitor.sh` - MONITOREO**
 **Para verificar estado del sistema**
 
 ```bash
@@ -295,7 +322,10 @@ cd /opt/dashboard-clinica/scripts
 # 3. Actualizar sistema
 ./production-update.sh
 
-# 4. (Opcional) Monitorear después de la actualización
+# 4. SI HAY PROBLEMAS DE ASSETS 404:
+./fix-assets-production.sh
+
+# 5. (Opcional) Monitorear después de la actualización
 ./production-monitor.sh
 ```
 

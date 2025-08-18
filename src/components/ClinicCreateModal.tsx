@@ -588,7 +588,7 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
                   </Alert>
                 )}
 
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full bg-slate-800">
                   <TabsList className="grid w-full grid-cols-7 bg-slate-700 text-xs">
                     <TabsTrigger value="basic" className="text-slate-200">Básico</TabsTrigger>
                     <TabsTrigger value="services" className="text-slate-200">Servicios</TabsTrigger>

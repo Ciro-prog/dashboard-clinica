@@ -32,7 +32,7 @@ X-API-Key: test123456
 **Example**:
 ```bash
 curl -H "X-API-Key: test123456" \
-  "http://localhost:8000/api/patients/?clinic_id=TEST_CLINIC_2024&limit=10"
+  "http://pampaservers.com:60519/api/patients/?clinic_id=TEST_CLINIC_2024&limit=10"
 ```
 
 ### 2. Get Patient by ID
@@ -44,7 +44,7 @@ curl -H "X-API-Key: test123456" \
 **Example**:
 ```bash
 curl -H "X-API-Key: test123456" \
-  "http://localhost:8000/api/patients/67890abcdef123456789012"
+  "http://pampaservers.com:60519/api/patients/67890abcdef123456789012"
 ```
 
 ### 3. Search Patient by DNI ⭐ NEW
@@ -58,7 +58,7 @@ curl -H "X-API-Key: test123456" \
 **Example**:
 ```bash
 curl -H "X-API-Key: test123456" \
-  "http://localhost:8000/api/patients/search/by-dni?clinic_id=TEST_CLINIC_2024&dni=12345678"
+  "http://pampaservers.com:60519/api/patients/search/by-dni?clinic_id=TEST_CLINIC_2024&dni=12345678"
 ```
 
 ### 4. Get Patients by Clinic
@@ -98,7 +98,7 @@ curl -X POST -H "X-API-Key: test123456" \
     "cell_phone": "+54 9 11 9876-5432",
     "email": "juan.perez@email.com"
   }' \
-  "http://localhost:8000/api/patients/"
+  "http://pampaservers.com:60519/api/patients/"
 ```
 
 ### 6. Update Patient ⭐ ENHANCED
@@ -120,7 +120,7 @@ curl -X PUT -H "X-API-Key: test123456" \
     "email": "juan.perez.new@email.com",
     "medical_notes": "Updated medical history"
   }' \
-  "http://localhost:8000/api/patients/67890abcdef123456789012"
+  "http://pampaservers.com:60519/api/patients/67890abcdef123456789012"
 ```
 
 ### 7. Share Patient with Professional ⭐ NEW
@@ -135,7 +135,7 @@ curl -X PUT -H "X-API-Key: test123456" \
 **Example**:
 ```bash
 curl -X PATCH -H "X-API-Key: test123456" \
-  "http://localhost:8000/api/patients/67890abcdef123456789012/share?professional_id=12345abcdef678901234567&notes=Derivación para evaluación especializada"
+  "http://pampaservers.com:60519/api/patients/67890abcdef123456789012/share?professional_id=12345abcdef678901234567&notes=Derivación para evaluación especializada"
 ```
 
 ### 8. Create Appointment with Visit History ⭐ NEW
@@ -154,7 +154,7 @@ curl -X PATCH -H "X-API-Key: test123456" \
 **Example**:
 ```bash
 curl -X POST -H "X-API-Key: test123456" \
-  "http://localhost:8000/api/patients/clinic/TEST_CLINIC_2024/appointment?patient_id=67890abcdef123456789012&professional_id=12345abcdef678901234567&appointment_date=2024-01-15T10:30:00&diagnosis=Control rutinario&treatment=Continuar medicación&notes=Paciente estable"
+  "http://pampaservers.com:60519/api/patients/clinic/TEST_CLINIC_2024/appointment?patient_id=67890abcdef123456789012&professional_id=12345abcdef678901234567&appointment_date=2024-01-15T10:30:00&diagnosis=Control rutinario&treatment=Continuar medicación&notes=Paciente estable"
 ```
 
 ### 9. Add Visit to History
@@ -350,5 +350,5 @@ This creates:
 ## Swagger Documentation
 
 Access interactive API documentation at:
-- **Local**: http://localhost:8000/docs
+- **Production**: http://pampaservers.com:60519/docs
 - **Authorization**: Use "Authorize" button with `test123456` for X-API-Key testing

@@ -496,7 +496,7 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
         </div>
 
         {/* Contenido */}
-        <div className="p-6">
+        <div className="p-6 bg-slate-800">
           {error && (
             <Alert variant="destructive" className="bg-red-900/30 border-red-800 text-red-200 mb-4">
               <AlertDescription>{error}</AlertDescription>

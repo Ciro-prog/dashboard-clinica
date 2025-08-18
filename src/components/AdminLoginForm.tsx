@@ -46,26 +46,28 @@ export default function AdminLoginForm({ onLogin, error, loading }: AdminLoginFo
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="username">Usuario</Label>
+              <Label htmlFor="username" className="text-slate-700 font-medium">Usuario</Label>
               <Input
                 id="username"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="admin"
+                className="border-slate-300 bg-white text-slate-900 placeholder:text-slate-500 focus:border-medical-500 focus:ring-medical-500"
                 required
                 disabled={loading}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
+              <Label htmlFor="password" className="text-slate-700 font-medium">Contraseña</Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                className="border-slate-300 bg-white text-slate-900 placeholder:text-slate-500 focus:border-medical-500 focus:ring-medical-500"
                 required
                 disabled={loading}
               />
