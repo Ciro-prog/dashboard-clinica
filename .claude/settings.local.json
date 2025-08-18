@@ -8,7 +8,8 @@
       "Bash(cp:*)",
       "Bash(set ADMIN_ONLY=true)",
       "Bash(python:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm run:*)"
     ],
     "deny": [],
     "ask": []

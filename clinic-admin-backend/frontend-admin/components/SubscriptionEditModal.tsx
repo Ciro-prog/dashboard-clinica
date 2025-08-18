@@ -156,9 +156,34 @@ export default function SubscriptionEditModal({
       const updatedSubscription = await response.json();
       console.log('✅ Suscripción actualizada exitosamente:', updatedSubscription);
       
-      // Cerrar modal y notificar al padre
-      onClose();
-      onSubscriptionUpdated();
+      // Enhanced DOM cleanup to prevent React reconciliation issues
+      const cleanupDOM = () => {
+        try {
+          // Force blur active element
+          if (document.activeElement && document.activeElement !== document.body) {
+            (document.activeElement as HTMLElement).blur();
+          }
+          
+          // Remove focus from form elements
+          const formElements = document.querySelectorAll('input, textarea, select, button');
+          formElements.forEach(element => {
+            if (element === document.activeElement) {
+              (element as HTMLElement).blur();
+            }
+          });
+        } catch (cleanupError) {
+          console.warn('⚠️ DOM cleanup warning:', cleanupError);
+        }
+      };
+      
+      cleanupDOM();
+      
+      // Use setTimeout to ensure DOM cleanup completes before state changes
+      setTimeout(() => {
+        // Cerrar modal y notificar al padre
+        onClose();
+        onSubscriptionUpdated();
+      }, 50); // Small delay to ensure DOM operations complete
       
     } catch (err) {
       console.error('❌ Error en actualización de suscripción:', err);

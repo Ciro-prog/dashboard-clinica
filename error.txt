@@ -1,203 +1,178 @@
-ypeError: Cannot read properties of undefined (reading 'name')
-    at bT (index-CQuK2Gtc.js:349:38143)
-    at df (index-CQuK2Gtc.js:38:16998)
-    at Kg (index-CQuK2Gtc.js:40:44030)
-    at Vg (index-CQuK2Gtc.js:40:39766)
-    at KN (index-CQuK2Gtc.js:40:39694)
-    at ml (index-CQuK2Gtc.js:40:39547)
-    at Zd (index-CQuK2Gtc.js:40:35914)
-    at wm (index-CQuK2Gtc.js:40:36717)
-    at Ur (index-CQuK2Gtc.js:38:3274)
-    at index-CQuK2Gtc.js:40:34246
-overrideMethod @ hook.js:608Understand this error
-index-CQuK2Gtc.js:38 Uncaught TypeError: Cannot read properties of undefined (reading 'name')
-    at bT (index-CQuK2Gtc.js:349:38143)
-    at df (index-CQuK2Gtc.js:38:16998)
-    at Kg (index-CQuK2Gtc.js:40:44030)
-    at Vg (index-CQuK2Gtc.js:40:39766)
-    at KN (index-CQuK2Gtc.js:40:39694)
-    at ml (index-CQuK2Gtc.js:40:39547)
-    at Zd (index-CQuK2Gtc.js:40:35914)
-    at wm (index-CQuK2Gtc.js:40:36717)
-    at Ur (index-CQuK2Gtc.js:38:3274)
-    at index-CQuK2Gtc.js:40:34246Understand this error
-
-
-    💳 Creando nueva suscripción: {name: 'Free - 1 año', description: 'Plan Free - Amigos de la casa', price: '0', duration_days: '365', max_professionals: '1', …}
-index-CQuK2Gtc.js:40 NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.
-    at Yd (index-CQuK2Gtc.js:40:25586)
-    at Yd (index-CQuK2Gtc.js:40:25661)
-    at Yd (index-CQuK2Gtc.js:40:25661)
-    at hn (index-CQuK2Gtc.js:40:30812)
-    at Lg (index-CQuK2Gtc.js:40:27650)
-    at Wt (index-CQuK2Gtc.js:40:27529)
-    at Lg (index-CQuK2Gtc.js:40:27839)
-    at Wt (index-CQuK2Gtc.js:40:27529)
-    at Lg (index-CQuK2Gtc.js:40:27642)
-    at Wt (index-CQuK2Gtc.js:40:27529)
+💳 Creando nueva suscripción: {name: 'ciro', description: 'Free', price: '11', duration_days: '356', max_professionals: '1', …}
+index-DR4bjk3f.js:40 NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.
+    at Yd (index-DR4bjk3f.js:40:25586)
+    at Yd (index-DR4bjk3f.js:40:25661)
+    at Yd (index-DR4bjk3f.js:40:25661)
+    at hn (index-DR4bjk3f.js:40:30812)
+    at Lg (index-DR4bjk3f.js:40:27650)
+    at Wt (index-DR4bjk3f.js:40:27529)
+    at Lg (index-DR4bjk3f.js:40:27839)
+    at Wt (index-DR4bjk3f.js:40:27529)
+    at Lg (index-DR4bjk3f.js:40:27642)
+    at Wt (index-DR4bjk3f.js:40:27529)
 overrideMethod @ hook.js:608
-Bd @ index-CQuK2Gtc.js:40
-n.callback @ index-CQuK2Gtc.js:40
-tm @ index-CQuK2Gtc.js:38
-xm @ index-CQuK2Gtc.js:40
-$g @ index-CQuK2Gtc.js:40
-VN @ index-CQuK2Gtc.js:40
-qN @ index-CQuK2Gtc.js:40
-Qr @ index-CQuK2Gtc.js:40
-wm @ index-CQuK2Gtc.js:40
-Ur @ index-CQuK2Gtc.js:38
-(anonymous) @ index-CQuK2Gtc.js:40Understand this error
-index-CQuK2Gtc.js:40 Uncaught NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.
-    at Yd (index-CQuK2Gtc.js:40:25586)
-    at Yd (index-CQuK2Gtc.js:40:25661)
-    at Yd (index-CQuK2Gtc.js:40:25661)
-    at hn (index-CQuK2Gtc.js:40:30812)
-    at Lg (index-CQuK2Gtc.js:40:27650)
-    at Wt (index-CQuK2Gtc.js:40:27529)
-    at Lg (index-CQuK2Gtc.js:40:27839)
-    at Wt (index-CQuK2Gtc.js:40:27529)
-    at Lg (index-CQuK2Gtc.js:40:27642)
-    at Wt (index-CQuK2Gtc.js:40:27529)
-Yd @ index-CQuK2Gtc.js:40
-Yd @ index-CQuK2Gtc.js:40
-Yd @ index-CQuK2Gtc.js:40
-hn @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-Wt @ index-CQuK2Gtc.js:40
-Lg @ index-CQuK2Gtc.js:40
-qN @ index-CQuK2Gtc.js:40
-Qr @ index-CQuK2Gtc.js:40
-wm @ index-CQuK2Gtc.js:40
-Ur @ index-CQuK2Gtc.js:38
-(anonymous) @ index-CQuK2Gtc.js:40Understand this error
-index-CQuK2Gtc.js:349 ✅ Suscripción creada exitosamente: {plan_id: 'free---1-año-9198a8', name: 'Free - 1 año', description: 'Plan Free - Amigos de la casa', price: 0, currency: 'USD', …}
+Bd @ index-DR4bjk3f.js:40
+n.callback @ index-DR4bjk3f.js:40
+tm @ index-DR4bjk3f.js:38
+xm @ index-DR4bjk3f.js:40
+$g @ index-DR4bjk3f.js:40
+VN @ index-DR4bjk3f.js:40
+qN @ index-DR4bjk3f.js:40
+Qr @ index-DR4bjk3f.js:40
+wm @ index-DR4bjk3f.js:40
+Ur @ index-DR4bjk3f.js:38
+(anonymous) @ index-DR4bjk3f.js:40Understand this error
+index-DR4bjk3f.js:40 Uncaught NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.
+    at Yd (index-DR4bjk3f.js:40:25586)
+    at Yd (index-DR4bjk3f.js:40:25661)
+    at Yd (index-DR4bjk3f.js:40:25661)
+    at hn (index-DR4bjk3f.js:40:30812)
+    at Lg (index-DR4bjk3f.js:40:27650)
+    at Wt (index-DR4bjk3f.js:40:27529)
+    at Lg (index-DR4bjk3f.js:40:27839)
+    at Wt (index-DR4bjk3f.js:40:27529)
+    at Lg (index-DR4bjk3f.js:40:27642)
+    at Wt (index-DR4bjk3f.js:40:27529)
+Yd @ index-DR4bjk3f.js:40
+Yd @ index-DR4bjk3f.js:40
+Yd @ index-DR4bjk3f.js:40
+hn @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+Wt @ index-DR4bjk3f.js:40
+Lg @ index-DR4bjk3f.js:40
+qN @ index-DR4bjk3f.js:40
+Qr @ index-DR4bjk3f.js:40
+wm @ index-DR4bjk3f.js:40
+Ur @ index-DR4bjk3f.js:38
+(anonymous) @ index-DR4bjk3f.js:40Understand this error
+index-DR4bjk3f.js:349 ✅ Suscripción creada exitosamente: {plan_id: 'ciro-c85c1f', name: 'ciro', description: 'Free', price: 11, currency: 'USD', …}

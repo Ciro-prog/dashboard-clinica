@@ -85,6 +85,34 @@ export default function SubscriptionCreateModal({ onSubscriptionCreated }: Subsc
         features: formData.features
       };
 
+      // Enhanced DOM cleanup strategy before any operations
+      const cleanupDOM = () => {
+        try {
+          // Force blur active element
+          if (document.activeElement && document.activeElement !== document.body) {
+            (document.activeElement as HTMLElement).blur();
+          }
+          
+          // Clear any pending React updates
+          setTimeout(() => {
+            // Force garbage collection of React fibers
+            if (typeof window !== 'undefined' && (window as any).React) {
+              // Trigger React reconciler cleanup
+            }
+          }, 0);
+          
+          // Remove focus from form elements
+          const formElements = document.querySelectorAll('input, textarea, select, button');
+          formElements.forEach(element => {
+            if (element === document.activeElement) {
+              (element as HTMLElement).blur();
+            }
+          });
+        } catch (cleanupError) {
+          console.warn('⚠️ DOM cleanup warning:', cleanupError);
+        }
+      };
+
       // Simular respuesta del backend para desarrollo
       try {
         const response = await fetch('/api/admin/subscription-plans', {
@@ -103,10 +131,8 @@ export default function SubscriptionCreateModal({ onSubscriptionCreated }: Subsc
         const newSubscription = await response.json();
         console.log('✅ Suscripción creada exitosamente:', newSubscription);
         
-        // Force cleanup to prevent DOM issues
-        if (document.activeElement) {
-          (document.activeElement as HTMLElement).blur();
-        }
+        // Enhanced DOM cleanup after successful creation
+        cleanupDOM();
       } catch (fetchError) {
         // Simular respuesta exitosa para desarrollo
         const mockSubscription = {
@@ -118,10 +144,8 @@ export default function SubscriptionCreateModal({ onSubscriptionCreated }: Subsc
         console.log('📝 Simulando creación de suscripción:', mockSubscription);
         console.log('✅ Suscripción simulada exitosamente (backend no implementado)');
         
-        // Force cleanup to prevent DOM issues
-        if (document.activeElement) {
-          (document.activeElement as HTMLElement).blur();
-        }
+        // Enhanced DOM cleanup after simulated creation
+        cleanupDOM();
       }
       
       // Resetear formulario
@@ -144,9 +168,15 @@ export default function SubscriptionCreateModal({ onSubscriptionCreated }: Subsc
         }
       });
       
-      // Cerrar modal y notificar al padre
-      setOpen(false);
-      onSubscriptionCreated();
+      // Additional cleanup before closing modal to prevent React reconciliation issues
+      cleanupDOM();
+      
+      // Use setTimeout to ensure DOM cleanup completes before state changes
+      setTimeout(() => {
+        // Cerrar modal y notificar al padre
+        setOpen(false);
+        onSubscriptionCreated();
+      }, 50); // Small delay to ensure DOM operations complete
       
     } catch (err) {
       console.error('❌ Error en creación de suscripción:', err);

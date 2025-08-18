@@ -397,12 +397,37 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
         // Don't fail the entire operation
       }
       
-      // Cerrar modal y limpiar formulario
-      setOpen(false);
-      resetForm();
+      // Enhanced DOM cleanup to prevent React reconciliation issues
+      const cleanupDOM = () => {
+        try {
+          // Force blur active element
+          if (document.activeElement && document.activeElement !== document.body) {
+            (document.activeElement as HTMLElement).blur();
+          }
+          
+          // Remove focus from form elements
+          const formElements = document.querySelectorAll('input, textarea, select, button');
+          formElements.forEach(element => {
+            if (element === document.activeElement) {
+              (element as HTMLElement).blur();
+            }
+          });
+        } catch (cleanupError) {
+          console.warn('⚠️ DOM cleanup warning:', cleanupError);
+        }
+      };
       
-      // Notificar al componente padre para refrescar la lista
-      onClinicCreated();
+      cleanupDOM();
+      
+      // Use setTimeout to ensure DOM cleanup completes before state changes
+      setTimeout(() => {
+        // Cerrar modal y limpiar formulario
+        setOpen(false);
+        resetForm();
+        
+        // Notificar al componente padre para refrescar la lista
+        onClinicCreated();
+      }, 50); // Small delay to ensure DOM operations complete
       
     } catch (err) {
       console.error('❌ Error en creación de clínica:', err);
