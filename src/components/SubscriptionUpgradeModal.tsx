@@ -193,7 +193,7 @@ export default function SubscriptionUpgradeModal({
   };
 
   const newPlan = selectedPlan ? availablePlans[selectedPlan] : null;
-  const priceDifference = newPlan ? newPlan.price - currentPlan.price : 0;
+  const priceDifference = newPlan && currentPlan ? newPlan.price - currentPlan.price : 0;
 
   const handleClose = () => {
     onClose();
@@ -225,7 +225,7 @@ export default function SubscriptionUpgradeModal({
           {/* Plan Actual */}
           <div className="space-y-2">
             <Label className="text-slate-200">Plan Actual</Label>
-            <Card className="bg-slate-700 border-slate-600">
+            <Card className="bg-slate-700 border-slate-600 shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -254,10 +254,10 @@ export default function SubscriptionUpgradeModal({
                 {upgradablePlans.map(([planId, plan]) => (
                   <Card 
                     key={planId} 
-                    className={`cursor-pointer transition-all border-2 ${
+                    className={`cursor-pointer transition-all border-2 shadow-[0_0_0_1px_rgba(255,255,255,0.1)] ${
                       selectedPlan === planId 
-                        ? 'bg-medical-500/20 border-medical-500' 
-                        : 'bg-slate-700 border-slate-600 hover:border-slate-500'
+                        ? 'bg-medical-500/20 border-medical-500 shadow-[0_0_0_1px_rgba(59,130,246,0.3)]' 
+                        : 'bg-slate-700 border-slate-600 hover:border-slate-500 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.2)]'
                     }`}
                     onClick={() => setSelectedPlan(planId)}
                   >
@@ -318,7 +318,7 @@ export default function SubscriptionUpgradeModal({
           {selectedPlan && newPlan && upgradePreview && (
             <div className="space-y-2">
               <Label className="text-slate-200">Resumen del Upgrade</Label>
-              <Card className="bg-medical-500/10 border-medical-500/30">
+              <Card className="bg-medical-500/10 border-medical-500/30 shadow-[0_0_0_1px_rgba(59,130,246,0.2)]">
                 <CardContent className="p-4">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
@@ -327,7 +327,7 @@ export default function SubscriptionUpgradeModal({
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-slate-200">Nuevo plan:</span>
-                      <span className="text-sm font-medium text-medical-300">{newPlan.name}</span>
+                      <span className="text-sm font-medium text-medical-300">{newPlan?.name || 'Plan no disponible'}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-slate-200">Diferencia de precio:</span>
@@ -348,8 +348,8 @@ export default function SubscriptionUpgradeModal({
                   <div className="mt-4 pt-3 border-t border-medical-500/30">
                     <h5 className="text-sm font-medium text-slate-200 mb-2">Nuevas características:</h5>
                     <div className="space-y-1">
-                      {Object.entries(newPlan.features).map(([feature, enabled]) => {
-                        const currentEnabled = currentPlan.features[feature];
+                      {newPlan?.features && Object.entries(newPlan.features).map(([feature, enabled]) => {
+                        const currentEnabled = currentPlan?.features?.[feature];
                         const isNew = enabled && !currentEnabled;
                         
                         if (!isNew) return null;
@@ -365,7 +365,7 @@ export default function SubscriptionUpgradeModal({
                             </Badge>
                           </div>
                         );
-                      })}
+                      }) || <p className="text-xs text-slate-400">No hay información de características disponible</p>}
                     </div>
                   </div>
                 </CardContent>

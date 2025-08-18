@@ -102,6 +102,11 @@ export default function SubscriptionCreateModal({ onSubscriptionCreated }: Subsc
 
         const newSubscription = await response.json();
         console.log('✅ Suscripción creada exitosamente:', newSubscription);
+        
+        // Force cleanup to prevent DOM issues
+        if (document.activeElement) {
+          (document.activeElement as HTMLElement).blur();
+        }
       } catch (fetchError) {
         // Simular respuesta exitosa para desarrollo
         const mockSubscription = {
@@ -112,6 +117,11 @@ export default function SubscriptionCreateModal({ onSubscriptionCreated }: Subsc
         };
         console.log('📝 Simulando creación de suscripción:', mockSubscription);
         console.log('✅ Suscripción simulada exitosamente (backend no implementado)');
+        
+        // Force cleanup to prevent DOM issues
+        if (document.activeElement) {
+          (document.activeElement as HTMLElement).blur();
+        }
       }
       
       // Resetear formulario
@@ -182,7 +192,7 @@ export default function SubscriptionCreateModal({ onSubscriptionCreated }: Subsc
         }
       }}>
         <DialogContent 
-          className="sm:max-w-[700px] bg-slate-800 border-slate-700 text-slate-100 max-h-[90vh] overflow-y-auto"
+          className="sm:max-w-[700px] bg-slate-800 border-slate-700 text-slate-100 max-h-[90vh] overflow-y-auto shadow-[0_0_0_1px_rgba(255,255,255,0.1)]"
         >
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
@@ -295,7 +305,7 @@ export default function SubscriptionCreateModal({ onSubscriptionCreated }: Subsc
             {/* Características */}
             <div className="space-y-3">
               <Label className="text-slate-200">Características Incluidas</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 bg-slate-700/30 rounded-lg border border-slate-600">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 bg-slate-700/30 rounded-lg border border-slate-600 shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
                 {Object.entries(formData.features).map(([feature, enabled]) => (
                   <div key={feature} className="flex items-center justify-between">
                     <Label 

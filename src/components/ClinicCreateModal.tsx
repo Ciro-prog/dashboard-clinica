@@ -601,7 +601,7 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
 
                   {/* Información Básica */}
                   <TabsContent value="basic" className="space-y-4">
-                    <Card className="bg-slate-700 border-slate-600">
+                    <Card className="bg-slate-700 border-slate-600 shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
                       <CardHeader>
                         <CardTitle className="text-slate-200 flex items-center gap-2">
                           <Building2 className="h-5 w-5" />
@@ -774,7 +774,7 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
 
                   {/* Servicios Médicos */}
                   <TabsContent value="services" className="space-y-4">
-                    <Card className="bg-slate-700 border-slate-600">
+                    <Card className="bg-slate-700 border-slate-600 shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
                       <CardHeader className="flex flex-row items-center justify-between">
                         <div>
                           <CardTitle className="text-slate-200 flex items-center gap-2">
@@ -799,7 +799,7 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
                       </CardHeader>
                       <CardContent className="space-y-4">
                         {services.map((service, index) => (
-                          <div key={service.service_id} className="p-4 bg-slate-800 rounded-lg border border-slate-600">
+                          <div key={service.service_id} className="p-4 bg-slate-800 rounded-lg border border-slate-600 shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                               <div className="space-y-2">
                                 <Label className="text-slate-200">Tipo de Servicio</Label>
@@ -878,7 +878,7 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
 
                   {/* Horarios de Atención */}
                   <TabsContent value="schedule" className="space-y-4">
-                    <Card className="bg-slate-700 border-slate-600">
+                    <Card className="bg-slate-700 border-slate-600 shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
                       <CardHeader>
                         <CardTitle className="text-slate-200 flex items-center gap-2">
                           <Clock className="h-5 w-5" />
@@ -895,7 +895,7 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
                           const isAvailable = dayHours.some(h => h.is_available);
                           
                           return (
-                            <div key={dayName} className="p-4 bg-slate-800 rounded-lg">
+                            <div key={dayName} className="p-4 bg-slate-800 rounded-lg border border-slate-600 shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
                               <div className="flex items-center gap-4 mb-3">
                                 <div className="w-20">
                                   <Label className="text-slate-200 capitalize">{dayName}</Label>
@@ -1015,7 +1015,7 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
 
                   {/* Información de Contacto */}
                   <TabsContent value="contact" className="space-y-4">
-                    <Card className="bg-slate-700 border-slate-600">
+                    <Card className="bg-slate-700 border-slate-600 shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
                       <CardHeader>
                         <CardTitle className="text-slate-200 flex items-center gap-2">
                           <Users className="h-5 w-5" />
@@ -1066,7 +1066,7 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
 
                   {/* Suscripción y Límites */}
                   <TabsContent value="subscription" className="space-y-4">
-                    <Card className="bg-slate-700 border-slate-600">
+                    <Card className="bg-slate-700 border-slate-600 shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
                       <CardHeader>
                         <CardTitle className="text-slate-200 flex items-center gap-2">
                           <Settings className="h-5 w-5" />
@@ -1159,7 +1159,7 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
 
                   {/* Branding y Personalización */}
                   <TabsContent value="branding" className="space-y-4">
-                    <Card className="bg-slate-700 border-slate-600">
+                    <Card className="bg-slate-700 border-slate-600 shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
                       <CardHeader>
                         <CardTitle className="text-slate-200 flex items-center gap-2">
                           <Palette className="h-5 w-5" />
@@ -1260,7 +1260,7 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
 
                   {/* Integración y Campos de Pacientes */}
                   <TabsContent value="integration" className="space-y-4">
-                    <Card className="bg-slate-700 border-slate-600">
+                    <Card className="bg-slate-700 border-slate-600 shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
                       <CardHeader>
                         <CardTitle className="text-slate-200 flex items-center gap-2">
                           <UserCheck className="h-5 w-5" />
@@ -1309,7 +1309,7 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
                           </div>
                           
                           {customPatientFields.map((field, index) => (
-                            <div key={`custom-field-${index}-${field.field_name || 'unnamed'}`} className="p-3 bg-slate-800 rounded-lg border border-slate-600">
+                            <div key={`custom-field-${index}-${field.field_name || 'unnamed'}`} className="p-3 bg-slate-800 rounded-lg border border-slate-600 shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                 <div className="space-y-2">
                                   <Label className="text-slate-200 text-sm">Nombre del Campo</Label>

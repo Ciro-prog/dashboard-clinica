@@ -269,3 +269,74 @@ price: negative → should prevent submission
 2. **Search Not Working**: Verify search state and filter logic
 3. **Price Display Issues**: Check number formatting and currency display
 4. **State Not Updating**: Verify onServicesUpdate callback execution
+
+## Production Deployment & Assets Issues
+
+### Recurring Assets 404 Problem
+
+**Problem**: After deployment/pull, frontend assets fail to load with 404 errors like:
+```
+GET /assets/index-CQuK2Gtc.js HTTP/1.1 404 Not Found
+GET /assets/index-i8FIzr5o.css HTTP/1.1 404 Not Found
+```
+
+**Root Cause**: 
+- Vite generates new hashes for built files on each build
+- File names change (e.g., `index-ABC123.js` → `index-XYZ789.js`)
+- FastAPI static file mounts don't properly serve the new hashed files
+- Build inconsistency between local and server environments
+
+### Definitive Solution
+
+**Script**: `./scripts/fix-assets-production.sh`
+
+**What it does**:
+1. Cleans previous builds and caches
+2. Reconfigures `main.py` with multiple asset mount points:
+   - `/admin/assets` (original)
+   - `/assets` (primary 404 fix)
+   - `/static/admin/assets` (alternative)
+   - `/static` (all static files)
+3. Performs complete Docker rebuild with `--no-cache`
+4. Comprehensive verification of asset accessibility
+
+**When to use**:
+- After any git pull that includes frontend changes
+- When getting 404 errors on JS/CSS files
+- After updating dependencies or build configuration
+- When assets work locally but fail in production
+
+**Execution**:
+```bash
+# On server (pampaservers.com)
+cd /opt/dashboard-clinica/scripts
+./fix-assets-production.sh
+```
+
+**Prevention**: This is expected behavior due to Vite's hash-based caching system. The fix script should be run automatically after significant updates.
+
+### Standard Deployment Commands
+
+For normal updates without asset issues:
+```bash
+# Standard production update
+cd /opt/dashboard-clinica/scripts
+./production-update.sh
+```
+
+For asset-specific problems:
+```bash
+# Assets fix (includes complete rebuild)
+cd /opt/dashboard-clinica/scripts
+./fix-assets-production.sh
+```
+
+### Key Files Modified by Assets Fix
+- `clinic-admin-backend/main.py` - FastAPI static file mounting
+- Docker container complete rebuild
+- All static files regenerated with new hashes
+
+### Verification After Fix
+1. Check admin dashboard loads: `http://pampaservers.com:60519/admin`
+2. Verify no 404 errors in browser console
+3. Test asset endpoints directly: `http://pampaservers.com:60519/assets/`

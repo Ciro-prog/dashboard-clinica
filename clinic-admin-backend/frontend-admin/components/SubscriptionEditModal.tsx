@@ -328,7 +328,7 @@ export default function SubscriptionEditModal({
           {/* Características */}
           <div className="space-y-3">
             <Label className="text-slate-200">Características Incluidas</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 bg-slate-700/30 rounded-lg border border-slate-600">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 bg-slate-700/30 rounded-lg border border-slate-600 shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
               {Object.entries(formData.features).map(([feature, enabled]) => (
                 <div key={feature} className="flex items-center justify-between">
                   <Label 

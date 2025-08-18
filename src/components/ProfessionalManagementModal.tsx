@@ -524,7 +524,7 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
 
           {/* Formulario de creación */}
           {showCreateForm && (
-            <Card className="bg-slate-700 border-slate-600 mb-6">
+            <Card className="bg-slate-700 border-slate-600 mb-6 shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
               <CardHeader>
                 <CardTitle className="text-slate-200 flex items-center gap-2">
                   {editingProfessional ? (
@@ -741,7 +741,7 @@ export default function ProfessionalManagementModal({ clinic, onClose }: Profess
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {professionals.map((professional) => (
-                <Card key={professional.id} className="bg-slate-700 border-slate-600">
+                <Card key={professional.id} className="bg-slate-700 border-slate-600 shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">

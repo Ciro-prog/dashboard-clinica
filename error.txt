@@ -1,35 +1,203 @@
+ypeError: Cannot read properties of undefined (reading 'name')
+    at bT (index-CQuK2Gtc.js:349:38143)
+    at df (index-CQuK2Gtc.js:38:16998)
+    at Kg (index-CQuK2Gtc.js:40:44030)
+    at Vg (index-CQuK2Gtc.js:40:39766)
+    at KN (index-CQuK2Gtc.js:40:39694)
+    at ml (index-CQuK2Gtc.js:40:39547)
+    at Zd (index-CQuK2Gtc.js:40:35914)
+    at wm (index-CQuK2Gtc.js:40:36717)
+    at Ur (index-CQuK2Gtc.js:38:3274)
+    at index-CQuK2Gtc.js:40:34246
+overrideMethod @ hook.js:608Understand this error
+index-CQuK2Gtc.js:38 Uncaught TypeError: Cannot read properties of undefined (reading 'name')
+    at bT (index-CQuK2Gtc.js:349:38143)
+    at df (index-CQuK2Gtc.js:38:16998)
+    at Kg (index-CQuK2Gtc.js:40:44030)
+    at Vg (index-CQuK2Gtc.js:40:39766)
+    at KN (index-CQuK2Gtc.js:40:39694)
+    at ml (index-CQuK2Gtc.js:40:39547)
+    at Zd (index-CQuK2Gtc.js:40:35914)
+    at wm (index-CQuK2Gtc.js:40:36717)
+    at Ur (index-CQuK2Gtc.js:38:3274)
+    at index-CQuK2Gtc.js:40:34246Understand this error
 
-  ese curl desde /docs funciona
-curl -X 'GET' \
-  'http://pampaservers.com:60519/api/clinics/clinica-clinicademo-240994tr1/services' \
-  -H 'accept: application/json' \
-  -H 'X-API-Key: test123456'
 
-
-✅ Datos obtenidos: {stats: {…}, clinics: 1, plans: 1}
-index-jzU3UsQ1.js:442 Error copying to clipboard: TypeError: Cannot read properties of undefined (reading 'writeText')
-    at d (index-jzU3UsQ1.js:442:298)
-    at onClick (index-jzU3UsQ1.js:442:4194)
-    at Object.p1 (index-jzU3UsQ1.js:37:9855)
-    at h1 (index-jzU3UsQ1.js:37:10009)
-    at g1 (index-jzU3UsQ1.js:37:10066)
-    at Hp (index-jzU3UsQ1.js:37:31446)
-    at K0 (index-jzU3UsQ1.js:37:31863)
-    at index-jzU3UsQ1.js:37:36776
-    at vf (index-jzU3UsQ1.js:40:36935)
-    at g0 (index-jzU3UsQ1.js:37:8991)
+    💳 Creando nueva suscripción: {name: 'Free - 1 año', description: 'Plan Free - Amigos de la casa', price: '0', duration_days: '365', max_professionals: '1', …}
+index-CQuK2Gtc.js:40 NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.
+    at Yd (index-CQuK2Gtc.js:40:25586)
+    at Yd (index-CQuK2Gtc.js:40:25661)
+    at Yd (index-CQuK2Gtc.js:40:25661)
+    at hn (index-CQuK2Gtc.js:40:30812)
+    at Lg (index-CQuK2Gtc.js:40:27650)
+    at Wt (index-CQuK2Gtc.js:40:27529)
+    at Lg (index-CQuK2Gtc.js:40:27839)
+    at Wt (index-CQuK2Gtc.js:40:27529)
+    at Lg (index-CQuK2Gtc.js:40:27642)
+    at Wt (index-CQuK2Gtc.js:40:27529)
 overrideMethod @ hook.js:608
-d @ index-jzU3UsQ1.js:442
-onClick @ index-jzU3UsQ1.js:442
-p1 @ index-jzU3UsQ1.js:37
-h1 @ index-jzU3UsQ1.js:37
-g1 @ index-jzU3UsQ1.js:37
-Hp @ index-jzU3UsQ1.js:37
-K0 @ index-jzU3UsQ1.js:37
-(anonymous) @ index-jzU3UsQ1.js:37
-vf @ index-jzU3UsQ1.js:40
-g0 @ index-jzU3UsQ1.js:37
-Ac @ index-jzU3UsQ1.js:37
-Wu @ index-jzU3UsQ1.js:37
-M1 @ index-jzU3UsQ1.js:37Understand this error
-
+Bd @ index-CQuK2Gtc.js:40
+n.callback @ index-CQuK2Gtc.js:40
+tm @ index-CQuK2Gtc.js:38
+xm @ index-CQuK2Gtc.js:40
+$g @ index-CQuK2Gtc.js:40
+VN @ index-CQuK2Gtc.js:40
+qN @ index-CQuK2Gtc.js:40
+Qr @ index-CQuK2Gtc.js:40
+wm @ index-CQuK2Gtc.js:40
+Ur @ index-CQuK2Gtc.js:38
+(anonymous) @ index-CQuK2Gtc.js:40Understand this error
+index-CQuK2Gtc.js:40 Uncaught NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.
+    at Yd (index-CQuK2Gtc.js:40:25586)
+    at Yd (index-CQuK2Gtc.js:40:25661)
+    at Yd (index-CQuK2Gtc.js:40:25661)
+    at hn (index-CQuK2Gtc.js:40:30812)
+    at Lg (index-CQuK2Gtc.js:40:27650)
+    at Wt (index-CQuK2Gtc.js:40:27529)
+    at Lg (index-CQuK2Gtc.js:40:27839)
+    at Wt (index-CQuK2Gtc.js:40:27529)
+    at Lg (index-CQuK2Gtc.js:40:27642)
+    at Wt (index-CQuK2Gtc.js:40:27529)
+Yd @ index-CQuK2Gtc.js:40
+Yd @ index-CQuK2Gtc.js:40
+Yd @ index-CQuK2Gtc.js:40
+hn @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+Wt @ index-CQuK2Gtc.js:40
+Lg @ index-CQuK2Gtc.js:40
+qN @ index-CQuK2Gtc.js:40
+Qr @ index-CQuK2Gtc.js:40
+wm @ index-CQuK2Gtc.js:40
+Ur @ index-CQuK2Gtc.js:38
+(anonymous) @ index-CQuK2Gtc.js:40Understand this error
+index-CQuK2Gtc.js:349 ✅ Suscripción creada exitosamente: {plan_id: 'free---1-año-9198a8', name: 'Free - 1 año', description: 'Plan Free - Amigos de la casa', price: 0, currency: 'USD', …}
