@@ -373,6 +373,16 @@ export default function AdminDashboard({ adminUser, onLogout }: AdminDashboardPr
   };
 
   const handleDeleteSubscription = async (subscriptionId: string, subscriptionName: string) => {
+    // Check how many clinics are using this plan
+    const clinicsUsingPlan = clinics.filter(clinic => clinic.subscription_plan === subscriptionId);
+    const clinicsCount = clinicsUsingPlan.length;
+    
+    if (clinicsCount > 0) {
+      const clinicsNames = clinicsUsingPlan.map(clinic => clinic.name_clinic).join(', ');
+      alert(`❌ No se puede eliminar este plan\n\nEste plan está siendo usado por ${clinicsCount} clínica${clinicsCount > 1 ? 's' : ''}:\n${clinicsNames}\n\nPara eliminar este plan, primero cambie estas clínicas a otro plan.`);
+      return;
+    }
+    
     if (!confirm(`¿Eliminar la suscripción "${subscriptionName}"?\n\n⚠️ Esta acción no se puede deshacer.`)) {
       return;
     }
@@ -394,7 +404,26 @@ export default function AdminDashboard({ adminUser, onLogout }: AdminDashboardPr
       if (!response.ok) {
         const errorData = await response.text();
         console.error('❌ Error eliminando suscripción:', response.status, errorData);
-        throw new Error(`Error eliminando suscripción: ${response.status}`);
+        
+        try {
+          const errorJson = JSON.parse(errorData);
+          console.error('❌ Parsed error:', errorJson);
+          
+          // Handle specific error cases
+          if (errorJson.detail && errorJson.detail.includes('Cannot delete plan')) {
+            const clinicsMatch = errorJson.detail.match(/(\d+) clinics? are currently using/);
+            const clinicsCount = clinicsMatch ? clinicsMatch[1] : 'algunas';
+            throw new Error(`No se puede eliminar este plan porque ${clinicsCount} clínica${clinicsCount !== '1' ? 's' : ''} lo está${clinicsCount !== '1' ? 'n' : ''} usando actualmente. Para eliminar este plan, primero cambie las clínicas a otro plan.`);
+          }
+          
+          // Use backend message if available
+          throw new Error(errorJson.detail || errorJson.message || `Error eliminando suscripción: ${response.status}`);
+          
+        } catch (parseError) {
+          console.error('❌ Error parsing response:', parseError);
+          // Fallback to generic error
+          throw new Error(`Error eliminando suscripción: ${response.status}`);
+        }
       }
 
       console.log('✅ Suscripción eliminada exitosamente');

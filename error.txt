@@ -1,26 +1,8 @@
-index-D4G6SDTs.js:349 ❌ EnhancedSubscriptionUpgradeModal: Missing required props 
-{clinic: true, currentPlan: false, availablePlans: true}
-bT	@	index-D4G6SDTs.js:349
-df	@	index-D4G6SDTs.js:38
-Kg	@	index-D4G6SDTs.js:40
-Hg	@	index-D4G6SDTs.js:40
-KN	@	index-D4G6SDTs.js:40
-ml	@	index-D4G6SDTs.js:40
-wm	@	index-D4G6SDTs.js:40
-Ur	@	index-D4G6SDTs.js:38
-(anonymous)	@	index-D4G6SDTs.js:40
+index-Di3Oao5B.js:467 
+ DELETE http://pampaservers.com:60519/api/admin/subscription-plans/68a2c97… 400 (Bad Request)
 
-index-D4G6SDTs.js:349 ❌ EnhancedSubscriptionUpgradeModal: Missing required props 
-{clinic: true, currentPlan: false, availablePlans: true}
-index-D4G6SDTs.js:349 ❌ EnhancedSubscriptionUpgradeModal: Missing required props 
-{clinic: true, currentPlan: false, availablePlans: true}
+index-Di3Oao5B.js:467 ❌ Error eliminando suscripción: 400 {"detail":"Cannot delete plan. 1 clinics are currently using this plan"}
+index-Di3Oao5B.js:467 ❌ Error eliminando suscripción: Error: Error eliminando suscripción: 400
+    at Mn (index-Di3Oao5B.js:467:406)
+
 ﻿
--------------------------------- y log de creacion de cuenta
-
-🏥 Creando nueva clínica: Object
-api/admin/clinics:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)Understand this error
-index-D4G6SDTs.js:343 ❌ Error creando clínica: 500 Internal Server Error
-I @ index-D4G6SDTs.js:343Understand this error
-index-D4G6SDTs.js:343 ❌ Error en creación de clínica: Error: Error del servidor: 500
-    at I (index-D4G6SDTs.js:343:39367)
-I @ index-D4G6SDTs.js:343Understand this error
