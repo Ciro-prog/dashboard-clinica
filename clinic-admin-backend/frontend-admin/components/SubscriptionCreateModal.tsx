@@ -80,9 +80,36 @@ export default function SubscriptionCreateModal({ onSubscriptionCreated }: Subsc
         throw new Error('Token de administrador no encontrado');
       }
 
+      // Frontend validation before sending
+      const validationErrors: string[] = [];
+      
+      if (!formData.name.trim()) {
+        validationErrors.push('El nombre del plan es requerido');
+      }
+      
+      if (!formData.price || parseFloat(formData.price) <= 0) {
+        validationErrors.push('El precio debe ser mayor a 0');
+      }
+      
+      if (!formData.duration_days || parseInt(formData.duration_days) <= 0) {
+        validationErrors.push('La duración debe ser mayor a 0 días');
+      }
+      
+      if (!formData.max_professionals || parseInt(formData.max_professionals) <= 0) {
+        validationErrors.push('El máximo de profesionales debe ser mayor a 0');
+      }
+      
+      if (!formData.max_patients || parseInt(formData.max_patients) <= 0) {
+        validationErrors.push('El máximo de pacientes debe ser mayor a 0');
+      }
+      
+      if (validationErrors.length > 0) {
+        throw new Error(`Errores de validación:\n• ${validationErrors.join('\n• ')}`);
+      }
+
       const subscriptionData = {
-        name: formData.name,
-        description: formData.description,
+        name: formData.name.trim(),
+        description: formData.description.trim(),
         price: parseFloat(formData.price),
         duration_days: parseInt(formData.duration_days),
         max_professionals: parseInt(formData.max_professionals),
@@ -92,6 +119,13 @@ export default function SubscriptionCreateModal({ onSubscriptionCreated }: Subsc
 
       // PASO 1: Mostrar loading y procesar guardado
       console.log('🔄 PASO 1: Iniciando guardado...');
+      console.log('📤 Datos a enviar al backend:', JSON.stringify(subscriptionData, null, 2));
+      console.log('📊 Validación de datos:');
+      console.log('  - Name:', formData.name || '❌ VACÍO');
+      console.log('  - Price:', formData.price || '❌ VACÍO');
+      console.log('  - Duration:', formData.duration_days || '❌ VACÍO');
+      console.log('  - Max Professionals:', formData.max_professionals || '❌ VACÍO');
+      console.log('  - Max Patients:', formData.max_patients || '❌ VACÍO');
       
       // Simular respuesta del backend para desarrollo
       try {
@@ -105,7 +139,30 @@ export default function SubscriptionCreateModal({ onSubscriptionCreated }: Subsc
         });
 
         if (!response.ok) {
-          throw new Error('Backend not implemented');
+          const errorText = await response.text();
+          console.error('❌ Backend error:', response.status, errorText);
+          
+          try {
+            const errorJson = JSON.parse(errorText);
+            console.error('❌ Parsed error:', errorJson);
+            
+            if (response.status === 422) {
+              // Handle validation errors specifically
+              if (errorJson.detail) {
+                if (Array.isArray(errorJson.detail)) {
+                  const validationErrors = errorJson.detail.map((err: any) => `${err.loc?.join('.')}: ${err.msg}`).join(', ');
+                  throw new Error(`Errores de validación: ${validationErrors}`);
+                } else {
+                  throw new Error(`Error de validación: ${errorJson.detail}`);
+                }
+              }
+            }
+            
+            throw new Error(errorJson.message || errorJson.detail || `Error ${response.status} del backend`);
+          } catch (parseError) {
+            console.error('❌ Could not parse error response as JSON');
+            throw new Error(`Error ${response.status}: ${errorText || 'Backend validation failed'}`);
+          }
         }
 
         const newSubscription = await response.json();
