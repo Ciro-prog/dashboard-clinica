@@ -1,34 +1,256 @@
+{timezone: 'America/Bogota', working_hours: Array(12), break_start: '13:00', break_end: '16:00', holiday_dates: Array(0), …}break_end: "16:00"break_start: "13:00"holiday_dates: []special_hours: {}timezone: "America/Bogota"working_hours: (12) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}][[Prototype]]: Object
+index-BHNqTOkf.js:343 📞 ContactInfo: {phone: '2604553399', whatsapp: '2604553399', email: 'metral@metral.com', address: 'por aca 226', website: '', …}
+index-BHNqTOkf.js:343 📤 Enviando datos al backend: {
+  "clinic_id": "clinica-asd-550216g6w",
+  "name_clinic": "asd",
+  "suscriber": "laskddas",
+  "email": "metral@metral.com",
+  "cell_phone": "2604553399",
+  "address": "por aca 226",
+  "domain_name": "cirometral",
+  "subscription_plan": "free-31d05f",
+  "subscription_status": "trial",
+  "subscription_expires": "2025-09-25",
+  "max_professionals": 5,
+  "max_patients": 100,
+  "password": "admin123",
+  "status_clinic": "active",
+  "whatsapp_session_name": "laskddas",
+  "n8n_folder_name": "laskddas - Operativa",
+  "services": [
+    {
+      "service_id": "srv_general",
+      "service_type": "Consulta General",
+      "description": "Consulta médica general con evaluación completa",
+      "base_price": 50000,
+      "currency": "COP",
+      "duration_minutes": 30,
+      "category": "Medicina General",
+      "requires_appointment": true,
+      "is_active": true
+    },
+    {
+      "service_id": "srv_specialist",
+      "service_type": "Consulta Especializada",
+      "description": "Consulta con especialista médico",
+      "base_price": 75000,
+      "currency": "COP",
+      "duration_minutes": 45,
+      "category": "Especialidades",
+      "requires_appointment": true,
+      "is_active": true
+    },
+    {
+      "service_id": "srv_minor_surgery",
+      "service_type": "Cirugía Menor",
+      "description": "Procedimientos quirúrgicos menores ambulatorios",
+      "base_price": 150000,
+      "currency": "COP",
+      "duration_minutes": 60,
+      "category": "Cirugía",
+      "requires_appointment": true,
+      "is_active": true
+    },
+    {
+      "service_id": "srv_emergency",
+      "service_type": "Urgencia",
+      "description": "Atención médica de urgencias",
+      "base_price": 80000,
+      "currency": "COP",
+      "duration_minutes": 45,
+      "category": "Urgencias",
+      "requires_appointment": false,
+      "is_active": true
+    }
+  ],
+  "schedule": {
+    "timezone": "America/Bogota",
+    "working_hours": [
+      {
+        "day_of_week": "monday",
+        "start_time": "09:00",
+        "end_time": "13:00",
+        "is_available": true
+      },
+      {
+        "day_of_week": "monday",
+        "start_time": "16:00",
+        "end_time": "20:00",
+        "is_available": true
+      },
+      {
+        "day_of_week": "tuesday",
+        "start_time": "09:00",
+        "end_time": "13:00",
+        "is_available": true
+      },
+      {
+        "day_of_week": "tuesday",
+        "start_time": "16:00",
+        "end_time": "20:00",
+        "is_available": true
+      },
+      {
+        "day_of_week": "wednesday",
+        "start_time": "09:00",
+        "end_time": "13:00",
+        "is_available": true
+      },
+      {
+        "day_of_week": "wednesday",
+        "start_time": "16:00",
+        "end_time": "20:00",
+        "is_available": true
+      },
+      {
+        "day_of_week": "thursday",
+        "start_time": "09:00",
+        "end_time": "13:00",
+        "is_available": true
+      },
+      {
+        "day_of_week": "thursday",
+        "start_time": "16:00",
+        "end_time": "20:00",
+        "is_available": true
+      },
+      {
+        "day_of_week": "friday",
+        "start_time": "09:00",
+        "end_time": "13:00",
+        "is_available": true
+      },
+      {
+        "day_of_week": "friday",
+        "start_time": "16:00",
+        "end_time": "20:00",
+        "is_available": true
+      },
+      {
+        "day_of_week": "saturday",
+        "start_time": "09:00",
+        "end_time": "13:00",
+        "is_available": true
+      },
+      {
+        "day_of_week": "sunday",
+        "start_time": "00:00",
+        "end_time": "00:00",
+        "is_available": false
+      }
+    ],
+    "break_start": "13:00",
+    "break_end": "16:00",
+    "holiday_dates": [],
+    "special_hours": {}
+  },
+  "contact_info": {
+    "phone": "2604553399",
+    "whatsapp": "2604553399",
+    "email": "metral@metral.com",
+    "address": "por aca 226",
+    "website": "",
+    "maps_url": ""
+  },
+  "specialties": [
+    "Medicina General",
+    "Cardiología",
+    "Dermatología",
+    "Ginecología",
+    "Pediatría",
+    "Ortopedia",
+    "Oftalmología"
+  ],
+  "subscription_features": {
+    "whatsapp_integration": true,
+    "patient_history": true,
+    "appointment_scheduling": true,
+    "medical_records": true,
+    "analytics_dashboard": true,
+    "custom_branding": true,
+    "api_access": true,
+    "priority_support": true
+  },
+  "branding": {
+    "clinic_title": "asd",
+    "clinic_subtitle": "Sistema de Gestión Médica - asd",
+    "logo_url": "",
+    "primary_color": "#3B82F6",
+    "secondary_color": "#1E40AF"
+  },
+  "patient_form_fields": [
+    "first_name",
+    "last_name",
+    "dni",
+    "address",
+    "cell_phone",
+    "mutual",
+    "email",
+    "birth_date"
+  ],
+  "custom_patient_fields": []
+}
+index-BHNqTOkf.js:343 📊 Tamaño del payload: 3416 bytes
+index-BHNqTOkf.js:343  POST http://pampaservers.com:60519/api/admin/clinics 500 (Internal Server Error)
+I @ index-BHNqTOkf.js:343
+onClick @ index-BHNqTOkf.js:343
+p1 @ index-BHNqTOkf.js:37
+h1 @ index-BHNqTOkf.js:37
+g1 @ index-BHNqTOkf.js:37
+Wp @ index-BHNqTOkf.js:37
+G0 @ index-BHNqTOkf.js:37
+(anonymous) @ index-BHNqTOkf.js:37
+yf @ index-BHNqTOkf.js:40
+x0 @ index-BHNqTOkf.js:37
+Dc @ index-BHNqTOkf.js:37
+Ku @ index-BHNqTOkf.js:37
+M1 @ index-BHNqTOkf.js:37Understand this error
+index-BHNqTOkf.js:343 ❌ Error creando clínica: 500 Internal Server Error
+I @ index-BHNqTOkf.js:343
+await in I
+onClick @ index-BHNqTOkf.js:343
+p1 @ index-BHNqTOkf.js:37
+h1 @ index-BHNqTOkf.js:37
+g1 @ index-BHNqTOkf.js:37
+Wp @ index-BHNqTOkf.js:37
+G0 @ index-BHNqTOkf.js:37
+(anonymous) @ index-BHNqTOkf.js:37
+yf @ index-BHNqTOkf.js:40
+x0 @ index-BHNqTOkf.js:37
+Dc @ index-BHNqTOkf.js:37
+Ku @ index-BHNqTOkf.js:37
+M1 @ index-BHNqTOkf.js:37Understand this error
+index-BHNqTOkf.js:343 ❌ Response headers: (4) [Array(2), Array(2), Array(2), Array(2)]
+I @ index-BHNqTOkf.js:343
+await in I
+onClick @ index-BHNqTOkf.js:343
+p1 @ index-BHNqTOkf.js:37
+h1 @ index-BHNqTOkf.js:37
+g1 @ index-BHNqTOkf.js:37
+Wp @ index-BHNqTOkf.js:37
+G0 @ index-BHNqTOkf.js:37
+(anonymous) @ index-BHNqTOkf.js:37
+yf @ index-BHNqTOkf.js:40
+x0 @ index-BHNqTOkf.js:37
+Dc @ index-BHNqTOkf.js:37
+Ku @ index-BHNqTOkf.js:37
+M1 @ index-BHNqTOkf.js:37Understand this error
 index-BHNqTOkf.js:343 ❌ Error parsing response: SyntaxError: Unexpected token 'I', "Internal S"... is not valid JSON
     at JSON.parse (<anonymous>)
     at I (index-BHNqTOkf.js:343:39714)
-I	@	index-BHNqTOkf.js:343
-await in I		
-onClick	@	index-BHNqTOkf.js:343
-p1	@	index-BHNqTOkf.js:37
-h1	@	index-BHNqTOkf.js:37
-g1	@	index-BHNqTOkf.js:37
-Wp	@	index-BHNqTOkf.js:37
-G0	@	index-BHNqTOkf.js:37
-(anonymous)	@	index-BHNqTOkf.js:37
-yf	@	index-BHNqTOkf.js:40
-x0	@	index-BHNqTOkf.js:37
-Dc	@	index-BHNqTOkf.js:37
-Ku	@	index-BHNqTOkf.js:37
-M1	@	index-BHNqTOkf.js:37
+I @ index-BHNqTOkf.js:343
+await in I
+onClick @ index-BHNqTOkf.js:343
+p1 @ index-BHNqTOkf.js:37
+h1 @ index-BHNqTOkf.js:37
+g1 @ index-BHNqTOkf.js:37
+Wp @ index-BHNqTOkf.js:37
+G0 @ index-BHNqTOkf.js:37
+(anonymous) @ index-BHNqTOkf.js:37
+yf @ index-BHNqTOkf.js:40
+x0 @ index-BHNqTOkf.js:37
+Dc @ index-BHNqTOkf.js:37
+Ku @ index-BHNqTOkf.js:37
+M1 @ index-BHNqTOkf.js:37Understand this error
 index-BHNqTOkf.js:343 ❌ Error en creación de clínica: Error: Error interno del servidor (500). Verifica que todos los campos estén completados correctamente y que el backend esté funcionando
     at I (index-BHNqTOkf.js:343:40283)
-I	@	index-BHNqTOkf.js:343
-await in I		
-onClick	@	index-BHNqTOkf.js:343
-p1	@	index-BHNqTOkf.js:37
-h1	@	index-BHNqTOkf.js:37
-g1	@	index-BHNqTOkf.js:37
-Wp	@	index-BHNqTOkf.js:37
-G0	@	index-BHNqTOkf.js:37
-(anonymous)	@	index-BHNqTOkf.js:37
-yf	@	index-BHNqTOkf.js:40
-x0	@	index-BHNqTOkf.js:37
-Dc	@	index-BHNqTOkf.js:37
-Ku	@	index-BHNqTOkf.js:37
-M1	@	index-BHNqTOkf.js:37
-﻿

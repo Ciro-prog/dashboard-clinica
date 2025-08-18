@@ -47,6 +47,8 @@ interface ContactInfo {
   whatsapp: string;
   email: string;
   address: string;
+  city?: string;
+  province?: string;
   website?: string;
   maps_url?: string;
 }
@@ -132,7 +134,7 @@ const DEFAULT_SERVICES: ServiceData[] = [
 
 // Default schedule from N8N hardcoded data - with split hours support
 const DEFAULT_SCHEDULE: ScheduleData = {
-  timezone: "America/Bogota",
+  timezone: "America/Argentina/Buenos_Aires",
   working_hours: [
     { day_of_week: "monday", start_time: "09:00", end_time: "13:00", is_available: true },
     { day_of_week: "monday", start_time: "16:00", end_time: "20:00", is_available: true },
@@ -198,6 +200,8 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
     whatsapp: '',
     email: '',
     address: '',
+    city: '',
+    province: '',
     website: '',
     maps_url: ''
   });
@@ -357,8 +361,10 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
       // Clean optional fields (send null instead of empty strings)
       const cleanContactInfo = {
         ...contactInfo,
-        website: contactInfo.website.trim() || null,
-        maps_url: contactInfo.maps_url.trim() || null
+        city: contactInfo.city?.trim() || null,
+        province: contactInfo.province?.trim() || null,
+        website: contactInfo.website?.trim() || null,
+        maps_url: contactInfo.maps_url?.trim() || null
       };
       
       const cleanBranding = {
@@ -395,9 +401,12 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
       console.log('📤 Enviando datos al backend:', JSON.stringify(clinicData, null, 2));
       console.log('📊 Tamaño del payload:', new Blob([JSON.stringify(clinicData)]).size, 'bytes');
       console.log('🔍 Campos opcionales verificados:');
+      console.log('  - Ciudad:', cleanContactInfo.city || '❌ NULL (correcto)');
+      console.log('  - Provincia:', cleanContactInfo.province || '❌ NULL (correcto)');
       console.log('  - Website URL:', cleanContactInfo.website || '❌ NULL (correcto)');
       console.log('  - Maps URL:', cleanContactInfo.maps_url || '❌ NULL (correcto)');
       console.log('  - Logo URL:', cleanBranding.logo_url || '❌ NULL (correcto)');
+      console.log('  - Timezone:', schedule.timezone);
       console.log('🧹 Contact info limpia:', JSON.stringify(cleanContactInfo, null, 2));
       console.log('🎨 Branding limpio:', JSON.stringify(cleanBranding, null, 2));
 
@@ -839,6 +848,32 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
+                            <Label htmlFor="city" className="text-slate-200">Ciudad</Label>
+                            <Input
+                              id="city"
+                              value={contactInfo.city || ''}
+                              onChange={(e) => setContactInfo(prev => ({...prev, city: e.target.value}))}
+                              placeholder="Buenos Aires"
+                              className="bg-slate-800 border-slate-600 text-slate-100"
+                              disabled={loading}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="province" className="text-slate-200">Provincia</Label>
+                            <Input
+                              id="province"
+                              value={contactInfo.province || ''}
+                              onChange={(e) => setContactInfo(prev => ({...prev, province: e.target.value}))}
+                              placeholder="Buenos Aires"
+                              className="bg-slate-800 border-slate-600 text-slate-100"
+                              disabled={loading}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
                             <Label htmlFor="subscription_plan" className="text-slate-200">Plan de Suscripción</Label>
                             <select
                               id="subscription_plan"
@@ -1029,6 +1064,27 @@ export default function ClinicCreateModal({ onClinicCreated }: ClinicCreateModal
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-4">
+                        {/* Timezone Selection */}
+                        <div className="space-y-2">
+                          <Label htmlFor="timezone" className="text-slate-200">Zona Horaria</Label>
+                          <select
+                            id="timezone"
+                            value={schedule.timezone}
+                            onChange={(e) => setSchedule(prev => ({ ...prev, timezone: e.target.value }))}
+                            className="flex h-10 w-full rounded-md border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-medical-500"
+                            disabled={loading}
+                          >
+                            <option value="America/Argentina/Buenos_Aires">Argentina (Buenos Aires) - UTC-3</option>
+                            <option value="America/Bogota">Colombia (Bogotá) - UTC-5</option>
+                            <option value="America/Mexico_City">México (Ciudad de México) - UTC-6</option>
+                            <option value="America/Lima">Perú (Lima) - UTC-5</option>
+                            <option value="America/Santiago">Chile (Santiago) - UTC-3</option>
+                            <option value="America/Caracas">Venezuela (Caracas) - UTC-4</option>
+                            <option value="Europe/Madrid">España (Madrid) - UTC+1</option>
+                            <option value="America/New_York">Estados Unidos (Nueva York) - UTC-5</option>
+                          </select>
+                        </div>
+
                         {/* Group working hours by day */}
                         {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((dayName) => {
                           const dayHours = schedule.working_hours.filter(h => h.day_of_week === dayName);
