@@ -596,9 +596,9 @@ export default function AdminDashboard({ adminUser, onLogout }: AdminDashboardPr
                   <Building2 className="h-4 w-4 text-slate-400" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-white">{stats.total_clinics}</div>
+                  <div className="text-2xl font-bold text-white">{clinics.length}</div>
                   <p className="text-xs text-slate-400">
-                    {stats.active_clinics} activas, {stats.trial_clinics} en prueba
+                    {clinics.filter(c => c.status_clinic === 'active').length} activas, {clinics.filter(c => c.subscription_status === 'trial').length} en prueba
                   </p>
                 </CardContent>
               </Card>
@@ -1077,7 +1077,14 @@ export default function AdminDashboard({ adminUser, onLogout }: AdminDashboardPr
       {selectedClinicForUpgrade && (
         <EnhancedSubscriptionUpgradeModal
           clinic={selectedClinicForUpgrade}
-          currentPlan={plans[selectedClinicForUpgrade.subscription_plan]}
+          currentPlan={
+            plans[selectedClinicForUpgrade.subscription_plan] || 
+            Object.values(plans).find(plan => 
+              plan.name?.toLowerCase().includes(selectedClinicForUpgrade.subscription_plan.toLowerCase()) ||
+              (selectedClinicForUpgrade.subscription_plan === 'trial' && plan.name?.toLowerCase().includes('trial'))
+            ) ||
+            Object.values(plans)[0] // Fallback to first plan
+          }
           availablePlans={plans}
           open={!!selectedClinicForUpgrade}
           onClose={() => setSelectedClinicForUpgrade(null)}

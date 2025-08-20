@@ -5,7 +5,7 @@ from pydantic import Field
 
 class Settings(BaseSettings):
     # Database
-    mongodb_url: str = Field(default="mongodb://localhost:27017", env="MONGODB_URL")
+    mongodb_url: str = Field(default="mongodb://192.168.1.23:60516", env="MONGODB_URL")
     database_name: str = Field(default="clinica-dashboard", env="DATABASE_NAME")
     
     # Security

@@ -100,7 +100,7 @@ class ClinicBase(BaseModel):
     
     # Subscription management
     subscription_status: str = Field(default="trial", pattern="^(trial|active|expired|cancelled)$")
-    subscription_plan: str = Field(default="basic", pattern="^(trial|basic|premium|enterprise)$")
+    subscription_plan: str = Field(default="basic")
     subscription_expires: Optional[date] = None
     subscription_features: SubscriptionFeatures = Field(default_factory=SubscriptionFeatures)
     max_professionals: int = Field(default=5, ge=1, le=100)
@@ -158,7 +158,7 @@ class ClinicUpdate(BaseModel):
     status_clinic: Optional[str] = Field(None, pattern="^(active|inactive|suspended)$")
     domain_name: Optional[str] = Field(None, min_length=3, max_length=100)
     subscription_status: Optional[str] = Field(None, pattern="^(trial|active|expired|cancelled)$")
-    subscription_plan: Optional[str] = Field(None, pattern="^(trial|basic|premium|enterprise)$")
+    subscription_plan: Optional[str] = Field(None)
     subscription_expires: Optional[date] = None
     max_professionals: Optional[int] = Field(None, ge=1, le=100)
     max_patients: Optional[int] = Field(None, ge=1, le=10000)
@@ -211,7 +211,7 @@ class ClinicStatsResponse(BaseModel):
     
 class SubscriptionUpdate(BaseModel):
     subscription_status: str = Field(..., pattern="^(trial|active|expired|cancelled)$")
-    subscription_plan: str = Field(..., pattern="^(trial|basic|premium|enterprise)$")
+    subscription_plan: str = Field(...)
     subscription_expires: Optional[date] = None
     max_professionals: Optional[int] = Field(None, ge=1, le=100)
     max_patients: Optional[int] = Field(None, ge=1, le=10000)

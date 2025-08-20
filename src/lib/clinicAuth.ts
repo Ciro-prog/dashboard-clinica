@@ -14,7 +14,7 @@ export interface ClinicUser {
   email: string;
   cell_phone: string;
   subscription_status: 'trial' | 'active' | 'expired' | 'cancelled';
-  subscription_plan: 'trial' | 'basic' | 'premium' | 'enterprise';
+  subscription_plan: string; // Now supports generated plan IDs
   status_clinic: 'active' | 'inactive' | 'suspended';
   domain_name: string;
   email_domain?: string;

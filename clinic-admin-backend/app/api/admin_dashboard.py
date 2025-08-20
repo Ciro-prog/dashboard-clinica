@@ -91,14 +91,20 @@ async def get_admin_dashboard_stats(current_admin: AdminInDB = Depends(get_curre
     patients_collection = await get_collection("patients")
     professionals_collection = await get_collection("professionals")
     
-    # Get clinic stats
-    total_clinics = await clinics_collection.count_documents({})
+    # Get clinic stats - only count non-deleted clinics
+    total_clinics = await clinics_collection.count_documents({"status_clinic": {"$ne": "deleted"}})
     active_clinics = await clinics_collection.count_documents({"status_clinic": "active"})
-    trial_clinics = await clinics_collection.count_documents({"subscription_status": "trial"})
+    trial_clinics = await clinics_collection.count_documents({
+        "subscription_status": "trial",
+        "status_clinic": {"$ne": "deleted"}
+    })
     
-    # Get revenue stats
+    # Get revenue stats - exclude deleted clinics
     pipeline = [
-        {"$match": {"subscription_status": "active"}},
+        {"$match": {
+            "subscription_status": "active",
+            "status_clinic": {"$ne": "deleted"}
+        }},
         {"$group": {
             "_id": "$subscription_plan",
             "count": {"$sum": 1}
@@ -166,11 +172,11 @@ async def list_clinics(current_admin: AdminInDB = Depends(get_current_admin_hybr
         clinics_collection = await get_collection("clinics")
         print(f"[CLINICS] Got collection")
         
-        # Check total count
-        total_count = await clinics_collection.count_documents({})
-        print(f"[CLINICS] Total clinics in DB: {total_count}")
+        # Check total count (exclude deleted)
+        total_count = await clinics_collection.count_documents({"status_clinic": {"$ne": "deleted"}})
+        print(f"[CLINICS] Total active clinics in DB: {total_count}")
         
-        cursor = clinics_collection.find({}).sort("created_at", -1)
+        cursor = clinics_collection.find({"status_clinic": {"$ne": "deleted"}}).sort("created_at", -1)
         clinics = []
         
         async for clinic in cursor:

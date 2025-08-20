@@ -23,7 +23,7 @@ export interface Clinic {
   suscriber: string;          // Subscriber para WAHA
   address: string;            // Dirección
   subscription_status: 'trial' | 'active' | 'expired' | 'cancelled'; // Estado de suscripción
-  subscription_plan: 'trial' | 'basic' | 'premium' | 'enterprise'; // Plan de suscripción
+  subscription_plan: string; // Plan de suscripción - now supports generated IDs
   email: string;              // Email
   cell_phone: string;         // Teléfono celular
   status_clinic: 'active' | 'inactive' | 'suspended'; // Estado de la clínica

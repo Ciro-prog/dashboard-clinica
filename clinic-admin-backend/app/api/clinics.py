@@ -1,5 +1,5 @@
 from typing import List, Optional
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from fastapi import APIRouter, HTTPException, status, Depends, Query
 from bson import ObjectId
 from ..core.database import get_collection
@@ -754,4 +754,373 @@ async def initialize_clinic_services(
         "message": "Clinic initialized with default services successfully",
         "services_count": len(DEFAULT_SERVICES),
         "specialties_count": len(DEFAULT_SPECIALTIES)
+    }
+
+
+@router.post("/{clinic_id}/subscription/upgrade-preview")
+async def get_upgrade_preview(
+    clinic_id: str,
+    upgrade_data: dict,
+    current_admin: AdminInDB = Depends(get_admin_or_moderator_hybrid)
+):
+    """Calculate subscription upgrade preview with prorated pricing"""
+    clinics_collection = await get_collection("clinics")
+    plans_collection = await get_collection("subscription_plans")
+    
+    # Find clinic
+    filter_dict = {}
+    if ObjectId.is_valid(clinic_id):
+        filter_dict = {"$or": [{"_id": ObjectId(clinic_id)}, {"clinic_id": clinic_id}]}
+    else:
+        filter_dict = {"clinic_id": clinic_id}
+    
+    clinic = await clinics_collection.find_one(filter_dict)
+    if not clinic:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Clinic not found"
+        )
+    
+    # Get current plan - try both plan_id and _id lookup
+    current_plan_id = clinic.get("subscription_plan")
+    current_plan = await plans_collection.find_one({"plan_id": current_plan_id})
+    if not current_plan:
+        # Try MongoDB _id lookup
+        try:
+            current_plan = await plans_collection.find_one({"_id": ObjectId(current_plan_id)})
+        except:
+            pass
+    
+    if not current_plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"El plan de suscripción '{current_plan_id}' no existe o no se ha cargado correctamente"
+        )
+    
+    # Get new plan
+    new_plan_id = upgrade_data.get("new_plan")
+    new_plan = await plans_collection.find_one({"plan_id": new_plan_id})
+    if not new_plan:
+        # Try MongoDB _id lookup
+        try:
+            new_plan = await plans_collection.find_one({"_id": ObjectId(new_plan_id)})
+        except:
+            pass
+    
+    if not new_plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"El plan de destino '{new_plan_id}' no existe"
+        )
+    
+    # Calculate preview
+    immediate_upgrade = upgrade_data.get("immediate_upgrade", True)
+    
+    # Calculate days remaining
+    days_remaining = 0
+    if clinic.get("subscription_expires"):
+        expiration_date = clinic["subscription_expires"]
+        if isinstance(expiration_date, str):
+            expiration_date = datetime.fromisoformat(expiration_date.replace('Z', '+00:00'))
+        
+        today = datetime.utcnow()
+        diff_time = expiration_date - today
+        days_remaining = max(0, diff_time.days)
+    
+    # Calculate pricing
+    price_difference = new_plan["price"] - current_plan["price"]
+    is_trial = current_plan["price"] == 0
+    
+    # For trials, always 0 regardless of timing
+    # For paid users, prorated calculation only if immediate
+    prorated_amount = 0.0 if is_trial else (price_difference * days_remaining / 30 if immediate_upgrade else 0.0)
+    
+    # Calculate next billing date
+    if immediate_upgrade:
+        next_billing_date = datetime.utcnow()
+    else:
+        today = datetime.utcnow()
+        next_billing_date = datetime(today.year, today.month + 1, 1) if today.month < 12 else datetime(today.year + 1, 1, 1)
+    
+    savings_if_wait = 0.0 if immediate_upgrade else (0.0 if is_trial else price_difference)
+    
+    return {
+        "current_plan": current_plan["name"],
+        "new_plan": new_plan["name"],
+        "price_difference": price_difference,
+        "prorated_amount": prorated_amount,
+        "days_remaining": days_remaining,
+        "immediate_upgrade": immediate_upgrade,
+        "next_billing_date": next_billing_date.isoformat(),
+        "savings_if_wait": savings_if_wait
+    }
+
+
+@router.post("/{clinic_id}/subscription/upgrade")
+async def upgrade_subscription(
+    clinic_id: str,
+    upgrade_data: dict,
+    current_admin: AdminInDB = Depends(get_admin_or_moderator_hybrid)
+):
+    """Execute subscription upgrade"""
+    clinics_collection = await get_collection("clinics")
+    plans_collection = await get_collection("subscription_plans")
+    
+    # Find clinic
+    filter_dict = {}
+    if ObjectId.is_valid(clinic_id):
+        filter_dict = {"$or": [{"_id": ObjectId(clinic_id)}, {"clinic_id": clinic_id}]}
+    else:
+        filter_dict = {"clinic_id": clinic_id}
+    
+    clinic = await clinics_collection.find_one(filter_dict)
+    if not clinic:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Clinic not found"
+        )
+    
+    # Validate new plan exists - try both plan_id and _id lookup
+    new_plan_id = upgrade_data.get("new_plan")
+    new_plan = await plans_collection.find_one({"plan_id": new_plan_id})
+    if not new_plan:
+        # Try MongoDB _id lookup
+        try:
+            new_plan = await plans_collection.find_one({"_id": ObjectId(new_plan_id)})
+        except:
+            pass
+    
+    if not new_plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"El plan de suscripción '{new_plan_id}' no existe"
+        )
+    
+    # Calculate new subscription end date
+    immediate_upgrade = upgrade_data.get("immediate_upgrade", True)
+    billing_start_of_month = upgrade_data.get("billing_start_of_month", False)
+    
+    if immediate_upgrade:
+        # Start from now
+        new_subscription_start = datetime.utcnow()
+    else:
+        # Start from beginning of next month
+        today = datetime.utcnow()
+        new_subscription_start = datetime(today.year, today.month + 1, 1) if today.month < 12 else datetime(today.year + 1, 1, 1)
+    
+    new_subscription_end = datetime(
+        new_subscription_start.year,
+        new_subscription_start.month + (new_plan["duration_days"] // 30),
+        new_subscription_start.day
+    )
+    
+    # Update clinic subscription
+    update_data = {
+        "subscription_plan": new_plan["plan_id"],  # Use the actual plan_id from the database
+        "subscription_status": "active",
+        "subscription_expires": new_subscription_end,
+        "max_professionals": new_plan["max_professionals"],
+        "max_patients": new_plan["max_patients"],
+        "updated_at": datetime.utcnow()
+    }
+    
+    await clinics_collection.update_one(
+        {"_id": clinic["_id"]},
+        {"$set": update_data}
+    )
+    
+    return {
+        "message": "Subscription upgraded successfully",
+        "new_plan": new_plan["name"],
+        "new_plan_id": new_plan["plan_id"],
+        "subscription_expires": new_subscription_end.isoformat(),
+        "immediate_upgrade": immediate_upgrade
+    }
+
+
+@router.get("/{clinic_id}/payments")
+async def get_payment_history(
+    clinic_id: str,
+    current_admin: AdminInDB = Depends(get_admin_or_moderator_hybrid)
+):
+    """Get payment history for clinic"""
+    clinics_collection = await get_collection("clinics")
+    
+    # Find clinic
+    filter_dict = {}
+    if ObjectId.is_valid(clinic_id):
+        filter_dict = {"$or": [{"_id": ObjectId(clinic_id)}, {"clinic_id": clinic_id}]}
+    else:
+        filter_dict = {"clinic_id": clinic_id}
+    
+    clinic = await clinics_collection.find_one(filter_dict)
+    if not clinic:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Clinic not found"
+        )
+    
+    # Return empty payment history for now (can be extended later)
+    return []
+
+
+@router.patch("/{clinic_id}/subscription/fix-plan-reference")
+async def fix_clinic_plan_reference(
+    clinic_id: str,
+    current_admin: AdminInDB = Depends(get_admin_or_moderator_hybrid)
+):
+    """Fix clinic plan reference mismatch by updating to correct plan ID"""
+    clinics_collection = await get_collection("clinics")
+    plans_collection = await get_collection("subscription_plans")
+    
+    # Find clinic
+    filter_dict = {}
+    if ObjectId.is_valid(clinic_id):
+        filter_dict = {"$or": [{"_id": ObjectId(clinic_id)}, {"clinic_id": clinic_id}]}
+    else:
+        filter_dict = {"clinic_id": clinic_id}
+    
+    clinic = await clinics_collection.find_one(filter_dict)
+    if not clinic:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Clinic not found"
+        )
+    
+    current_plan_ref = clinic.get("subscription_plan", "")
+    
+    # Find the actual plan in the database with matching characteristics
+    # Look for plans with "trial" in name or with $1 price
+    plans_cursor = plans_collection.find({
+        "$or": [
+            {"name": {"$regex": "trial", "$options": "i"}},
+            {"price": {"$in": [0, 1]}}
+        ]
+    })
+    
+    plans = await plans_cursor.to_list(length=None)
+    
+    if not plans:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No trial plans found in database"
+        )
+    
+    # Find the best matching plan (prefer $1 price trial plan)
+    target_plan = None
+    for plan in plans:
+        if plan.get("price") == 1 and "trial" in plan.get("name", "").lower():
+            target_plan = plan
+            break
+    
+    # Fallback to any trial plan
+    if not target_plan:
+        target_plan = plans[0]
+    
+    correct_plan_id = target_plan["plan_id"]
+    
+    # Update clinic plan reference if needed
+    if current_plan_ref != correct_plan_id:
+        update_result = await clinics_collection.update_one(
+            {"_id": clinic["_id"]},
+            {
+                "$set": {
+                    "subscription_plan": correct_plan_id,
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+        
+        if update_result.modified_count > 0:
+            return {
+                "message": f"Plan reference fixed: '{current_plan_ref}' → '{correct_plan_id}'",
+                "old_plan_reference": current_plan_ref,
+                "new_plan_reference": correct_plan_id,
+                "plan_name": target_plan.get("name"),
+                "plan_price": target_plan.get("price")
+            }
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to update clinic plan reference"
+            )
+    else:
+        return {
+            "message": "Plan reference is already correct",
+            "current_plan_reference": current_plan_ref,
+            "plan_name": target_plan.get("name"),
+            "plan_price": target_plan.get("price")
+        }
+
+
+@router.post("/{clinic_id}/payments")
+async def record_payment(
+    clinic_id: str,
+    payment_data: dict,
+    current_admin: AdminInDB = Depends(get_admin_or_moderator_hybrid)
+):
+    """Record a payment for clinic"""
+    clinics_collection = await get_collection("clinics")
+    
+    # Find clinic
+    filter_dict = {}
+    if ObjectId.is_valid(clinic_id):
+        filter_dict = {"$or": [{"_id": ObjectId(clinic_id)}, {"clinic_id": clinic_id}]}
+    else:
+        filter_dict = {"clinic_id": clinic_id}
+    
+    clinic = await clinics_collection.find_one(filter_dict)
+    if not clinic:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Clinic not found"
+        )
+    
+    # If payment includes subscription update
+    if payment_data.get("update_subscription"):
+        selected_plan = payment_data.get("selected_plan")
+        extension_days = payment_data.get("extension_days", 30)
+        
+        if selected_plan:
+            plans_collection = await get_collection("subscription_plans")
+            plan = await plans_collection.find_one({"plan_id": selected_plan})
+            if not plan:
+                # Try MongoDB _id lookup
+                try:
+                    plan = await plans_collection.find_one({"_id": ObjectId(selected_plan)})
+                except:
+                    pass
+            
+            if plan:
+                # Calculate new expiration date
+                current_expires = clinic.get("subscription_expires")
+                if current_expires:
+                    if isinstance(current_expires, str):
+                        current_expires = datetime.fromisoformat(current_expires.replace('Z', '+00:00'))
+                    new_expires = datetime(
+                        current_expires.year,
+                        current_expires.month,
+                        current_expires.day
+                    ) + timedelta(days=extension_days)
+                else:
+                    new_expires = datetime.utcnow() + timedelta(days=extension_days)
+                
+                # Update clinic subscription
+                update_data = {
+                    "subscription_plan": plan["plan_id"],
+                    "subscription_status": "active",
+                    "subscription_expires": new_expires,
+                    "updated_at": datetime.utcnow()
+                }
+                
+                await clinics_collection.update_one(
+                    {"_id": clinic["_id"]},
+                    {"$set": update_data}
+                )
+    
+    return {
+        "message": "Payment recorded successfully",
+        "amount": payment_data.get("amount"),
+        "payment_method": payment_data.get("payment_method"),
+        "reference_number": payment_data.get("reference_number")
     }
