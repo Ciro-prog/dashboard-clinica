@@ -7,10 +7,22 @@ from .admin import PyObjectId
 
 class MedicalFile(BaseModel):
     filename: str
-    file_path: str
+    file_path: str  # Local path or MinIO object_name
     file_type: str  # image, document, pdf, etc.
     upload_date: datetime = Field(default_factory=datetime.utcnow)
     description: Optional[str] = None
+    
+    # Enhanced metadata for MinIO integration
+    storage_type: Optional[str] = Field(default="local", pattern="^(local|minio)$")
+    document_id: Optional[str] = None  # Unique document identifier
+    file_size: Optional[int] = None
+    content_type: Optional[str] = None
+    uploaded_by: Optional[str] = None  # Professional who uploaded
+    
+    # MinIO-specific fields
+    bucket_name: Optional[str] = None
+    object_name: Optional[str] = None
+    etag: Optional[str] = None
 
 
 class VisitHistory(BaseModel):

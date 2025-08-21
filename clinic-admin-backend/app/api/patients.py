@@ -209,6 +209,112 @@ async def update_patient(
     return PatientResponse(**patient_db.model_dump())
 
 
+# Advanced Medical Records Search Endpoints
+@router.post("/search/advanced", response_model=List[PatientResponse])
+async def advanced_medical_records_search(
+    search_params: dict,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    current_admin: AdminInDB = Depends(get_admin_or_moderator_hybrid)
+):
+    """
+    Advanced search for medical records with multiple criteria
+    """
+    from datetime import timedelta
+    patients_collection = await get_collection("patients")
+    
+    # Build advanced filter
+    filter_dict = {}
+    
+    # Clinic restriction
+    clinic_id = search_params.get("clinic_id")
+    if clinic_id:
+        filter_dict["clinic_id"] = clinic_id
+    
+    # Basic text search
+    search_text = search_params.get("search_text")
+    if search_text:
+        filter_dict["$or"] = [
+            {"first_name": {"$regex": search_text, "$options": "i"}},
+            {"last_name": {"$regex": search_text, "$options": "i"}},
+            {"dni": {"$regex": search_text, "$options": "i"}},
+            {"email": {"$regex": search_text, "$options": "i"}},
+            {"cell_phone": {"$regex": search_text, "$options": "i"}},
+            {"medical_notes": {"$regex": search_text, "$options": "i"}}
+        ]
+    
+    # Status filter
+    status = search_params.get("status")
+    if status:
+        filter_dict["status_patient"] = status
+    
+    try:
+        # Execute search
+        cursor = patients_collection.find(filter_dict).skip(skip).limit(limit)
+        cursor = cursor.sort("last_visit", -1)
+        
+        patients = []
+        async for patient in cursor:
+            patient_data = PatientInDB.from_mongo(patient)
+            patients.append(PatientResponse(**patient_data.model_dump()))
+        
+        return patients
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error performing advanced search: {str(e)}"
+        )
+
+
+@router.get("/analytics/medical-records/{clinic_id}")
+async def get_medical_records_analytics(
+    clinic_id: str,
+    current_admin: AdminInDB = Depends(get_admin_or_moderator_hybrid)
+):
+    """Get analytics about medical records for a clinic"""
+    from datetime import timedelta
+    patients_collection = await get_collection("patients")
+    documents_collection = await get_collection("documents")
+    
+    try:
+        # Get patient statistics
+        total_patients = await patients_collection.count_documents({"clinic_id": clinic_id})
+        active_patients = await patients_collection.count_documents({
+            "clinic_id": clinic_id, 
+            "status_patient": "active"
+        })
+        
+        # Get document statistics  
+        total_documents = await documents_collection.count_documents({"clinic_id": clinic_id})
+        
+        # Recent activity (last 30 days)
+        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        recent_documents = await documents_collection.count_documents({
+            "clinic_id": clinic_id,
+            "created_at": {"$gte": thirty_days_ago}
+        })
+        
+        return {
+            "clinic_id": clinic_id,
+            "patients": {
+                "total": total_patients,
+                "active": active_patients
+            },
+            "documents": {
+                "total": total_documents,
+                "recent_30_days": recent_documents
+            },
+            "generated_at": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error generating analytics: {str(e)}"
+        )
+
+
 @router.post("/{patient_id}/visit", response_model=PatientResponse)
 async def add_visit_to_history(
     patient_id: str,
@@ -258,6 +364,112 @@ async def add_visit_to_history(
     updated_patient = await patients_collection.find_one({"_id": ObjectId(patient_id)})
     patient_db = PatientInDB.from_mongo(updated_patient)
     return PatientResponse(**patient_db.model_dump())
+
+
+# Advanced Medical Records Search Endpoints
+@router.post("/search/advanced", response_model=List[PatientResponse])
+async def advanced_medical_records_search(
+    search_params: dict,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    current_admin: AdminInDB = Depends(get_admin_or_moderator_hybrid)
+):
+    """
+    Advanced search for medical records with multiple criteria
+    """
+    from datetime import timedelta
+    patients_collection = await get_collection("patients")
+    
+    # Build advanced filter
+    filter_dict = {}
+    
+    # Clinic restriction
+    clinic_id = search_params.get("clinic_id")
+    if clinic_id:
+        filter_dict["clinic_id"] = clinic_id
+    
+    # Basic text search
+    search_text = search_params.get("search_text")
+    if search_text:
+        filter_dict["$or"] = [
+            {"first_name": {"$regex": search_text, "$options": "i"}},
+            {"last_name": {"$regex": search_text, "$options": "i"}},
+            {"dni": {"$regex": search_text, "$options": "i"}},
+            {"email": {"$regex": search_text, "$options": "i"}},
+            {"cell_phone": {"$regex": search_text, "$options": "i"}},
+            {"medical_notes": {"$regex": search_text, "$options": "i"}}
+        ]
+    
+    # Status filter
+    status = search_params.get("status")
+    if status:
+        filter_dict["status_patient"] = status
+    
+    try:
+        # Execute search
+        cursor = patients_collection.find(filter_dict).skip(skip).limit(limit)
+        cursor = cursor.sort("last_visit", -1)
+        
+        patients = []
+        async for patient in cursor:
+            patient_data = PatientInDB.from_mongo(patient)
+            patients.append(PatientResponse(**patient_data.model_dump()))
+        
+        return patients
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error performing advanced search: {str(e)}"
+        )
+
+
+@router.get("/analytics/medical-records/{clinic_id}")
+async def get_medical_records_analytics(
+    clinic_id: str,
+    current_admin: AdminInDB = Depends(get_admin_or_moderator_hybrid)
+):
+    """Get analytics about medical records for a clinic"""
+    from datetime import timedelta
+    patients_collection = await get_collection("patients")
+    documents_collection = await get_collection("documents")
+    
+    try:
+        # Get patient statistics
+        total_patients = await patients_collection.count_documents({"clinic_id": clinic_id})
+        active_patients = await patients_collection.count_documents({
+            "clinic_id": clinic_id, 
+            "status_patient": "active"
+        })
+        
+        # Get document statistics  
+        total_documents = await documents_collection.count_documents({"clinic_id": clinic_id})
+        
+        # Recent activity (last 30 days)
+        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        recent_documents = await documents_collection.count_documents({
+            "clinic_id": clinic_id,
+            "created_at": {"$gte": thirty_days_ago}
+        })
+        
+        return {
+            "clinic_id": clinic_id,
+            "patients": {
+                "total": total_patients,
+                "active": active_patients
+            },
+            "documents": {
+                "total": total_documents,
+                "recent_30_days": recent_documents
+            },
+            "generated_at": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error generating analytics: {str(e)}"
+        )
 
 
 @router.post("/{patient_id}/documents")
@@ -406,6 +618,112 @@ async def share_patient_with_professional(
     return PatientResponse(**patient_db.model_dump())
 
 
+# Advanced Medical Records Search Endpoints
+@router.post("/search/advanced", response_model=List[PatientResponse])
+async def advanced_medical_records_search(
+    search_params: dict,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    current_admin: AdminInDB = Depends(get_admin_or_moderator_hybrid)
+):
+    """
+    Advanced search for medical records with multiple criteria
+    """
+    from datetime import timedelta
+    patients_collection = await get_collection("patients")
+    
+    # Build advanced filter
+    filter_dict = {}
+    
+    # Clinic restriction
+    clinic_id = search_params.get("clinic_id")
+    if clinic_id:
+        filter_dict["clinic_id"] = clinic_id
+    
+    # Basic text search
+    search_text = search_params.get("search_text")
+    if search_text:
+        filter_dict["$or"] = [
+            {"first_name": {"$regex": search_text, "$options": "i"}},
+            {"last_name": {"$regex": search_text, "$options": "i"}},
+            {"dni": {"$regex": search_text, "$options": "i"}},
+            {"email": {"$regex": search_text, "$options": "i"}},
+            {"cell_phone": {"$regex": search_text, "$options": "i"}},
+            {"medical_notes": {"$regex": search_text, "$options": "i"}}
+        ]
+    
+    # Status filter
+    status = search_params.get("status")
+    if status:
+        filter_dict["status_patient"] = status
+    
+    try:
+        # Execute search
+        cursor = patients_collection.find(filter_dict).skip(skip).limit(limit)
+        cursor = cursor.sort("last_visit", -1)
+        
+        patients = []
+        async for patient in cursor:
+            patient_data = PatientInDB.from_mongo(patient)
+            patients.append(PatientResponse(**patient_data.model_dump()))
+        
+        return patients
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error performing advanced search: {str(e)}"
+        )
+
+
+@router.get("/analytics/medical-records/{clinic_id}")
+async def get_medical_records_analytics(
+    clinic_id: str,
+    current_admin: AdminInDB = Depends(get_admin_or_moderator_hybrid)
+):
+    """Get analytics about medical records for a clinic"""
+    from datetime import timedelta
+    patients_collection = await get_collection("patients")
+    documents_collection = await get_collection("documents")
+    
+    try:
+        # Get patient statistics
+        total_patients = await patients_collection.count_documents({"clinic_id": clinic_id})
+        active_patients = await patients_collection.count_documents({
+            "clinic_id": clinic_id, 
+            "status_patient": "active"
+        })
+        
+        # Get document statistics  
+        total_documents = await documents_collection.count_documents({"clinic_id": clinic_id})
+        
+        # Recent activity (last 30 days)
+        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        recent_documents = await documents_collection.count_documents({
+            "clinic_id": clinic_id,
+            "created_at": {"$gte": thirty_days_ago}
+        })
+        
+        return {
+            "clinic_id": clinic_id,
+            "patients": {
+                "total": total_patients,
+                "active": active_patients
+            },
+            "documents": {
+                "total": total_documents,
+                "recent_30_days": recent_documents
+            },
+            "generated_at": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error generating analytics: {str(e)}"
+        )
+
+
 @router.post("/clinic/{clinic_id}/appointment", response_model=PatientResponse)
 async def create_appointment_and_visit(
     clinic_id: str,
@@ -483,3 +801,109 @@ async def create_appointment_and_visit(
     updated_patient = await patients_collection.find_one({"_id": ObjectId(patient_id)})
     patient_db = PatientInDB.from_mongo(updated_patient)
     return PatientResponse(**patient_db.model_dump())
+
+
+# Advanced Medical Records Search Endpoints
+@router.post("/search/advanced", response_model=List[PatientResponse])
+async def advanced_medical_records_search(
+    search_params: dict,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    current_admin: AdminInDB = Depends(get_admin_or_moderator_hybrid)
+):
+    """
+    Advanced search for medical records with multiple criteria
+    """
+    from datetime import timedelta
+    patients_collection = await get_collection("patients")
+    
+    # Build advanced filter
+    filter_dict = {}
+    
+    # Clinic restriction
+    clinic_id = search_params.get("clinic_id")
+    if clinic_id:
+        filter_dict["clinic_id"] = clinic_id
+    
+    # Basic text search
+    search_text = search_params.get("search_text")
+    if search_text:
+        filter_dict["$or"] = [
+            {"first_name": {"$regex": search_text, "$options": "i"}},
+            {"last_name": {"$regex": search_text, "$options": "i"}},
+            {"dni": {"$regex": search_text, "$options": "i"}},
+            {"email": {"$regex": search_text, "$options": "i"}},
+            {"cell_phone": {"$regex": search_text, "$options": "i"}},
+            {"medical_notes": {"$regex": search_text, "$options": "i"}}
+        ]
+    
+    # Status filter
+    status = search_params.get("status")
+    if status:
+        filter_dict["status_patient"] = status
+    
+    try:
+        # Execute search
+        cursor = patients_collection.find(filter_dict).skip(skip).limit(limit)
+        cursor = cursor.sort("last_visit", -1)
+        
+        patients = []
+        async for patient in cursor:
+            patient_data = PatientInDB.from_mongo(patient)
+            patients.append(PatientResponse(**patient_data.model_dump()))
+        
+        return patients
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error performing advanced search: {str(e)}"
+        )
+
+
+@router.get("/analytics/medical-records/{clinic_id}")
+async def get_medical_records_analytics(
+    clinic_id: str,
+    current_admin: AdminInDB = Depends(get_admin_or_moderator_hybrid)
+):
+    """Get analytics about medical records for a clinic"""
+    from datetime import timedelta
+    patients_collection = await get_collection("patients")
+    documents_collection = await get_collection("documents")
+    
+    try:
+        # Get patient statistics
+        total_patients = await patients_collection.count_documents({"clinic_id": clinic_id})
+        active_patients = await patients_collection.count_documents({
+            "clinic_id": clinic_id, 
+            "status_patient": "active"
+        })
+        
+        # Get document statistics  
+        total_documents = await documents_collection.count_documents({"clinic_id": clinic_id})
+        
+        # Recent activity (last 30 days)
+        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        recent_documents = await documents_collection.count_documents({
+            "clinic_id": clinic_id,
+            "created_at": {"$gte": thirty_days_ago}
+        })
+        
+        return {
+            "clinic_id": clinic_id,
+            "patients": {
+                "total": total_patients,
+                "active": active_patients
+            },
+            "documents": {
+                "total": total_documents,
+                "recent_30_days": recent_documents
+            },
+            "generated_at": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error generating analytics: {str(e)}"
+        )

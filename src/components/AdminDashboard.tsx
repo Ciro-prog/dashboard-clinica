@@ -45,6 +45,7 @@ import EnhancedPaymentManagementModal from './EnhancedPaymentManagementModal';
 import BillingConfigurationModal from './BillingConfigurationModal';
 import AdminConfigModal from './AdminConfigModal';
 import ApiDocumentationModal from './ApiDocumentationModal';
+import { MedicalRecordsSearch } from './MedicalRecordsSearch';
 
 interface AdminUser {
   username: string;
@@ -571,7 +572,7 @@ export default function AdminDashboard({ adminUser, onLogout }: AdminDashboardPr
         )}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           {/* Tabs */}
-          <TabsList className="grid w-full grid-cols-3 bg-slate-800 backdrop-blur-sm border border-slate-700 h-auto shadow-lg">
+          <TabsList className="grid w-full grid-cols-4 bg-slate-800 backdrop-blur-sm border border-slate-700 h-auto shadow-lg">
             <TabsTrigger value="dashboard" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white data-[state=inactive]:text-slate-300 py-3 hover:bg-slate-700">
               <Home className="h-4 w-4 mr-2" />
               Dashboard
@@ -579,6 +580,10 @@ export default function AdminDashboard({ adminUser, onLogout }: AdminDashboardPr
             <TabsTrigger value="clinics" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white data-[state=inactive]:text-slate-300 py-3 hover:bg-slate-700">
               <Building2 className="h-4 w-4 mr-2" />
               Clínicas
+            </TabsTrigger>
+            <TabsTrigger value="medical-records" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white data-[state=inactive]:text-slate-300 py-3 hover:bg-slate-700">
+              <FileText className="h-4 w-4 mr-2" />
+              Historiales
             </TabsTrigger>
             <TabsTrigger value="plans" className="data-[state=active]:bg-medical-500 data-[state=active]:text-white data-[state=inactive]:text-slate-300 py-3 hover:bg-slate-700">
               <CreditCard className="h-4 w-4 mr-2" />
@@ -939,6 +944,12 @@ export default function AdminDashboard({ adminUser, onLogout }: AdminDashboardPr
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Plans Tab */}
+          {/* Medical Records Tab */}
+          <TabsContent value="medical-records" className="space-y-6">
+            <MedicalRecordsSearch />
           </TabsContent>
 
           {/* Plans Tab */}
