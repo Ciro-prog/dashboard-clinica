@@ -131,7 +131,7 @@ if [ ! -f "Dockerfile.admin" ]; then
     # Modificar para verificar MinIO
     sed -i '/pip install --no-cache-dir -r requirements.txt/a\
     # Verificar instalación MinIO después de instalar requirements\
-    RUN python -c "import minio; print(\"MinIO installed successfully\")" || (echo "MinIO installation failed" && exit 1)' Dockerfile.admin
+    RUN python -c '\''import minio; print("MinIO installed successfully")'\'' || (echo "MinIO installation failed" && exit 1)' Dockerfile.admin
     
     echo -e "${GREEN}✅ Dockerfile.admin creado con verificación MinIO${NC}"
 else
@@ -142,7 +142,7 @@ else
         echo -e "${YELLOW}⚠️ Agregando verificación MinIO a Dockerfile.admin${NC}"
         sed -i '/pip install --no-cache-dir -r requirements.txt/a\
         # Verificar instalación MinIO después de instalar requirements\
-        RUN python -c "import minio; print(\"MinIO installed successfully\")" || (echo "MinIO installation failed" && exit 1)' Dockerfile.admin
+        RUN python -c '\''import minio; print("MinIO installed successfully")'\'' || (echo "MinIO installation failed" && exit 1)' Dockerfile.admin
     fi
 fi
 
