@@ -1,12 +1,5 @@
- * branch            main       -> FETCH_HEAD
-Updating b59a614..1e5c6cc
-Fast-forward
- error.txt                        |  92 ++-----------
- scripts/fix-assets-production.sh | 278 ++++++++++++++++++++++++---------------
- 2 files changed, 185 insertions(+), 185 deletions(-)
-cirolinux@cirolinux:/opt/dashboard-clinica$ cd scripts/
-cirolinux@cirolinux:/opt/dashboard-clinica/scripts$ chmod +x ./fix-assets-produc                                                                                                             tion.sh
-cirolinux@cirolinux:/opt/dashboard-clinica/scripts$ ./fix-assets-production.sh                                                                                                               
+cirolinux@cirolinux:/opt/dashboard-clinica/scripts$ ./fix-assets-production.sh
+
 🔧 CLINIC SYSTEM - DEFINITIVE ASSETS FIX + MinIO
 ==============================================
 
@@ -18,7 +11,7 @@ cirolinux@cirolinux:/opt/dashboard-clinica/scripts$ ./fix-assets-production.sh
    ✅ Solución: Rebuild completo + rutas múltiples + MinIO fix
 
 📋 Estado actual del sistema:
-Current commit: 1e5c6cc Actualiza el script de corrección de assets para incluir                                                                                                              la verificación de la dependencia MinIO y mejorar la gestión de errores. Se rea                                                                                                             liza un rebuild completo del backend y del frontend, asegurando la correcta inte                                                                                                             gración de MinIO y la disponibilidad de assets. Se añaden múltiples puntos de mo                                                                                                             ntaje para maximizar la compatibilidad y se mejora la verificación del estado de                                                                                                              los servicios.
+Current commit: 187779d Agrega script de sincronización y rebuild para resolver problemas de versión entre servidor y repositorio. El script realiza git pull, rebuild del frontend y backend, y verificación completa del sistema.
 Backend directory: /opt/dashboard-clinica/clinic-admin-backend
 
 🔧 PASO 1: Verificando dependencia MinIO
@@ -34,8 +27,8 @@ drwxrwxr-x 8 cirolinux cirolinux   4096 ago 21 04:48 ..
 
 📁 Static admin status:
 ✅ static/admin exists
-Directory size: 9,2M    static/admin
-Files count: 20
+Directory size: 10M     static/admin
+Files count: 25
 
 🛑 PASO 3: Deteniendo contenedores
 
@@ -47,32 +40,107 @@ Building frontend...
 > vite_react_shadcn_ts@0.0.0 build
 > vite build
 
-NODE_ENV=production is not supported in the .env file. Only NODE_ENV=development                                                                                                              is supported to create a development build of your project. If you need to set                                                                                                              process.env.NODE_ENV, you can set it in the Vite config instead.
+NODE_ENV=production is not supported in the .env file. Only NODE_ENV=development is supported to create a development build of your project. If you need to set process.env.NODE_ENV, you can set it in the Vite config instead.
 vite v5.4.10 building for production...
-transforming (3) src/main.tsxBrowserslist: browsers data (caniuse-lite) is 10 mo                                                                                                             nths old. Please run:
+transforming (1) index.htmlBrowserslist: browsers data (caniuse-lite) is 10 months old. Please run:
   npx update-browserslist-db@latest
-  Why you should do it regularly: https://github.com/browserslist/update-db#read                                                                                                             me
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
 ✓ 1765 modules transformed.
-x Build failed in 6.76s
-error during build:
-src/components/MedicalRecordsSearch.tsx (10:9): "apiRequest" is not exported by                                                                                                              "src/lib/clinicApi.ts", imported by "src/components/MedicalRecordsSearch.tsx".
-file: /opt/dashboard-clinica/src/components/MedicalRecordsSearch.tsx:10:9
+dist/index.html                   1.04 kB │ gzip:   0.44 kB
+dist/assets/index-DU9mtSB2.css  101.68 kB │ gzip:  16.48 kB
+dist/assets/index-C2jMecAs.js   721.98 kB │ gzip: 191.32 kB
 
- 8: import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
- 9: import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } fro                                                                                                             m './ui/select';
-10: import { apiRequest } from '../lib/clinicApi';
-             ^
-11: import { getStoredClinicData } from '../lib/clinicAuth';
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 8.57s
+✅ Frontend build successful
+Copying build to backend...
+Build copied to static/admin
+Files: 6
 
-    at getRollupError (file:///opt/dashboard-clinica/node_modules/rollup/dist/es                                                                                                             /shared/parseAst.js:395:41)
-    at error (file:///opt/dashboard-clinica/node_modules/rollup/dist/es/shared/p                                                                                                             arseAst.js:391:42)
-    at Module.error (file:///opt/dashboard-clinica/node_modules/rollup/dist/es/s                                                                                                             hared/node-entry.js:15535:16)
-    at Module.traceVariable (file:///opt/dashboard-clinica/node_modules/rollup/d                                                                                                             ist/es/shared/node-entry.js:15984:29)
-    at ModuleScope.findVariable (file:///opt/dashboard-clinica/node_modules/roll                                                                                                             up/dist/es/shared/node-entry.js:13770:39)
-    at FunctionScope.findVariable (file:///opt/dashboard-clinica/node_modules/ro                                                                                                             llup/dist/es/shared/node-entry.js:5252:38)
-    at FunctionBodyScope.findVariable (file:///opt/dashboard-clinica/node_module                                                                                                             s/rollup/dist/es/shared/node-entry.js:5252:38)
-    at ReturnValueScope.findVariable (file:///opt/dashboard-clinica/node_modules                                                                                                             /rollup/dist/es/shared/node-entry.js:5252:38)
-    at FunctionBodyScope.findVariable (file:///opt/dashboard-clinica/node_module                                                                                                             s/rollup/dist/es/shared/node-entry.js:5252:38)
-    at BlockScope.findVariable (file:///opt/dashboard-clinica/node_modules/rollu                                                                                                             p/dist/es/shared/node-entry.js:5252:38)
-❌ Frontend build failed
-cirolinux@cirolinux:/opt/dashboard-clinica/scripts$
+🐳 PASO 5: Rebuildeando backend (con MinIO)
+Building Docker image with MinIO dependency...
+✅ Backend rebuild successful (MinIO included)
+
+🚀 PASO 6: Iniciando servicios
+no service selected
+
+⏳ Esperando inicialización completa (30 segundos)...
+
+🧪 VERIFICACIÓN EXHAUSTIVA
+===============================
+
+📊 Estado del contenedor:
+NAMES                    STATUS                          PORTS
+clinic-admin-system      Restarting (1) 59 seconds ago
+rambirto-mq-prod         Up 6 hours (healthy)            4369/tcp, 5671/tcp, 15671/tcp, 15691-15692/tcp, 0.0.0.0:60525->5672/tcp, [::]:60525->5672/tcp, 0.0.0.0:60524->15672/tcp, [::]:60524->15672/tcp, 0.0.0.0:60526->25672/tcp, [::]:60526->25672/tcp
+minio                    Up 23 hours (healthy)           0.0.0.0:60522->9000/tcp, [::]:60522->9000/tcp, 0.0.0.0:60523->9001/tcp, [::]:60523->9001/tcp
+waha-plus                Up 2 days                       0.0.0.0:60513->3000/tcp, [::]:60513->3000/tcp
+n8n                      Up 2 days                       0.0.0.0:60514->5678/tcp, [::]:60514->5678/tcp
+clinic-frontend-client   Up 4 days (healthy)             0.0.0.0:60521->80/tcp, [::]:60521->80/tcp
+cms-clinica              Up 7 days                       0.0.0.0:60520->1337/tcp, [::]:60520->1337/tcp
+mongo-express            Up 7 days                       0.0.0.0:60517->8081/tcp, [::]:60517->8081/tcp
+mongodb                  Up 7 days                       0.0.0.0:60516->27017/tcp, [::]:60516->27017/tcp
+
+🌐 Health Check:
+❌ Backend: ERROR
+Checking logs for issues...
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/main.py", line 10, in <module>
+    from app.api import auth, clinics, patients, professionals, admin_dashboard, subscription_plans, documents
+  File "/app/app/api/documents.py", line 10, in <module>
+    from ..core.storage_service import get_storage_service
+  File "/app/app/core/storage_service.py", line 14, in <module>
+    from .storage import get_minio_client
+  File "/app/app/core/storage.py", line 6, in <module>
+    from minio import Minio
+ModuleNotFoundError: No module named 'minio'
+
+🗃️ MinIO Integration Check:
+⚠️ API Docs: Check required
+
+📂 Verificación de archivos estáticos:
+✅ Static admin files: 3 files found
+
+🔍 Mount points verification:
+Verificando que los assets sean accesibles...
+Testing /admin/assets/ endpoint: 000ERROR
+Testing /assets/ endpoint: 000ERROR
+
+📋 Logs recientes (verificando mounts):
+  File "/app/app/core/storage_service.py", line 14, in <module>
+    from .storage import get_minio_client
+  File "/app/app/core/storage.py", line 6, in <module>
+    from minio import Minio
+ModuleNotFoundError: No module named 'minio'
+
+========================================
+🎉 ASSETS + MinIO FIX COMPLETADO
+========================================
+
+🌐 URLs para probar:
+   🔧 Admin Dashboard: http://localhost:60519/admin
+   📚 API Docs: http://localhost:60519/docs
+   ⚡ Health Check: http://localhost:60519/health
+
+🔍 Para verificar assets:
+   Accede al admin dashboard y verifica que no haya errores 404
+   Revisa la consola del navegador para confirmación
+
+💡 ¿Qué se corrigió?
+   ✅ Rebuild completo del frontend admin
+   ✅ Dependencia MinIO agregada a requirements.txt
+   ✅ Backend rebuildeado con MinIO incluido
+   ✅ 4 mount points de assets para máxima compatibilidad:
+      - /admin/assets (original)
+      - /assets (fix principal para 404s)
+      - /static/admin/assets (alternativo)
+      - /static (todos los archivos estáticos)
+   ✅ Limpieza de builds antiguos
+   ✅ Verificación exhaustiva de funcionamiento
+   ✅ Integración MinIO verificada
+
+Script completado con advertencias. Revisar logs si persisten problemas.
+Presiona Enter para continuar...
