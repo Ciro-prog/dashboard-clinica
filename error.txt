@@ -1,80 +1,12 @@
-+] Building 1/1
- ✔ clinic-admin-backend-admin-system  Built                                0.0s
-
-🚀 Iniciando sistema con nueva configuración...
-[+] Running 2/2
- ✔ Network clinic-admin-backend_admin-network  Created                     0.2s
- ✔ Container clinic-admin-system               Started                     3.5s
-⏳ Esperando inicialización completa (30 segundos)...
-
-🧪 VERIFICACIÓN EXHAUSTIVA
-===============================
-
-📊 Estado del contenedor:
-NAMES                 STATUS                         PORTS
-clinic-admin-system   Restarting (1) 2 seconds ago
-
-🌐 Health Check:
-❌ Backend: ERROR
-Checking logs for issues...
-  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
-  File "/app/main.py", line 10, in <module>
-    from app.api import auth, clinics, patients, professionals, admin_dashboard, subscription_plans, documents
-  File "/app/app/api/documents.py", line 10, in <module>
-    from ..core.storage_service import get_storage_service
-  File "/app/app/core/storage_service.py", line 14, in <module>
-    from .storage import get_minio_client
-  File "/app/app/core/storage.py", line 6, in <module>
-    from minio import Minio
-ModuleNotFoundError: No module named 'minio'
-
-📂 Verificación de archivos estáticos:
-Error response from daemon: Container 78d297d6bbcc6cfb58615e592fa1ea50475f595c257784712c9eb9ca7f056c4b is restarting, wait until the container is running
-
-🔍 Mount points verification:
-Verificando que los assets sean accesibles...
-Testing /assets/ endpoint: ⚠️ Check required
-Testing /admin/assets/ endpoint: ⚠️ Check required
-
-📋 Logs recientes (verificando mounts):
-  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
-  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
-  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
-  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
-  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
-  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
-  File "/app/main.py", line 10, in <module>
-    from app.api import auth, clinics, patients, professionals, admin_dashboard, subscription_plans, documents
-  File "/app/app/api/documents.py", line 10, in <module>
-    from ..core.storage_service import get_storage_service
-  File "/app/app/core/storage_service.py", line 14, in <module>
-    from .storage import get_minio_client
-  File "/app/app/core/storage.py", line 6, in <module>
-    from minio import Minio
-ModuleNotFoundError: No module named 'minio'
-
-========================================
-🎉 ASSETS FIX COMPLETADO
-========================================
-
-🌐 URLs para probar:
-   🔧 Admin Dashboard: http://localhost:60519/admin
-   📚 API Docs: http://localhost:60519/docs
-   ⚡ Health Check: http://localhost:60519/health
-
-🔍 Para verificar assets:
-   Accede al admin dashboard y verifica que no haya errores 404
-   Revisa la consola del navegador para confirmación
-
-💡 ¿Qué se corrigió?
-   ✅ Rebuild completo del frontend admin
-   ✅ 4 mount points de assets para máxima compatibilidad:
-      - /admin/assets (original)
-      - /assets (fix principal para 404s)
-      - /static/admin/assets (alternativo)
-      - /static (todos los archivos estáticos)
-   ✅ Limpieza de builds antiguos
-   ✅ Verificación exhaustiva de funcionamiento
-
-¡Script completado! El problema de assets debería estar resuelto definitivamente.
-Presiona Enter para continuar...
+cirolinux@cirolinux:/opt/dashboard-clinica/scripts$ ./fix-assets-production.sh  🚀 Iniciando fix para assets y dependencias de producción...
+==========================================
+[INFO] Deteniendo contenedores existentes...
+open /opt/dashboard-clinica/scripts/clinic-admin-backend/docker-compose.yml: no such file or directory
+[WARNING] No se encontraron contenedores activos
+[INFO] Rebuildeando backend con dependencia MinIO...
+./fix-assets-production.sh: line 46: cd: clinic-admin-backend: No such file or directory
+[SUCCESS] Backend rebuildeado con dependencias actualizadas
+[INFO] Iniciando servicios actualizados...
+no service selected
+[ERROR] Error al iniciar servicios
+cirolinux@cirolinux:/opt/dashboard-clinica/scripts$

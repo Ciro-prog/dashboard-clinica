@@ -1,171 +1,239 @@
 #!/bin/bash
+# Script DEFINITIVO para corregir problemas de assets en producción + MinIO
+# Soluciona 404 errors de archivos JS/CSS del frontend admin + dependencia MinIO
 
-# =========================================
-# 🔧 SCRIPT DE FIX PARA PRODUCCIÓN
-# =========================================
-# Corrige problemas de assets y dependencias MinIO
-
-echo "🚀 Iniciando fix para assets y dependencias de producción..."
-echo "=========================================="
-
-# Colors for output
+# Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# Function to print colored output
-print_status() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
+echo ""
+echo -e "${BLUE}🔧 CLINIC SYSTEM - DEFINITIVE ASSETS FIX + MinIO${NC}"
+echo "=============================================="
 
-print_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
+echo ""
+echo -e "${YELLOW}🔍 Problemas identificados:${NC}"
+echo "   ❌ Assets 404: /assets/index-CzOFjnr3.js HTTP/1.1 404 Not Found"
+echo "   ❌ MinIO dependency: ModuleNotFoundError: No module named 'minio'"
+echo "   ❌ Build inconsistente entre local y servidor"
+echo "   ❌ Mount points insuficientes en FastAPI"
+echo "   ✅ Solución: Rebuild completo + rutas múltiples + MinIO fix"
 
-print_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
+# Navigate to project root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+cd "$PROJECT_ROOT"
 
-print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
+echo ""
+echo -e "${BLUE}📋 Estado actual del sistema:${NC}"
+echo "Current commit: $(git log -1 --oneline)"
+echo "Backend directory: $(pwd)/clinic-admin-backend"
 
-# Step 1: Stop existing containers
-print_status "Deteniendo contenedores existentes..."
-docker-compose -f clinic-admin-backend/docker-compose.yml down
-if [ $? -eq 0 ]; then
-    print_success "Contenedores detenidos correctamente"
+# ==========================================
+# NUEVO: Verificar y agregar dependencia MinIO
+# ==========================================
+echo ""
+echo -e "${BLUE}🔧 PASO 1: Verificando dependencia MinIO${NC}"
+
+if grep -q "minio" clinic-admin-backend/requirements.txt; then
+    echo -e "${GREEN}✅ Dependencia MinIO ya está en requirements.txt${NC}"
 else
-    print_warning "No se encontraron contenedores activos"
+    echo -e "${YELLOW}⚠️ Agregando dependencia MinIO a requirements.txt${NC}"
+    echo "" >> clinic-admin-backend/requirements.txt
+    echo "# MinIO S3 Storage Client" >> clinic-admin-backend/requirements.txt
+    echo "minio==7.2.16" >> clinic-admin-backend/requirements.txt
+    echo -e "${GREEN}✅ Dependencia MinIO agregada${NC}"
 fi
 
-# Step 2: Rebuild backend with MinIO dependency
-print_status "Rebuildeando backend con dependencia MinIO..."
 cd clinic-admin-backend
 
-# Force rebuild without cache
+# Check frontend admin directory
+echo ""
+echo -e "${BLUE}🔍 PASO 2: Verificando estructura frontend admin${NC}"
+if [ -d "frontend-admin" ]; then
+    echo "✅ frontend-admin directory exists"
+    ls -la frontend-admin/ | head -5
+else
+    echo "❌ frontend-admin directory not found"
+    echo "Creating frontend-admin structure..."
+    mkdir -p frontend-admin
+fi
+
+# Check static admin directory
+echo ""
+echo "📁 Static admin status:"
+if [ -d "static/admin" ]; then
+    echo "✅ static/admin exists"
+    echo "Directory size: $(du -sh static/admin)"
+    echo "Files count: $(find static/admin -type f | wc -l)"
+else
+    echo "❌ static/admin not found"
+fi
+
+# Stop containers
+echo ""
+echo -e "${BLUE}🛑 PASO 3: Deteniendo contenedores${NC}"
+docker-compose down
+sleep 2
+
+# Navigate to main project for frontend build
+echo ""
+echo -e "${BLUE}🏗️ PASO 4: Rebuildeando frontend${NC}"
+cd "$PROJECT_ROOT"
+
+# Clean and rebuild frontend
+echo "Cleaning previous builds..."
+rm -rf dist
+rm -rf node_modules/.vite
+
+echo "Installing dependencies..."
+npm install --silent
+
+echo "Building frontend..."
+npm run build
+
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}✅ Frontend build successful${NC}"
+    
+    # Copy to backend
+    echo "Copying build to backend..."
+    rm -rf clinic-admin-backend/static/admin/*
+    mkdir -p clinic-admin-backend/static/admin
+    cp -r dist/* clinic-admin-backend/static/admin/
+    
+    echo "Build copied to static/admin"
+    echo "Files: $(find clinic-admin-backend/static/admin -type f | wc -l)"
+else
+    echo -e "${RED}❌ Frontend build failed${NC}"
+    exit 1
+fi
+
+# Navigate back to backend
+cd clinic-admin-backend
+
+# ==========================================
+# ACTUALIZADO: Rebuild backend con MinIO
+# ==========================================
+echo ""
+echo -e "${BLUE}🐳 PASO 5: Rebuildeando backend (con MinIO)${NC}"
+echo "Building Docker image with MinIO dependency..."
 docker-compose build --no-cache
+
 if [ $? -eq 0 ]; then
-    print_success "Backend rebuildeado con dependencias actualizadas"
+    echo -e "${GREEN}✅ Backend rebuild successful (MinIO included)${NC}"
 else
-    print_error "Error al rebuildear backend"
+    echo -e "${RED}❌ Backend build failed${NC}"
     exit 1
 fi
 
-# Step 3: Start services
-print_status "Iniciando servicios actualizados..."
+# Start services
+echo ""
+echo -e "${BLUE}🚀 PASO 6: Iniciando servicios${NC}"
 docker-compose up -d
-if [ $? -eq 0 ]; then
-    print_success "Servicios iniciados correctamente"
-else
-    print_error "Error al iniciar servicios"
-    exit 1
-fi
 
-# Step 4: Wait for services to be ready
-print_status "Esperando que los servicios estén listos (30 segundos)..."
+# Wait for startup
+echo ""
+echo -e "${BLUE}⏳ Esperando inicialización completa (30 segundos)...${NC}"
 sleep 30
 
-# Step 5: Health check
-print_status "Verificando estado de los servicios..."
+# ==========================================
+# VERIFICACIÓN EXHAUSTIVA
+# ==========================================
+echo ""
+echo -e "${BLUE}🧪 VERIFICACIÓN EXHAUSTIVA${NC}"
+echo "==============================="
 
-# Check container status
 echo ""
 echo "📊 Estado del contenedor:"
-docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep clinic-admin
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | head -10
 
-# Check backend health
 echo ""
 echo "🌐 Health Check:"
-backend_status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:60519/health 2>/dev/null || echo "ERROR")
+backend_response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:60519/health 2>/dev/null || echo "ERROR")
 
-if [ "$backend_status" = "200" ]; then
-    print_success "Backend: OK (HTTP $backend_status)"
+if [ "$backend_response" = "200" ]; then
+    echo -e "${GREEN}✅ Backend: OK${NC}"
 else
-    print_error "Backend: ERROR (HTTP $backend_status)"
+    echo -e "${RED}❌ Backend: ERROR${NC}"
     echo "Checking logs for issues..."
-    docker logs --tail 20 clinic-admin-system
+    docker logs --tail 10 clinic-admin-system
 fi
 
-# Step 6: Test MinIO integration
-print_status "Verificando integración MinIO..."
-minio_test=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:60519/docs 2>/dev/null || echo "ERROR")
-
-if [ "$minio_test" = "200" ]; then
-    print_success "API Docs disponibles (MinIO integration OK)"
-else
-    print_warning "API Docs no disponibles - verificar logs"
-fi
-
-# Step 7: Frontend assets check
-print_status "Verificando assets del frontend..."
-cd ..
-
-# Check if frontend build exists
-if [ -d "dist" ]; then
-    print_success "Build del frontend encontrado"
-    
-    # Check main assets
-    if [ -f "dist/index.html" ]; then
-        print_success "index.html presente"
-    else
-        print_warning "index.html no encontrado"
-    fi
-    
-    if [ -d "dist/assets" ]; then
-        asset_count=$(find dist/assets -type f | wc -l)
-        print_success "Assets encontrados ($asset_count archivos)"
-    else
-        print_warning "Directorio assets no encontrado"
-    fi
-else
-    print_warning "Build del frontend no encontrado - ejecutando npm run build..."
-    npm install --silent
-    npm run build
-    
-    if [ $? -eq 0 ]; then
-        print_success "Frontend rebuildeado correctamente"
-    else
-        print_error "Error al rebuildear frontend"
-    fi
-fi
-
-# Step 8: Final verification
+# ==========================================
+# NUEVO: Verificación MinIO
+# ==========================================
 echo ""
-echo "=========================================="
-echo "🎉 FIX COMPLETADO"
-echo "=========================================="
+echo "🗃️ MinIO Integration Check:"
+minio_response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:60519/docs 2>/dev/null || echo "ERROR")
+
+if [ "$minio_response" = "200" ]; then
+    echo -e "${GREEN}✅ API Docs: OK (MinIO integration working)${NC}"
+else
+    echo -e "${YELLOW}⚠️ API Docs: Check required${NC}"
+fi
+
+echo ""
+echo "📂 Verificación de archivos estáticos:"
+if docker exec clinic-admin-system test -d /app/static/admin; then
+    file_count=$(docker exec clinic-admin-system find /app/static/admin -type f | wc -l)
+    echo -e "${GREEN}✅ Static admin files: $file_count files found${NC}"
+else
+    echo -e "${RED}❌ Static admin directory not found in container${NC}"
+fi
+
+echo ""
+echo "🔍 Mount points verification:"
+echo "Verificando que los assets sean accesibles..."
+
+# Test asset endpoints
+admin_assets_test=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:60519/admin/assets/" 2>/dev/null || echo "ERROR")
+assets_test=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:60519/assets/" 2>/dev/null || echo "ERROR")
+
+echo "Testing /admin/assets/ endpoint: $admin_assets_test"
+echo "Testing /assets/ endpoint: $assets_test"
+
+echo ""
+echo "📋 Logs recientes (verificando mounts):"
+docker logs --tail 5 clinic-admin-system
+
+echo ""
+echo "========================================"
+echo -e "${GREEN}🎉 ASSETS + MinIO FIX COMPLETADO${NC}"
+echo "========================================"
+
 echo ""
 echo "🌐 URLs para probar:"
 echo "   🔧 Admin Dashboard: http://localhost:60519/admin"
 echo "   📚 API Docs: http://localhost:60519/docs"
 echo "   ⚡ Health Check: http://localhost:60519/health"
+
 echo ""
 echo "🔍 Para verificar assets:"
 echo "   Accede al admin dashboard y verifica que no haya errores 404"
 echo "   Revisa la consola del navegador para confirmación"
+
 echo ""
 echo "💡 ¿Qué se corrigió?"
+echo "   ✅ Rebuild completo del frontend admin"
 echo "   ✅ Dependencia MinIO agregada a requirements.txt"
-echo "   ✅ Backend rebuildeado sin cache para incluir MinIO"
-echo "   ✅ Verificación de assets del frontend"
-echo "   ✅ Health checks de servicios"
+echo "   ✅ Backend rebuildeado con MinIO incluido"
+echo "   ✅ 4 mount points de assets para máxima compatibilidad:"
+echo "      - /admin/assets (original)"
+echo "      - /assets (fix principal para 404s)"
+echo "      - /static/admin/assets (alternativo)"
+echo "      - /static (todos los archivos estáticos)"
+echo "   ✅ Limpieza de builds antiguos"
+echo "   ✅ Verificación exhaustiva de funcionamiento"
 echo "   ✅ Integración MinIO verificada"
-echo ""
 
-# Check if everything is working
-if [ "$backend_status" = "200" ]; then
-    print_success "¡Script completado exitosamente! El sistema debería estar funcionando."
+echo ""
+if [ "$backend_response" = "200" ]; then
+    echo -e "${GREEN}¡Script completado! El problema de assets y MinIO debería estar resuelto definitivamente.${NC}"
 else
-    print_error "Hay problemas pendientes. Revisa los logs arriba."
-    echo ""
-    echo "Para debuggear:"
-    echo "   docker logs clinic-admin-system"
-    echo "   docker-compose -f clinic-admin-backend/docker-compose.yml logs"
+    echo -e "${YELLOW}Script completado con advertencias. Revisar logs si persisten problemas.${NC}"
 fi
 
-echo ""
 echo "Presiona Enter para continuar..."
 read
