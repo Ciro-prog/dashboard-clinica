@@ -1,146 +1,65 @@
-cirolinux@cirolinux:/opt/dashboard-clinica/scripts$ ./fix-assets-production.sh
-
-🔧 CLINIC SYSTEM - DEFINITIVE ASSETS FIX + MinIO
-==============================================
-
-🔍 Problemas identificados:
-   ❌ Assets 404: /assets/index-CzOFjnr3.js HTTP/1.1 404 Not Found
-   ❌ MinIO dependency: ModuleNotFoundError: No module named 'minio'
-   ❌ Build inconsistente entre local y servidor
-   ❌ Mount points insuficientes en FastAPI
-   ✅ Solución: Rebuild completo + rutas múltiples + MinIO fix
-
-📋 Estado actual del sistema:
-Current commit: 187779d Agrega script de sincronización y rebuild para resolver problemas de versión entre servidor y repositorio. El script realiza git pull, rebuild del frontend y backend, y verificación completa del sistema.
-Backend directory: /opt/dashboard-clinica/clinic-admin-backend
-
-🔧 PASO 1: Verificando dependencia MinIO
-✅ Dependencia MinIO ya está en requirements.txt
-
-🔍 PASO 2: Verificando estructura frontend admin
-✅ frontend-admin directory exists
-total 352
-drwxrwxr-x 7 cirolinux cirolinux   4096 ago 17 17:59 .
-drwxrwxr-x 8 cirolinux cirolinux   4096 ago 21 04:48 ..
--rw-rw-r-- 1 cirolinux cirolinux    606 ago 16 22:26 App.css
--rw-rw-r-- 1 cirolinux cirolinux   1132 ago 16 22:26 App.tsx
-
-📁 Static admin status:
-✅ static/admin exists
-Directory size: 10M     static/admin
-Files count: 25
-
-🛑 PASO 3: Deteniendo contenedores
-
-🏗️ PASO 4: Rebuildeando frontend
-Cleaning previous builds...
-Installing dependencies...
-Building frontend...
-
-> vite_react_shadcn_ts@0.0.0 build
-> vite build
-
-NODE_ENV=production is not supported in the .env file. Only NODE_ENV=development is supported to create a development build of your project. If you need to set process.env.NODE_ENV, you can set it in the Vite config instead.
-vite v5.4.10 building for production...
-transforming (1) index.htmlBrowserslist: browsers data (caniuse-lite) is 10 months old. Please run:
-  npx update-browserslist-db@latest
-  Why you should do it regularly: https://github.com/browserslist/update-db#readme
-✓ 1765 modules transformed.
-dist/index.html                   1.04 kB │ gzip:   0.44 kB
-dist/assets/index-DU9mtSB2.css  101.68 kB │ gzip:  16.48 kB
-dist/assets/index-C2jMecAs.js   721.98 kB │ gzip: 191.32 kB
-
 (!) Some chunks are larger than 500 kB after minification. Consider:
 - Using dynamic import() to code-split the application
 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
-✓ built in 8.57s
+✓ built in 8.92s
 ✅ Frontend build successful
 Copying build to backend...
 Build copied to static/admin
 Files: 6
 
-🐳 PASO 5: Rebuildeando backend (con MinIO)
+🐳 PASO 7: Rebuildeando backend (docker-compose.admin.yml + MinIO)
 Building Docker image with MinIO dependency...
-✅ Backend rebuild successful (MinIO included)
+[+] Building 174.0s (19/24)
+[+] Building 174.1s (19/24)
+[+] Building 174.3s (19/24)
+[+] Building 174.4s (19/24)
+[+] Building 174.6s (19/24)
+[+] Building 174.7s (19/24)
+[+] Building 174.9s (19/24)
+[+] Building 174.9s (19/24)
+[+] Building 175.1s (19/24)
+[+] Building 175.2s (19/24)
+[+] Building 175.4s (19/24)
+[+] Building 175.5s (19/24)
+[+] Building 175.7s (19/24)
+[+] Building 175.7s (20/24)
+[+] Building 175.9s (20/24)
+[+] Building 176.0s (20/24)
+[+] Building 176.2s (20/24)
+[+] Building 176.3s (20/24)
+[+] Building 176.4s (20/24)
+ => [internal] load local bake definitions                                                                                                                                              0.0s
+ => => reading from stdin 619B                                                                                                                                                          0.0s
+ => [internal] load build definition from Dockerfile.admin                                                                                                                              0.2s
+ => => transferring dockerfile: 1.40kB                                                                                                                                                  0.0s
+ => [internal] load metadata for docker.io/library/python:3.11-slim                                                                                                                     2.2s
+ => [internal] load metadata for docker.io/library/node:18-alpine                                                                                                                       1.9s
+ => [auth] library/python:pull token for registry-1.docker.io                                                                                                                           0.0s2 => [auth] library/node:pull token for registry-1.docker.io                                                                                                                             0.0s3 => [internal] load .dockerignore                                                                                                                                                       0.2s5 => => transferring context: 1.22kB                                                                                                                                                     0.0s6 => [frontend-builder 1/6] FROM docker.io/library/node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e                                                0.0s8 => [internal] load build context                                                                                                                                                       0.4s9 => => transferring context: 36.30kB                                                                                                                                                    0.1s1 => CACHED [stage-1  1/10] FROM docker.io/library/python:3.11-slim@sha256:1d6131b5d479888b43200645e03a78443c7157efbdb730e6b48129740727c312                                              0.4s1 => => resolve docker.io/library/python:3.11-slim@sha256:1d6131b5d479888b43200645e03a78443c7157efbdb730e6b48129740727c312                                                               0.4s2 => CACHED [frontend-builder 2/6] WORKDIR /app/frontend-admin                                                                                                                           0.0s4 => [frontend-builder 3/6] COPY frontend-admin/package*.json ./                                                                                                                         1.7s5 => [stage-1  2/10] RUN apt-get update && apt-get install -y     gcc     curl     && rm -rf /var/lib/apt/lists/*                                                                       73.3s7 => [frontend-builder 4/6] RUN npm install                                                                                                                                             22.3s8 => [frontend-builder 5/6] COPY frontend-admin/ ./                                                                                                                                      1.9s9 => [frontend-builder 6/6] RUN npm run build                                                                                                                                           13.0s9 => [stage-1  3/10] WORKDIR /app                                                                                                                                                        1.1s9 => [stage-1  4/10] COPY requirements.txt .                                                                                                                                             0.8s9 => [stage-1  5/10] RUN pip install --no-cache-dir -r requirements.txt                                                                                                                 95.1s9 => ERROR [stage-1  6/10] RUN python -c "import minio; print("✅ MinIO installed successfully")" || (echo "❌ MinIO installation failed" && exit 1)                                       1.9s
+------
+ > [stage-1  6/10] RUN python -c "import minio; print("✅ MinIO installed successfully")" || (echo "❌ MinIO installation failed" && exit 1):
+1.084   File "<string>", line 1
+1.084     import minio; print(✅
+1.084                         ^
+1.084 SyntaxError: invalid character '✅' (U+2705)
+1.091 ❌ MinIO installation failed
+------
+Dockerfile.admin:29
 
-🚀 PASO 6: Iniciando servicios
-no service selected
+--------------------
 
-⏳ Esperando inicialización completa (30 segundos)...
+  27 |     RUN pip install --no-cache-dir -r requirements.txt
 
-🧪 VERIFICACIÓN EXHAUSTIVA
-===============================
+  28 |             # Verificar instalación MinIO después de instalar requirements
 
-📊 Estado del contenedor:
-NAMES                    STATUS                          PORTS
-clinic-admin-system      Restarting (1) 59 seconds ago
-rambirto-mq-prod         Up 6 hours (healthy)            4369/tcp, 5671/tcp, 15671/tcp, 15691-15692/tcp, 0.0.0.0:60525->5672/tcp, [::]:60525->5672/tcp, 0.0.0.0:60524->15672/tcp, [::]:60524->15672/tcp, 0.0.0.0:60526->25672/tcp, [::]:60526->25672/tcp
-minio                    Up 23 hours (healthy)           0.0.0.0:60522->9000/tcp, [::]:60522->9000/tcp, 0.0.0.0:60523->9001/tcp, [::]:60523->9001/tcp
-waha-plus                Up 2 days                       0.0.0.0:60513->3000/tcp, [::]:60513->3000/tcp
-n8n                      Up 2 days                       0.0.0.0:60514->5678/tcp, [::]:60514->5678/tcp
-clinic-frontend-client   Up 4 days (healthy)             0.0.0.0:60521->80/tcp, [::]:60521->80/tcp
-cms-clinica              Up 7 days                       0.0.0.0:60520->1337/tcp, [::]:60520->1337/tcp
-mongo-express            Up 7 days                       0.0.0.0:60517->8081/tcp, [::]:60517->8081/tcp
-mongodb                  Up 7 days                       0.0.0.0:60516->27017/tcp, [::]:60516->27017/tcp
+  29 | >>>         RUN python -c "import minio; print("✅ MinIO installed successfully")" || (echo "❌ MinIO installation failed" && exit 1)
 
-🌐 Health Check:
-❌ Backend: ERROR
-Checking logs for issues...
-  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
-  File "/app/main.py", line 10, in <module>
-    from app.api import auth, clinics, patients, professionals, admin_dashboard, subscription_plans, documents
-  File "/app/app/api/documents.py", line 10, in <module>
-    from ..core.storage_service import get_storage_service
-  File "/app/app/core/storage_service.py", line 14, in <module>
-    from .storage import get_minio_client
-  File "/app/app/core/storage.py", line 6, in <module>
-    from minio import Minio
-ModuleNotFoundError: No module named 'minio'
+  30 |
 
-🗃️ MinIO Integration Check:
-⚠️ API Docs: Check required
+  31 |     # Copy backend code
 
-📂 Verificación de archivos estáticos:
-✅ Static admin files: 3 files found
+--------------------
 
-🔍 Mount points verification:
-Verificando que los assets sean accesibles...
-Testing /admin/assets/ endpoint: 000ERROR
-Testing /assets/ endpoint: 000ERROR
+failed to solve: process "/bin/sh -c python -c \"import minio; print(\"✅ MinIO installed successfully\")\" || (echo \"❌ MinIO installation failed\" && exit 1)" did not complete successfully: exit code: 1
 
-📋 Logs recientes (verificando mounts):
-  File "/app/app/core/storage_service.py", line 14, in <module>
-    from .storage import get_minio_client
-  File "/app/app/core/storage.py", line 6, in <module>
-    from minio import Minio
-ModuleNotFoundError: No module named 'minio'
-
-========================================
-🎉 ASSETS + MinIO FIX COMPLETADO
-========================================
-
-🌐 URLs para probar:
-   🔧 Admin Dashboard: http://localhost:60519/admin
-   📚 API Docs: http://localhost:60519/docs
-   ⚡ Health Check: http://localhost:60519/health
-
-🔍 Para verificar assets:
-   Accede al admin dashboard y verifica que no haya errores 404
-   Revisa la consola del navegador para confirmación
-
-💡 ¿Qué se corrigió?
-   ✅ Rebuild completo del frontend admin
-   ✅ Dependencia MinIO agregada a requirements.txt
-   ✅ Backend rebuildeado con MinIO incluido
-   ✅ 4 mount points de assets para máxima compatibilidad:
-      - /admin/assets (original)
-      - /assets (fix principal para 404s)
-      - /static/admin/assets (alternativo)
-      - /static (todos los archivos estáticos)
-   ✅ Limpieza de builds antiguos
-   ✅ Verificación exhaustiva de funcionamiento
-   ✅ Integración MinIO verificada
-
-Script completado con advertencias. Revisar logs si persisten problemas.
-Presiona Enter para continuar...
+❌ Backend build failed
