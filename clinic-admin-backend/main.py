@@ -136,7 +136,8 @@ if os.path.exists(admin_static_dir):
     
     # Mount static files for assets (CSS, JS, etc.)
     app.mount("/admin/assets", StaticFiles(directory=f"{admin_static_dir}/assets"), name="admin-assets")
-    print(f"Mounted admin assets at /admin/assets")
+    app.mount("/assets", StaticFiles(directory=f"{admin_static_dir}/assets"), name="assets")
+    print(f"Mounted admin assets at /admin/assets and /assets")
     
     # Serve admin app at root of /admin  
     @app.get("/admin")
