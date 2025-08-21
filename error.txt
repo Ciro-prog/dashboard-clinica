@@ -1,12 +1,78 @@
-cirolinux@cirolinux:/opt/dashboard-clinica/scripts$ ./fix-assets-production.sh  🚀 Iniciando fix para assets y dependencias de producción...
-==========================================
-[INFO] Deteniendo contenedores existentes...
-open /opt/dashboard-clinica/scripts/clinic-admin-backend/docker-compose.yml: no such file or directory
-[WARNING] No se encontraron contenedores activos
-[INFO] Rebuildeando backend con dependencia MinIO...
-./fix-assets-production.sh: line 46: cd: clinic-admin-backend: No such file or directory
-[SUCCESS] Backend rebuildeado con dependencias actualizadas
-[INFO] Iniciando servicios actualizados...
-no service selected
-[ERROR] Error al iniciar servicios
+ * branch            main       -> FETCH_HEAD
+Updating b59a614..1e5c6cc
+Fast-forward
+ error.txt                        |  92 ++-----------
+ scripts/fix-assets-production.sh | 278 ++++++++++++++++++++++++---------------
+ 2 files changed, 185 insertions(+), 185 deletions(-)
+cirolinux@cirolinux:/opt/dashboard-clinica$ cd scripts/
+cirolinux@cirolinux:/opt/dashboard-clinica/scripts$ chmod +x ./fix-assets-produc                                                                                                             tion.sh
+cirolinux@cirolinux:/opt/dashboard-clinica/scripts$ ./fix-assets-production.sh                                                                                                               
+🔧 CLINIC SYSTEM - DEFINITIVE ASSETS FIX + MinIO
+==============================================
+
+🔍 Problemas identificados:
+   ❌ Assets 404: /assets/index-CzOFjnr3.js HTTP/1.1 404 Not Found
+   ❌ MinIO dependency: ModuleNotFoundError: No module named 'minio'
+   ❌ Build inconsistente entre local y servidor
+   ❌ Mount points insuficientes en FastAPI
+   ✅ Solución: Rebuild completo + rutas múltiples + MinIO fix
+
+📋 Estado actual del sistema:
+Current commit: 1e5c6cc Actualiza el script de corrección de assets para incluir                                                                                                              la verificación de la dependencia MinIO y mejorar la gestión de errores. Se rea                                                                                                             liza un rebuild completo del backend y del frontend, asegurando la correcta inte                                                                                                             gración de MinIO y la disponibilidad de assets. Se añaden múltiples puntos de mo                                                                                                             ntaje para maximizar la compatibilidad y se mejora la verificación del estado de                                                                                                              los servicios.
+Backend directory: /opt/dashboard-clinica/clinic-admin-backend
+
+🔧 PASO 1: Verificando dependencia MinIO
+✅ Dependencia MinIO ya está en requirements.txt
+
+🔍 PASO 2: Verificando estructura frontend admin
+✅ frontend-admin directory exists
+total 352
+drwxrwxr-x 7 cirolinux cirolinux   4096 ago 17 17:59 .
+drwxrwxr-x 8 cirolinux cirolinux   4096 ago 21 04:48 ..
+-rw-rw-r-- 1 cirolinux cirolinux    606 ago 16 22:26 App.css
+-rw-rw-r-- 1 cirolinux cirolinux   1132 ago 16 22:26 App.tsx
+
+📁 Static admin status:
+✅ static/admin exists
+Directory size: 9,2M    static/admin
+Files count: 20
+
+🛑 PASO 3: Deteniendo contenedores
+
+🏗️ PASO 4: Rebuildeando frontend
+Cleaning previous builds...
+Installing dependencies...
+Building frontend...
+
+> vite_react_shadcn_ts@0.0.0 build
+> vite build
+
+NODE_ENV=production is not supported in the .env file. Only NODE_ENV=development                                                                                                              is supported to create a development build of your project. If you need to set                                                                                                              process.env.NODE_ENV, you can set it in the Vite config instead.
+vite v5.4.10 building for production...
+transforming (3) src/main.tsxBrowserslist: browsers data (caniuse-lite) is 10 mo                                                                                                             nths old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#read                                                                                                             me
+✓ 1765 modules transformed.
+x Build failed in 6.76s
+error during build:
+src/components/MedicalRecordsSearch.tsx (10:9): "apiRequest" is not exported by                                                                                                              "src/lib/clinicApi.ts", imported by "src/components/MedicalRecordsSearch.tsx".
+file: /opt/dashboard-clinica/src/components/MedicalRecordsSearch.tsx:10:9
+
+ 8: import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+ 9: import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } fro                                                                                                             m './ui/select';
+10: import { apiRequest } from '../lib/clinicApi';
+             ^
+11: import { getStoredClinicData } from '../lib/clinicAuth';
+
+    at getRollupError (file:///opt/dashboard-clinica/node_modules/rollup/dist/es                                                                                                             /shared/parseAst.js:395:41)
+    at error (file:///opt/dashboard-clinica/node_modules/rollup/dist/es/shared/p                                                                                                             arseAst.js:391:42)
+    at Module.error (file:///opt/dashboard-clinica/node_modules/rollup/dist/es/s                                                                                                             hared/node-entry.js:15535:16)
+    at Module.traceVariable (file:///opt/dashboard-clinica/node_modules/rollup/d                                                                                                             ist/es/shared/node-entry.js:15984:29)
+    at ModuleScope.findVariable (file:///opt/dashboard-clinica/node_modules/roll                                                                                                             up/dist/es/shared/node-entry.js:13770:39)
+    at FunctionScope.findVariable (file:///opt/dashboard-clinica/node_modules/ro                                                                                                             llup/dist/es/shared/node-entry.js:5252:38)
+    at FunctionBodyScope.findVariable (file:///opt/dashboard-clinica/node_module                                                                                                             s/rollup/dist/es/shared/node-entry.js:5252:38)
+    at ReturnValueScope.findVariable (file:///opt/dashboard-clinica/node_modules                                                                                                             /rollup/dist/es/shared/node-entry.js:5252:38)
+    at FunctionBodyScope.findVariable (file:///opt/dashboard-clinica/node_module                                                                                                             s/rollup/dist/es/shared/node-entry.js:5252:38)
+    at BlockScope.findVariable (file:///opt/dashboard-clinica/node_modules/rollu                                                                                                             p/dist/es/shared/node-entry.js:5252:38)
+❌ Frontend build failed
 cirolinux@cirolinux:/opt/dashboard-clinica/scripts$

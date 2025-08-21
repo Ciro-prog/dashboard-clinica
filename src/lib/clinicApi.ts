@@ -154,19 +154,26 @@ export interface BasicStats {
 }
 
 // Función base para hacer requests con autenticación por API Key
-async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
+export async function apiRequest<T>(endpoint: string, method?: string, data?: any): Promise<T> {
     const url = `${API_URL}${endpoint}`;
     
     console.log('🔗 Haciendo request autenticado a:', url);
     
-    // Usar el sistema de autenticación persistente
-    const response = await persistentAuth.authenticatedRequest(url, {
+    // Construir opciones de request
+    const options: RequestInit = {
+      method: method || 'GET',
       headers: {
         'Content-Type': 'application/json',
-        ...options?.headers,
       },
-      ...options,
-    });
+    };
+
+    // Agregar body si hay data y no es GET
+    if (data && method !== 'GET') {
+      options.body = JSON.stringify(data);
+    }
+    
+    // Usar el sistema de autenticación persistente
+    const response = await persistentAuth.authenticatedRequest(url, options);
   
     console.log('📡 Response status:', response.status);
   
